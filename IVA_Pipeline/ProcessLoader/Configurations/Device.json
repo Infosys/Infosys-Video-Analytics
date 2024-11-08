@@ -1,0 +1,546 @@
+{
+	"Attributes": [
+		{
+			"AttributeName": "ALL_IP_ADDRESS",
+			"AttributeValue": "[IP_ADDRESS]"
+		},
+		{
+			"AttributeName": "ARCHIVE_ENABLED",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "ARCHIVE_LOCATION",
+			"AttributeValue": "[C:\\Archieved\\]"  //Archieved file location path
+		},
+		{
+			"AttributeName": "BOX_COLOR",
+			"AttributeValue": "{\"default\" : \"blue\",\"new_person\" : \"green\",\"fire\" : \"red\",\"smoke\" : \"yellow\",\"car\" : \"white\",\"person\" : \"ActiveBorder\",
+			\"bicycle\" : \"ActiveCaption\",\"motorcycle\" : \"ActiveCaptionText\", \"airplane\" : \"AppWorkspace\",\"bus\" : \"Control\",\"train\" : \"ControlDark\", \"truck\" : \"ControlDarkDark\",\"boat\" : \"ControlLight\",\"traffic light\" : \"ControlLightLight\", \"fire hydrant\" : \"ControlText\",\"street sign\" : \"Desktop\",\"stop sign\" : \"GrayText\",
+			\"parking meter\" : \"Highlight\",\"bench\" : \"HighlightText\",\"bird\" : \"HotTrack\", \"cat\" : \"InactiveBorder\",\"dog\" : \"CadetBlue\",\"horse\" : \"DeepPink\", \"sheep\" : \"InactiveCaption\",\"cow\" : \"Chartreuse\",\"elephant\" : \"DeepSkyBlue\", \"bear\" : \"InactiveCaptionText\",\"zebra\" : \"Chocolate\",\"giraffe\" : \"DimGray\",
+			\"hat\" : \"Info\",\"backpack\" : \"Coral\",\"umbrella\" : \"ActiveCaptionText\", \"shoe\" : \"InfoText\",\"eye glasses\" : \"CornflowerBlue\",\"handbag\" : \"ActiveCaptionText\", \"tie\" : \"Menu\",\"suitcase\" : \"Cornsilk\",\"frisbee\" : \"ActiveCaptionText\", \"skis\" : \"MenuText\",\"snowboard\" : \"Crimson\",\"sports ball\" : \"ActiveCaptionText\",
+			\"kite\" : \"ScrollBar\",\"baseball bat\" : \"Cyan\",\"baseball glove\" : \"ActiveCaptionText\", \"skateboard\" : \"Window\",\"surfboard\" : \"DarkBlue\",\"tennis racket\" : \"ActiveCaptionText\", \"bottle\" : \"WindowFrame\",\"plate\" : \"DarkCyan\",\"wine glass\" : \"ActiveCaptionText\", \"cup\" : \"WindowText\",\"fork\" : \"DarkGoldenrod\",\"knife\" : \"ActiveCaptionText\",
+			\"spoon\" : \"Transparent\",\"bowl\" : \"DarkGray\",\"banana\" : \"ActiveCaptionText\", \"apple\" : \"AliceBlue\",\"sandwich\" : \"DarkGreen\",\"orange\" : \"ActiveCaptionText\", \"broccoli\" : \"AntiqueWhite\",\"carrot\" : \"DarkKhaki\",\"hot dog\" : \"ActiveCaptionText\", \"pizza\" : \"Aqua\",\"donut\" : \"DarkMagenta\",\"cake\" : \"ActiveCaptionText\",
+			\"chair\" : \"Aquamarine\",\"couch\" : \"DarkOliveGreen\",\"potted plant\" : \"ActiveCaptionText\", \"bed\" : \"Azure\",\"mirror\" : \"DarkOrange\",\"dining table\" : \"ActiveCaptionText\", \"window\" : \"Beige\",\"desk\" : \"DarkOrchid\",\"toilet\" : \"ActiveCaptionText\", \"door\" : \"Bisque\",\"tv\" : \"DarkRed\",\"laptop\" : \"ActiveCaptionText\",
+			\"mouse\" : \"Black\",\"remote\" : \"DarkSalmon\",\"keyboard\" : \"ActiveCaptionText\", \"cell phone\" : \"BlanchedAlmond\",\"DarkSeaGreen\" : \"ActiveCaptionText\",\"oven\" : \"ActiveCaptionText\", \"oven\" : \"Blue\",\"sink\" : \"DarkSlateBlue\",\"refrigerator\" : \"ActiveCaptionText\", \"blender\" : \"BlueViolet\",\"book\" : \"DarkSlateGray\",\"clock\" : \"ActiveCaptionText\",
+			\"vase\" : \"Brown\",\"scissors\" : \"DarkTurquoise\",\"teddy bear\" : \"ActiveCaptionText\", \"hair drier\" : \"BurlyWood\",\"toothbrush\" : \"DarkViolet\",\"hair brush\" : \"ActiveCaptionText\"
+		}
+		"},
+		{
+			"AttributeName": "BACKGROUND_COLOR",
+			"AttributeValue": "red"
+		},
+		{
+			"AttributeName": "BACKGROUND_CHANGE",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "LABEL_COLOR",
+			"AttributeValue": "{\"default\" : \"LightBlue\",\"new_person\" : \"LightSeaGreen\",\"fire\" : \"red\",\"smoke\" : \"yellow\",\"car\" : \"Orange\",\"person\" : \"Aqua\",
+			\"bicycle\" : \"LightYellow\",\"motorcycle\" : \"LightSlateGray\", \"airplane\" : \"AppWorkspace\",\"bus\" : \"Control\",\"train\" : \"ControlDark\", \"truck\" : \"ControlDarkDark\",\"boat\" : \"ControlLight\",\"traffic light\" : \"ControlLightLight\", \"fire hydrant\" : \"ControlText\",\"street sign\" : \"Desktop\",\"stop sign\" : \"GrayText\",
+			\"parking meter\" : \"Highlight\",\"bench\" : \"HighlightText\",\"bird\" : \"HotTrack\", \"cat\" : \"InactiveBorder\",\"dog\" : \"CadetBlue\",\"horse\" : \"DeepPink\", \"sheep\" : \"InactiveCaption\",\"cow\" : \"Chartreuse\",\"elephant\" : \"DeepSkyBlue\", \"bear\" : \"InactiveCaptionText\",\"zebra\" : \"Chocolate\",\"giraffe\" : \"DimGray\",
+			\"hat\" : \"Info\",\"backpack\" : \"Coral\",\"umbrella\" : \"ActiveCaptionText\", \"shoe\" : \"InfoText\",\"eye glasses\" : \"CornflowerBlue\",\"handbag\" : \"ActiveCaptionText\", \"tie\" : \"Menu\",\"suitcase\" : \"Cornsilk\",\"frisbee\" : \"ActiveCaptionText\", \"skis\" : \"MenuText\",\"snowboard\" : \"Crimson\",\"sports ball\" : \"ActiveCaptionText\",
+			\"kite\" : \"ScrollBar\",\"baseball bat\" : \"Cyan\",\"baseball glove\" : \"ActiveCaptionText\", \"skateboard\" : \"Window\",\"surfboard\" : \"DarkBlue\",\"tennis racket\" : \"ActiveCaptionText\", \"bottle\" : \"WindowFrame\",\"plate\" : \"DarkCyan\",\"wine glass\" : \"ActiveCaptionText\", \"cup\" : \"WindowText\",\"fork\" : \"DarkGoldenrod\",\"knife\" : \"ActiveCaptionText\",
+			\"spoon\" : \"Transparent\",\"bowl\" : \"DarkGray\",\"banana\" : \"ActiveCaptionText\", \"apple\" : \"AliceBlue\",\"sandwich\" : \"DarkGreen\",\"orange\" : \"ActiveCaptionText\", \"broccoli\" : \"AntiqueWhite\",\"carrot\" : \"DarkKhaki\",\"hot dog\" : \"ActiveCaptionText\", \"pizza\" : \"Aqua\",\"donut\" : \"DarkMagenta\",\"cake\" : \"ActiveCaptionText\",
+			\"chair\" : \"Aquamarine\",\"couch\" : \"DarkOliveGreen\",\"potted plant\" : \"ActiveCaptionText\", \"bed\" : \"Azure\",\"mirror\" : \"DarkOrange\",\"dining table\" : \"ActiveCaptionText\", \"window\" : \"Beige\",\"desk\" : \"DarkOrchid\",\"toilet\" : \"ActiveCaptionText\", \"door\" : \"Bisque\",\"tv\" : \"DarkRed\",\"laptop\" : \"ActiveCaptionText\",
+			\"mouse\" : \"Black\",\"remote\" : \"DarkSalmon\",\"keyboard\" : \"ActiveCaptionText\", \"cell phone\" : \"BlanchedAlmond\",\"DarkSeaGreen\" : \"ActiveCaptionText\",\"oven\" : \"ActiveCaptionText\", \"oven\" : \"Blue\",\"sink\" : \"DarkSlateBlue\",\"refrigerator\" : \"ActiveCaptionText\", \"blender\" : \"BlueViolet\",\"book\" : \"DarkSlateGray\",\"clock\" : \"ActiveCaptionText\",
+			\"vase\" : \"Brown\",\"scissors\" : \"DarkTurquoise\",\"teddy bear\" : \"ActiveCaptionText\", \"hair drier\" : \"BurlyWood\",\"toothbrush\" : \"DarkViolet\",\"hair brush\" : \"ActiveCaptionText\"
+		}
+		"},
+		{
+			"AttributeName": "CAMERA_URL",
+			"AttributeValue": "0"
+		},
+		{
+			"AttributeName": "CLEAN_UP_STREAMING_FOLDER",
+			"AttributeValue": "yes"
+		},
+		{
+			"AttributeName": "COMPLIANCE_LOWER_THRESHOLD",
+			"AttributeValue": "60"
+		},
+		{
+			"AttributeName": "COMPLIANCE_UPPER_THRESHOLD",
+			"AttributeValue": "20"
+		},
+		{
+			"AttributeName": "CONFIDENCE_THRESHOLD",
+			"AttributeValue": "0.4"
+		},
+		{
+			"AttributeName": "DELETE_FRAMES_FROM_BLOB",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "DISPLAY_ALL_FRAMES",
+			"AttributeValue": "yes"
+		},
+		{
+			"AttributeName": "EMAIL_NOTIFICATION_DESCRIPTION",
+			"AttributeValue": "To View Frame Details [FRAMELINK]"
+		},
+		{
+			"AttributeName": "ENABLELOTS",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "ENFORCE_FRAME_SEQUENCING",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "FFMPEG_ARGUMENTS",
+			"AttributeValue": "-re -f image2pipe -i pipe:.bmp -r 24 Output.flv"
+		},
+		{
+			"AttributeName": "FFMPEG_BACKGROUNDCHANGE",
+			"AttributeValue": "-i D:\\background.jpg -i \"Output.flv\" -filter_complex \"[1:v]colorkey=0x3BBD1E:0.08:0.25[ckout];[0:v][ckout]overlay[out]\" -map \"[out]\" BackgroundChanged.mp4"
+		},
+		{
+			"AttributeName": "FRAME_SEQUENCING_MESSAGE_RETRY",
+			"AttributeValue": "10"
+		},
+		{
+			"AttributeName": "FRAME_SEQUENCING_MESSAGE_STUCK_DURATION_MSEC",
+			"AttributeValue": "100"
+		},
+		{
+			"AttributeName": "FRAMETOPREDICT", //provide the FrameToPredict from 1to10 depends on user requirement
+			"AttributeValue": "1"
+		},
+		{
+			"AttributeName": "FTP_PERSECOND",
+			"AttributeValue": "0"
+		},
+
+		{
+			"AttributeName": "INITIAL_COLLECTION_BUFFERING_SIZE",
+			"AttributeValue": "1"
+		},
+		{
+			"AttributeName": "IS_CLIENT_ACTIVE",
+			"AttributeValue": "yes"
+		},
+		{
+			"AttributeName": "LABEL_FONT_COLOR",
+			"AttributeValue": "Black"
+		},
+		{
+			"AttributeName": "LABEL_FONT_SIZE",
+			"AttributeValue": "12"
+		},
+		{
+			"AttributeName": "LABEL_FONT_STYLE",
+			"AttributeValue": "Arial"
+		},
+		{
+			"AttributeName": "LABEL_HEIGHT",
+			"AttributeValue": "20"
+		},
+
+		{
+			"AttributeName": "MASK_DETECTOR_VIEWER_IP_ADDRESS",
+			"AttributeValue": "[MASK_DETECTOR_VIEWER_IP_ADDRESS]"
+		},
+		{
+			"AttributeName": "MASK_DETECTOR_VIEWER_PORT",
+			"AttributeValue": "[MASK_DETECTOR_VIEWER_PORT]"
+		},
+		{
+			"AttributeName": "MASK_LABEL",
+			"AttributeValue": "Mask"
+		},
+		{
+			"AttributeName": "MASK_PEN_COLOR",
+			"AttributeValue": "Green"
+		},
+		{
+			"AttributeName": "MAX_SEQUENCE_NUMBER",
+			"AttributeValue": "5184000"
+		},
+		{
+			"AttributeName": "MEDIA_STREAMING_URL",
+			"AttributeValue": "[MEDIA_STREAMING_URL]"
+		},
+		{
+			"AttributeName": "METRIC_TYPE",
+			"AttributeValue": "ClassDetected"
+		},
+		{
+			"AttributeName": "ML_MODEL_URL",
+			"AttributeValue": "[ML_MODEL_URL]"
+		},
+		{
+			"AttributeName": "NO_MASK_LABEL",
+			"AttributeValue": "No_Mask"
+		},
+		{
+			"AttributeName": "NOMASK_LOWER_THRESHOLD",
+			"AttributeValue": "1"
+		},
+		{
+			"AttributeName": "NOMASK_PEN_COLOR",
+			"AttributeValue": "Red"
+		},
+		{
+			"AttributeName": "NOMASK_UPPER_THRESHOLD",
+			"AttributeValue": "3"
+		},
+		{
+			"AttributeName": "OBJECTS_COMPLIANCE_LOWER_THRESHOLD",
+			"AttributeValue": "20"
+		},
+		{
+			"AttributeName": "OBJECTS_COMPLIANCE_UPPER_THRESHOLD",
+			"AttributeValue": "80"
+		},
+		{
+			"AttributeName": "OBJECTS_LOWER_THRESHOLD",
+			"AttributeValue": "20"
+		},
+		{
+			"AttributeName": "OBJECTS_TO_BE_TRACKED",
+			"AttributeValue": "[\"hfl9827\",\"mdz5g32\",\"obj1\",\"PGNN112\",\"dz7yxp\",\"choose\",\"ch00se\",\"emma watson\"]"
+		},
+		{
+			"AttributeName": "OBJECTS_UPPER_THRESHOLD",
+			"AttributeValue": "60"
+		},
+		{
+			"AttributeName": "OFFLINE_VIDEO_DIRECTORY",  //provide the exact entire path of the input video file 
+			"AttributeValue": "[OFFLINE_VIDEO_DIRECTORY]"
+		},
+		{
+			"AttributeName": "PCD_DIRECTORY",           // Path of the input point cloud data files. Used when VIDEO_FEED_TYPE is PCD.
+			"AttributeValue": "[PCD_DIRECTORY_VIDEOPATH]"
+		},
+		{
+			"AttributeName": "OVERLAP_THRESHOLD",
+			"AttributeValue": "0.2"
+		},
+		{
+			"AttributeName": "PEN_THICKNESS",
+			"AttributeValue": "6"
+		},
+		{
+			"AttributeName": "PERSONCOUNT_OVERLAP_THRESHOLD",
+			"AttributeValue": "0.2"
+		},
+		{
+			"AttributeName": "PREDICTION_CLASS_TYPE",
+			"AttributeValue": "dynamic"
+		},
+		{
+			"AttributeName": "PREDICTION_MODEL",    //provide the Model name Key word from XML that user want to use for prediction 
+			"AttributeValue": "[PREDICTION_MODEL]"
+		},
+		{
+			"AttributeName": "PREVIOUS_FRAME_COUNT",
+			"AttributeValue": "5"
+		},
+		{
+			"AttributeName": "ENABLE_PROMPT",   //To enable reading prompts from text file set the value to yes
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "PROMPT_INPUT_DIRECTORY",    //Path or directory of input text file that contains prompts
+			"AttributeValue": "[PROMPT_INPUT_DIRECTORY]"
+		},
+		{
+			"AttributeName": "MASK_IMAGE_INPUT",   //Directory where mask images should be read from
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "MASK_IMAGE_DIRECTORY",   //Directory where replace images should be read from
+			"AttributeValue": "[MASK_IMAGE_DIRECTORY]"
+		},
+		{
+			"AttributeName": "REPLACE_IMAGE_INPUT",    // yes for output images (base64 strings or image urls) rendering otherwise no
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "REPLACE_IMAGE_DIRECTORY",
+			"AttributeValue": "[REPLACE_IMAGE_DIRECTORY]"
+		},
+		{
+			"AttributeName": "BLOB_GENAI",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "GENAI",
+			"AttributeValue": "no"
+		},
+		
+		{
+			"AttributeName": "NUM_INFERENCE_STEPS",
+			"AttributeValue": "4"
+		},
+		{
+			"AttributeName": "WIDTH",
+			"AttributeValue": "1280"
+		},
+		{
+			"AttributeName": "HEIGHT", 
+			"AttributeValue": "720"
+		},
+		{
+			"AttributeName": "NUM_IMAGES_PER_PROMPT", 
+			"AttributeValue": "2"
+		},
+		{
+			"AttributeName": "GUIDANCE_SCALE", 
+			"AttributeValue": "8.0"
+		},
+		{
+			"AttributeName": "LCM_ORIGIN_STEPS",
+			"AttributeValue": "50"
+		},
+		{
+			"AttributeName": "OUTPUT_IMAGE",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "RENDERER_Q",
+			"AttributeValue": "onnx"
+		},
+		{
+			"AttributeName": "RENDERER_FONT_SCALE",
+			"AttributeValue": "0.8"
+		},
+		{
+			"AttributeName": "RENDERER_FONT_THICKNESS",
+			"AttributeValue": "2"
+		},
+		{
+			"AttributeName": "RENDERER_RECTANGLE_POINT_X",
+			"AttributeValue": "10"
+		},
+		{
+			"AttributeName": "RENDERER_RECTANGLE_POINT_Y",
+			"AttributeValue": "10"
+		},
+		{
+			"AttributeName": "RENDERER_LABEL_POINT_X",
+			"AttributeValue": "20"
+		},
+		{
+			"AttributeName": "RENDERER_LABEL_POINT_Y",
+			"AttributeValue": "20"
+		},
+		{
+			"AttributeName": "RENDERER_RECTANGLE_HEIGHT",
+			"AttributeValue": "35"
+		},
+		{
+			"AttributeName": "RENDERER_PREDICTCART_LIST_BACKGROUNDCOLOR",
+			"AttributeValue": "white"
+		},
+		{
+			"AttributeName": "SIMILARITY_THRESHOLD",
+			"AttributeValue": "0.4"
+		},
+		{
+			"AttributeName": "STORAGE_BASE_URL",
+			"AttributeValue": "[http://localhost]"
+		},
+		{
+			"AttributeName": "STREAMING_PATH",
+			"AttributeValue": "[STREAMING_PATH]"
+		},
+		{
+			"AttributeName": "SEGMENTCOLORS",
+			"AttributeValue": "{\"1\":\"AliceBlue\",\"2\":\"AntiqueWhite\",\"3\":\"Aqua\",\"4\":\"Aquamarine\",\"5\":\"Azure\",\"6\":\"Beige\",\"7\":\"Bisque\",\"8\":\"Black\",\"9\":\"BlanchedAlmond\",\"10\":\"Blue\",\"11\":\"BlueViolet\",\"12\":\"Brown\",\"13\":\"BurlyWood\",\"14\":\"CadetBlue\",\"15\":\"Chartreuse\",\"16\":\"Chocolate\",\"17\":\"Coral\",\"18\":\"CornflowerBlue\",\"19\":\"Cornsilk\",\"20\":\"Crimson\",\"21\":\"Cyan\",\"22\":\"DarkBlue\",\"23\":\"DarkCyan\",\"24\":\"DarkGoldenrod\",\"25\":\"DarkGray\",\"26\":\"DarkGreen\",\"27\":\"DarkKhaki\",\"28\":\"DarkMagenta\",\"29\":\"DarkOliveGreen\",\"30\":\"DarkOrange\",\"31\":\"DarkOrchid\",\"32\":\"DarkRed\",\"33\":\"DarkSalmon\",\"34\":\"DarkSeaGreen\",\"35\":\"DarkSlateBlue\",\"36\":\"DarkSlateGray\",\"37\":\"DarkTurquoise\",\"38\":\"DarkViolet\",\"39\":\"DeepPink\",\"40\":\"DeepSkyBlue\",\"41\":\"DimGray\",\"42\":\"DodgerBlue\",\"43\":\"Firebrick\",\"44\":\"FloralWhite\",\"45\":\"ForestGreen\",\"46\":\"Fuchsia\",\"47\":\"Gainsboro\",\"48\":\"GhostWhite\",\"49\":\"Gold\",\"50\":\"Goldenrod\"}"
+		},
+		{
+			"AttributeName": "TASKS_ROUTE",
+			//"AttributeValue": "{\"FGR\" :[\"OPR\"],\"GENAI\" :[\"OPR\"],\"OPR\" :[\"REN\",\"DCO\"],\"TPR\" :[],\"PRL\" :[],\"REN\" :[],\"DCO\" :[],\"ANA\" :[],\"MIN\":[],\"FES\" :[],}"
+			//"AttributeValue": "{\"FGR\" :[\"TPR\"],\"TPR\" :[\"REN\"],\"OPR\" :[],\"PRL\" :[],\"REN\" :[],\"DCO\" :[],\"ANA\" :[],\"MIN\":[]}"
+			"AttributeValue": "{\"FGR\" :[\"OPR\"],\"OPR\" :[\"REN\",\"DCO\"],\"TPR\" :[],\"PRL\" :[],\"REN\" :[],\"DCO\" :[],\"ANA\" :[],\"MIN\":[],\"FES\" :[],}"
+
+
+		},
+		{
+			"AttributeName": "TRANSPORT_REGION_CODES",
+			"AttributeValue": "{\"OPR\":\"FrameProcessor\",\"ANA\":\"FrameAnalytics\",\"PRL\":\"FramePreLoader\",\"REN\":\"FrameRenderer\",\"DCO\" : \"FrameCollector\",\"TPR\":\"UniquePersonTracking\",\"FES\":\"FrameElasticSearch\", \"GENAI\":\"PromptHandler\", \"PRI\":\"PromptInjector\"}"
+		},
+		{
+			"AttributeName": "TRANSPORT_SEQUENCING_BUFFERING_SIZE",
+			"AttributeValue": "1"
+		},
+		{
+			"AttributeName": "UNIQUE_PERSON_MODEL",
+			"AttributeValue": "[UNIQUE_PERSON_MODEL]"
+		},
+		{
+			"AttributeName": "UNIQUEPERSONTRACKING_ENABLED",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "VIDEO_FEED_TYPE", //OFFLINE for video files, IMAGE for image files, LIVE for cctv, PCD for point cloud data files and PROMPT to process only prompt input files
+			"AttributeValue": "IMAGE" //IMAGE,OFFLINE,LIVE
+		},
+		{
+			"AttributeName": "VIDEO_FORMATS_ALLOWED",
+			"AttributeValue": ".mp4,.wmv,.avi"
+		},
+		{
+			"AttributeName": "VIDEO_STREAMING_OPTION",  //1 to generate video (OFFLINE and LIVE), 2 to save frames/images as output (for IMAGE, PROMPT and PCD)
+			"AttributeValue": "2"
+		},
+		{
+			"AttributeName": "SHARED_BLOB_STORAGE",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "DEVICE_ID",
+			"AttributeValue": "[DEVICE_ID]"
+		},
+		{
+			"AttributeName": "TENANT_ID",
+			"AttributeValue": "1"
+		},
+		{
+			"AttributeName": "MSG_VERSION",
+			"AttributeValue": "1"
+		},
+		{
+			"AttributeName": "INF_VERSION",
+			"AttributeValue": "1"
+		},
+		{
+			"AttributeName": "POSE_POINT_RENDERING",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "SPEED_DETECTION",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "SEGMENT_RENDERING",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "PANOPTICSEGMENTATION",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "CLASSIFICATION_RENDERING",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "CROWD_COUNTING",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "PREDICT_CART",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "TRACKING",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "MPLUG",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "HEATMAP",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "INDEX_NAME",
+			"AttributeValue": "es_framemetadata4"
+		},
+		{
+			"AttributeName": "ENABLE_ELASTICSTORE",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "ELASTICSTORE_LABEL",
+			"AttributeValue": "Mask 2"
+		},
+		{
+			"AttributeName": "PYTHONVIRTUALPATH",
+			"AttributeValue": "C:\\Program Files\\Python311"
+		},
+		{
+			"AttributeName": "PYTHONVERSION",
+			"AttributeValue": "C:\\Program Files\\Python311\\python311.dll"
+		},
+		{
+			"AttributeName": "ENABLE_ELASTICSEARCH",  
+			"AttributeValue": "yes"      // "no" means when only one reference image present in the atr file
+		},
+
+		{
+			"AttributeName": "CVPREDICT_FIND_CONTROL_IN_MULTIPLE_CONTROL_STATES",
+			"AttributeValue": "yes"       // "no" means when only one reference image present in the atr file
+		},
+		{
+			"AttributeName": "CVPREDICT_IMAGE_RECOGNITION_TIMEOUT",
+			"AttributeValue": "1000"
+		},
+		{
+			"AttributeName": "CVPREDICT_USE_TRUE_COLOR_TEMPLATE_MATCHING",
+			"AttributeValue": "yes"
+		},
+		{
+			"AttributeName": "CVPREDICT_IMAGE_MATCH_CONFIDENCE_THRESHOLD",
+			"AttributeValue": "80"
+		},
+		{
+			"AttributeName": "CVPREDICT_MULTIPLE_SCALE_TEMPLATE_MATCHING",
+			"AttributeValue": "yes" 
+
+
+		},
+		{
+			"AttributeName": "CVPREDICT_IMAGE_MATCH_MAX_SCALE_STEP_COUNT",
+			"AttributeValue": "10"
+		},
+		{
+			"AttributeName": "CVPREDICT_IMAGE_MATCH_SCALE_STEP_SIZE",
+			"AttributeValue": "0.2"
+		},
+		{
+			"AttributeName": "CVPREDICT_MULTI_ROTATION_TEMPLATE_MATCHING",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "CVPREDICT_IMAGE_MATCH_ROTATION_STEP_ANGLE",
+			"AttributeValue": "5" 
+		},
+		{
+			"AttributeName": "CVPREDICT_ENABLE_TEMPLATE_MATCHING_MAPPING",
+			"AttributeValue": "yes"
+		},
+		{
+			"AttributeName": "CVPREDICT_WAIT_FOREVER",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "CVPREDICT_TEMPLATE_MATCH_MAPPING_BORDER_THICKNESS",
+			"AttributeValue": "1"
+		}
+	],
+	"KpSkeleton": {
+		"1": [ 16, 14 ],
+		"2": [ 14, 12 ],
+		"3": [ 17, 15 ],
+		"4": [ 15, 13 ],
+		"5": [ 12, 13 ],
+		"6": [ 6, 12 ],
+		"7": [ 7, 13 ],
+		"8": [ 6, 7 ],
+		"9": [ 6, 8 ],
+		"10": [ 7, 9 ],
+		"11": [ 8, 10 ],
+		"12": [ 9, 11 ],
+		"13": [ 2, 3 ],
+		"14": [ 1, 2 ],
+		"15": [ 1, 3 ],
+		"16": [ 2, 4 ],
+		"17": [ 3, 5 ],
+		"18": [ 4, 6 ],
+		"19": [ 5, 7 ]
+	}
+
+}

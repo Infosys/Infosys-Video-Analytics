@@ -1,0 +1,247 @@
+{
+  "LISettings": {
+    
+    "HostRegion": {
+      "Region": [
+        {
+          "Name": "FrameProcessor",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "frameprocessorchannel",
+          "CommunicationType": "Async"
+        },
+        {
+          "Name": "FramePreLoader",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "framepreloaderchannel",
+          "CommunicationType": "Async"
+        },
+        {
+          "Name": "UniquePersonTracking",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "uniquepersontrackingchannel",
+          "CommunicationType": "Sync"
+        },
+        {
+          "Name": "FrameRenderer",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "framerendererchannel",
+          "CommunicationType": "Async"
+        },
+        {
+          "Name": "FrameCollector",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "framecollectorchannel",
+          "CommunicationType": "Async"
+        },
+        {
+          "Name": "FrameRepository",
+          "TransportMedium": "MemoryDoc",
+          "TransportName": "framestore",
+          "CommunicationType": "Sync"
+        },
+        {
+          "Name": "FrameAnalytics",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "frameanalyticschannel",
+          "CommunicationType": "Async"
+        }
+      ]
+    },
+    "IISDoc": {
+      "DllPath": "references\\Infosys.Lif.IIS_DocAdapter.dll",
+      "TypeName": "Infosys.Lif.IIS_DocAdapter",
+      "IISDocDetails": [
+        {
+          "TransportName": "framestore",
+          "DataBlockSizeInKB": 250,
+          "DocumentsVirtualDirectoryFromRoot": "Documents"
+        }
+      ]
+    },
+    "Kafka": {
+      "DllPath": "references\\Infosys.Lif.KafkaAdapter.dll",
+      "TypeName": "Infosys.Lif.KafkaAdapter",
+      "KafkaDetails": [
+        {
+          "TransportName": "frameprocessorchannel",
+          "BootstrapServer": "localhost:9092",
+          "TopicName": "customer_action1",
+          "GroupId": "consumer_group_1",
+          "SaslMechanism": "PLAIN",
+          "AutoOffsetReset": "Earliest",
+          "ProducerMode": "sync",
+          "ConsumerMode": "sync",
+          "PollingRestDurationMs": 10,
+          "MessageSendMaxRetries": 3,
+          "RetryBackoffMs": 1000,
+          "EnableIdempotence": true,
+          "EnableAutoCommit": false,
+          "EnableAutoOffsetStore": false,
+          "ReplicationFactor": 1,
+          "NumPartitions": 1
+        },
+        {
+          "TransportName": "framerendererchannel",
+          "BootstrapServer": "localhost:9092",
+          "TopicName": "customer_action2",
+          "GroupId": "consumer_group_2",
+          "SecurityProtocol": "PLAINTEXT",
+          "SaslMechanism": "PLAIN",
+          "AutoOffsetReset": "Earliest",
+          "ProducerMode": "sync",
+          "ConsumerMode": "sync",
+          "PollingRestDurationMs": 10,
+          "MessageSendMaxRetries": 3,
+          "RetryBackoffMs": 1000,
+          "EnableIdempotence": true,
+          "EnableAutoCommit": false,
+          "EnableAutoOffsetStore": false,
+          "ReplicationFactor": 1,
+          "NumPartitions": 1
+        },
+        {
+          "TransportName": "framecollectorchannel",
+          "BootstrapServer": "localhost:9092",
+          "TopicName": "customer_action2",
+          "GroupId": "consumer_group_3",
+          "SecurityProtocol": "PLAINTEXT",
+          "SaslMechanism": "PLAIN",
+          "AutoOffsetReset": "Earliest",
+          "ProducerMode": "sync",
+          "ConsumerMode": "sync",
+          "PollingRestDurationMs": 10,
+          "MessageSendMaxRetries": 3,
+          "RetryBackoffMs": 1000,
+          "EnableIdempotence": true,
+          "EnableAutoCommit": false,
+          "EnableAutoOffsetStore": false,
+          "ReplicationFactor": 1,
+          "NumPartitions": 1
+        }
+      ]
+    },
+    "MemoryQueue": {
+      "DllPath": "references\\Infosys.Lif.MemoryQueueAdapter.dll",
+      "TypeName": "Infosys.Lif.MemoryQueueAdapter",
+      "MemoryQueueDetails": [
+        {
+          "TransportName": "frameprocessorchannel",
+          "QueueName": "frameprocessor",
+          "MessageLabel": "frame",
+          "QueueReadingType": "Receive",
+          "QueueReadingMode": "Sync",
+          "MessageProcessingMaxCount": 5,
+          "ReadAndDelete": true,
+          "MessaseInvisibilityTimeout": 20000,
+          "QueueReadTimeout": 1000,
+          "PollingRestDuration": 100,
+          "ContinueToReceive": true,
+          "SendPattern": "None",
+          "SecondaryQueues": "",
+          "QueueLoadLimit": 0,
+          "TransactionWaitTimeInMins": 4
+        },
+        {
+          "TransportName": "frameanalyticschannel",
+          "QueueName": "frameanalytics",
+          "MessageLabel": "frame",
+          "QueueReadingType": "Receive",
+          "QueueReadingMode": "Async",
+          "MessageProcessingMaxCount": 5,
+          "ReadAndDelete": true,
+          "MessaseInvisibilityTimeout": 20000,
+          "QueueReadTimeout": 1000,
+          "PollingRestDuration": 100,
+          "ContinueToReceive": true,
+          "SendPattern": "None",
+          "SecondaryQueues": "",
+          "QueueLoadLimit": 0,
+          "TransactionWaitTimeInMins": 4
+        },
+        {
+          "TransportName": "framepreloaderchannel",
+          "QueueName": "framepreloader",
+          "MessageLabel": "frame",
+          "QueueReadingType": "Receive",
+          "QueueReadingMode": "Sync",
+          "MessageProcessingMaxCount": 5,
+          "ReadAndDelete": true,
+          "MessaseInvisibilityTimeout": 20000,
+          "QueueReadTimeout": 1000,
+          "PollingRestDuration": 100,
+          "ContinueToReceive": true,
+          "SendPattern": "None",
+          "SecondaryQueues": "",
+          "QueueLoadLimit": 0,
+          "TransactionWaitTimeInMins": 4
+        },
+        {
+          "TransportName": "uniquepersontrackingchannel",
+          "QueueName": "uniquepersontracking",
+          "MessageLabel": "frame",
+          "QueueReadingType": "Receive",
+          "QueueReadingMode": "Sync",
+          "MessageProcessingMaxCount": 5,
+          "ReadAndDelete": true,
+          "MessaseInvisibilityTimeout": 20000,
+          "QueueReadTimeout": 1000,
+          "PollingRestDuration": 100,
+          "ContinueToReceive": true,
+          "SendPattern": "None",
+          "SecondaryQueues": "",
+          "QueueLoadLimit": 0,
+          "TransactionWaitTimeInMins": 4
+        },
+        {
+          "TransportName": "framerendererchannel",
+          "QueueName": "framerenderer",
+          "MessageLabel": "frame",
+          "QueueReadingType": "Receive",
+          "QueueReadingMode": "Sync",
+          "MessageProcessingMaxCount": 5,
+          "ReadAndDelete": true,
+          "MessaseInvisibilityTimeout": 20000,
+          "QueueReadTimeout": 1000,
+          "PollingRestDuration": 100,
+          "ContinueToReceive": true,
+          "SendPattern": "None",
+          "SecondaryQueues": "",
+          "QueueLoadLimit": 0,
+          "TransactionWaitTimeInMins": 4
+        },
+        {
+          "TransportName": "framecollectorchannel",
+          "QueueName": "framecollector",
+          "MessageLabel": "frame",
+          "QueueReadingType": "Receive",
+          "QueueReadingMode": "Async",
+          "MessageProcessingMaxCount": 5,
+          "ReadAndDelete": true,
+          "MessaseInvisibilityTimeout": 20000,
+          "QueueReadTimeout": 1000,
+          "PollingRestDuration": 100,
+          "ContinueToReceive": true,
+          "SendPattern": "None",
+          "SecondaryQueues": "",
+          "QueueLoadLimit": 0,
+          "TransactionWaitTimeInMins": 4
+        }
+      ]
+    },
+    "MemoryDoc": {
+      "DllPath": "references\\Infosys.Lif.MemoryDocAdapter.dll",
+      "TypeName": "Infosys.Lif.MemoryDocAdapter",
+      "MemoryDocDetails": [
+        {
+          "TransportName": "framestore",
+          "DataBlockSizeInKB": 250,
+          "DocumentsVirtualDirectoryFromRoot": "Documents",
+          "MemoryCacheSlidingExpirationInMins": 60
+        }
+
+      ]
+    }
+
+  }
+
+}

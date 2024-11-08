@@ -1,0 +1,206 @@
+﻿{
+  "deviceId": "DeviceId_10",
+  "tenantId": 1,
+  "attributes": [
+    {
+      "attributeName": "ALL_IP_ADDRESS",
+      "attributeValue": "[IP_ADDRESS]"
+    },
+    {
+      "attributeName": "ARCHIVE_ENABLED",
+      "attributeValue": "YES"
+    },
+    {
+      "attributeName": "ARCHIVE_LOCATION",
+      "attributeValue": "<!-- Path Of ARCHIVE_LOCATION-->"
+    },
+    {
+      "attributeName": "BOX_COLOR",
+      "attributeValue": "{\"default\" : \"blue\",\"new_person\" : \"green\"}"
+    },
+    {
+      "attributeName": "CAMERA_URL",
+      "attributeValue": "[CAMERA_URL]"
+    },
+    {
+      "attributeName": "COMPLIANCE_LOWER_THRESHOLD",
+      "attributeValue": "60"
+    },
+    {
+      "attributeName": "COMPLIANCE_UPPER_THRESHOLD",
+      "attributeValue": "20"
+    },
+    {
+      "attributeName": "CONFIDENCE_THRESHOLD",
+      "attributeValue": "0.2"
+    },
+    {
+      "attributeName": "DISPLAY_ALL_FRAMES",
+      "attributeValue": "no"
+    },
+    {
+      "attributeName": "EMAIL_NOTIFICATION_DESCRIPTION",
+      "attributeValue": "The vehicle with license plate number [METRICVALUE] has been detected on [METRICTIME]. To see the image [FRAMELINK]"
+    },
+    {
+      "attributeName": "ENABLELOTS",
+      "attributeValue": "No"
+    },
+    {
+      "attributeName": "FFMPEG_ARGUMENTS",
+      "attributeValue": "-re -f image2pipe -i pipe:.bmp -r 20 -f mpegts udp://127.0.0.1:1234?pkt_size=1316"
+    },
+    {
+      "attributeName": "FRAMETOPREDICT",
+      "attributeValue": "1"
+    },
+    {
+      "attributeName": "FTP_PERSECOND",
+      "attributeValue": "0"
+    },
+    {
+      "attributeName": "IS_CLIENT_ACTIVE",
+      "attributeValue": "no"
+    },
+    {
+      "attributeName": "LABEL_FONT_COLOR",
+      "attributeValue": "Black"
+    },
+    {
+      "attributeName": "LABEL_FONT_SIZE",
+      "attributeValue": "14"
+    },
+    {
+      "attributeName": "LABEL_FONT_STYLE",
+      "attributeValue": "Arial"
+    },
+    {
+      "attributeName": "LABEL_HEIGHT",
+      "attributeValue": "20"
+    },
+    {
+      "attributeName": "MASK_DETECTOR_VIEWER_IP_ADDRESS",
+      "attributeValue": "[MASK_DETECTOR_VIEWER_IP_ADDRESS]"
+    },
+    {
+      "attributeName": "MASK_DETECTOR_VIEWER_PORT",
+      "attributeValue": "[MASK_DETECTOR_VIEWER_PORT]"
+    },
+    {
+      "attributeName": "MASK_LABEL",
+      "attributeValue": "Mask"
+    },
+    {
+      "attributeName": "MASK_PEN_COLOR",
+      "attributeValue": "Green"
+    },
+    {
+      "attributeName": "METRIC_TYPE",
+      "attributeValue": "ClassDetected"
+    },
+    {
+      "attributeName": "ML_MODEL_URL",
+      "attributeValue": "[_MODEL_URL]"
+    },
+    {
+      "attributeName": "NO_MASK_LABEL",
+      "attributeValue": "No_Mask"
+    },
+    {
+      "attributeName": "NOMASK_LOWER_THRESHOLD",
+      "attributeValue": "1"
+    },
+    {
+      "attributeName": "NOMASK_PEN_COLOR",
+      "attributeValue": "Red"
+    },
+    {
+      "attributeName": "NOMASK_UPPER_THRESHOLD",
+      "attributeValue": "3"
+    },
+    {
+      "attributeName": "OBJECTS_COMPLIANCE_LOWER_THRESHOLD",
+      "attributeValue": "20"
+    },
+    {
+      "attributeName": "OBJECTS_COMPLIANCE_UPPER_THRESHOLD",
+      "attributeValue": "60"
+    },
+    {
+      "attributeName": "OBJECTS_LOWER_THRESHOLD",
+      "attributeValue": "20"
+    },
+    {
+      "attributeName": "OBJECTS_TO_BE_TRACKED",
+      "attributeValue": "[\"19837\",\"emma watson\"]"
+    },
+    {
+      "attributeName": "OBJECTS_UPPER_THRESHOLD",
+      "attributeValue": "60"
+    },
+    {
+      "attributeName": "OFFLINE_VIDEO_DIRECTORY",
+      "attributeValue": "<!-- Path Of VIDEO_DIRECTORY-->"
+    },
+    {
+      "attributeName": "OVERLAP_THRESHOLD",
+      "attributeValue": "0.2"
+    },
+    {
+      "attributeName": "PEN_THICKNESS",
+      "attributeValue": "6"
+    },
+    {
+      "attributeName": "PERSONCOUNT_OVERLAP_THRESHOLD",
+      "attributeValue": "0.2"
+    },
+    {
+      "attributeName": "PREDICTION_CLASS_TYPE",
+      "attributeValue": "dynamic"
+    },
+    {
+      "attributeName": "PREDICTION_MODEL",
+      "attributeValue": "[PREDICTION_MODEL]"
+    },
+    {
+      "attributeName": "PREVIOUS_FRAME_COUNT",
+      "attributeValue": "10"
+    },
+    {
+      "attributeName": "RENDERER_Q",
+      "attributeValue": "onnx"
+    },
+    {
+      "attributeName": "SIMILARITY_THRESHOLD",
+      "attributeValue": "0.8"
+    },
+    {
+      "attributeName": "STORAGE_BASE_URL",
+      "attributeValue": "[STORAGE_BASE_URL]"
+    },
+    {
+      "attributeName": "TASKS_ROUTE",
+      "attributeValue": "{\"FGR\" :[\"OPR\"],\"OPR\" :[\"DCO\",\"REN\"],\"TPR\" :[\"ANA\"],\"PRL\" :[],\"REN\" :[],\"DCO\" :[],\"ANA\" :[],\"MIN\":[]}"
+    },
+    {
+      "attributeName": "TRANSPORT_REGION_CODES",
+      "attributeValue": "{\"OPR\":\"FrameProcessor\",\"ANA\":\"FrameAnalytics\",\"PRL\":\"FramePreLoader\",\"REN\":\"FrameRenderer\",\"DCO\" : \"FrameCollector\",\"TPR\":\"UniquePersonTracking\"}"
+    },
+    {
+      "attributeName": "UNIQUE_PERSON_MODEL",
+      "attributeValue": "[UNIQUE_PERSON_MODEL]"
+    },
+    {
+      "attributeName": "UNIQUEPERSONTRACKING_ENABLED",
+      "attributeValue": "yes"
+    },
+    {
+      "attributeName": "VIDEO_FEED_TYPE",
+      "attributeValue": "OFFLINE"
+    },
+    {
+      "attributeName": "VIDEO_STREAMING_OPTION",
+      "attributeValue": "1"
+    }
+  ]
+}

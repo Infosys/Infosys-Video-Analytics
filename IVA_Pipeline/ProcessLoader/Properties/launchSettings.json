@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ProcessLoader": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

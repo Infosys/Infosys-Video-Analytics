@@ -1,0 +1,229 @@
+﻿<!DOCTYPE html>
+<!--
+   - &copy; 2012-2013 Infosys Limited, Bangalore, India. All Rights Reserved.
+   - Version: 1.0 b
+   - Except for any open source software components embedded in this Infosys proprietary software program ("Program"),
+   - this Program is protected by copyright laws, international treaties and other pending or existing intellectual
+   - property rights in India, the United States and other countries. Except as expressly permitted, any unauthorized
+   - reproduction, storage, transmission in any form or by any means (including without limitation electronic, mechanical,
+   - printing, photocopying, recording or otherwise), or any distribution of this Program, or any portion of it, may
+   - results in severe civil and criminal penalties, and will be prosecuted to the maximum extent possible under the law.
+ -->
+ <html>
+<head><link href="https://fonts.googleapis.com/css?family=Open%20Sans" rel="stylesheet"/></head>
+<body>
+	<table class="RootContainerTable" style="width:1200;			
+			font-family: 'Open Sans';
+            font-size: 14px;
+			color: #333333;
+			background-color:#FFFFFF;" align="center">
+			<tr>
+				<td>
+					<table class="UpperMailContainerTable" style="width:1100px;
+					margin-right:50px;
+					margin-left:50px;
+					font-family: 'Open Sans';
+					font-size: 14px;
+					color: #333333;
+					background-color:#FFFFFF;
+					border-collapse: separate;
+					border-spacing: 0 10px;">
+					<tr>
+						<td style="margin-top:40px;margin-bottom:30px;">
+							Dear <span id="recipientDisplayName">##recipient##</span>,<br/>
+						</td>				
+					</tr>
+					<tr>
+						<td style="margin-bottom:25px;">
+							An Anomaly has been detected in <span id="resourceDetails" class="highlightedText" style="font-weight:bold;color: #FF1B41;">##Bot - Bot name##</span> while monitoring the <span id="FirstObservableName" class="highlightedText" style="font-weight:bold;color: #FF1B41;">##observable name##</span> metric.<br/><br/> The <span id="RemediationPlanName" class="highlightedText" style="font-weight:bold;color: #FF1B41;">##Remediation plan name##</span> Remediation plan will be initiated to resolve the issue.
+						</td>				
+					</tr>
+					<tr>
+						<td>
+							<table height = "45" style="width:1100px;background-color:#FF5252;
+								font-family: 'Open Sans';
+								font-size: 14px;
+								font-weight:bold;
+								color:#F4F4F4;
+								margin-bottom:35px;			
+								border-radius:4px;
+								">					
+								<tr> 
+									<td>
+										<table style="width:1100px;">
+											<tr>
+												<td style="width:8%; height:45px; padding-left:8px;" >
+													<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAAcCAYAAACZOmSXAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ1IDc5LjE2MzQ5OSwgMjAxOC8wOC8xMy0xNjo0MDoyMiAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjM2MjlFNTEyMTI1RjExRUFBMzVCQzI3MzRCMUY3QjQ1IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjM2MjlFNTEzMTI1RjExRUFBMzVCQzI3MzRCMUY3QjQ1Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MzYyOUU1MTAxMjVGMTFFQUEzNUJDMjczNEIxRjdCNDUiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MzYyOUU1MTExMjVGMTFFQUEzNUJDMjczNEIxRjdCNDUiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4s+x4zAAACK0lEQVR42rzWT0gVQQDH8fVfPClLzEgISsX08C7hoaRDUFAS1NlLoIdCRCEQjC6i0EFIJbVDRKeghDoUdMs6dTIUhUhQiBRUSCIDwSI11+/Yb+W5+Hw7+3Yb+KDOzM5vZ3bcWcd1XcfSMQxh0f1XFvAAJbZjhQn+otBZvMaM/jb1R+MMH1ZQH3JVl4NO1T+NK/y8Aj4q0N/+Vu3nog43sxzX4HVp+iSxgdE0Nxc6vEnBzzL0e6h+N6IKL8I3rOJEhr5mxy/rP+FgFOE9mk2nr75RQWW++jb1v5dteCX+YA6FvrZuhZzx1edjCr9Rnk34KwU07NF2HWMo3qPtiq57ETb8kgb4EOItaLzR9Rdsw/PwCZuoDRl+GmuYSHkhBQpv0V0/CRns6dU4N4OGm2f4HSs4vs/A9XokR/bpY9qW5HCQ8AHdbUeGWaXb7X631O9+pvAarOuEOhBRuHnek3r+Valtuc7uMoB8tGPNiaZs4jYK0L+rJeVOrmom7wJupqAz97xU/8v+ZS/AtE6lZEzh5XrrfdZbcGfZW1GDx5hy4ilzWvYkmr1lL8VPHRI232G2M3d00pkT74fJMjO/g2J0Y9liJq5+/rW4ZhV3UYIO88Uxrx1+EusWA53CNTzSjg5acjCNQkdLN5Lla9TW9s7PZuZhizfzhHnmwyjDIPL+Q3APqvHczLyIX97jLMwqjOJXDMEJZVRgHBe9Z5BAF77qDI+rzOrb7pDJ3RJgAIjPONvuw/BGAAAAAElFTkSuQmCC" alt="errSymbol" align="middle" style="margin:7px"/>
+												</td>
+												<td style="width:92%; height:45px; color:#F4F4F4;font-family: 'Open Sans';font-size: 14px; font-weight:bold;">
+													Reason for Anomaly Detection: <span id="notificationDescription">##Bot execution failed##</span>
+												</td>
+											</tr>						
+										</table>
+									</td>
+								</tr>
+							</table>												
+						</td>
+					</tr>
+					<tr>
+						<td style="margin-top:35px;margin-bottom:10px;">
+							Please find below the details of the anomaly for reference.
+						</td>				
+					</tr>		
+					</table>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<table class="InnerMailContainerTable" style="width:1104px;
+					margin-right:50px;
+					margin-left:50px;
+					font-family: 'Open Sans';
+					font-size: 14px;
+					color: #333333;
+					background-color:#FFFFFF;
+					border-collapse: collapse;  
+					border:1px;
+					border-radius:2px;
+					margin-bottom: 40px;" cellspacing="0">					
+					<tr >
+						<td>					
+							<table style="width:1104px;border-collapse: collapse;font-family: 'Open Sans';font-size: 14px;" cellspacing="0">
+								<tr>
+									<td style="color: #333333;
+										width:50%;height:40px;border: 1px solid #DDDDDD;padding-left:5px;">
+										Tenant Name
+									</td>								
+									<td id="TenantName" style="color: #333333;
+										width:50%;height:40px;border: 1px solid #DDDDDD;padding-left:5px;">
+										###
+									</td>
+								</tr>
+							</table>
+						</td>						
+					</tr>
+					<tr>
+						<td>
+							<table style="width:1104px;border-collapse: collapse;font-family: 'Open Sans';font-size: 14px;" cellspacing="0">
+									<tr>
+										<td style="color: #333333;
+											width:50%;height:40px;border-right: 1px solid #DDDDDD;border-bottom: 1px solid #DDDDDD;border-left: 1px solid #DDDDDD;padding-left:5px;">
+											Platform Name
+										</td>									
+										<td id="PlatformName" style="color: #333333;										
+											width:50%;height:40px;border-right: 1px solid #DDDDDD;border-bottom: 1px solid #DDDDDD;border-left: 1px solid #DDDDDD;padding-left:5px;">
+											###
+										</td>								
+									</tr>
+							</table>
+						</td>						
+					</tr>
+					<tr>
+						<td>
+							<table style="width:1104px;border-collapse: collapse;font-family: 'Open Sans';font-size: 14px;" cellspacing="0">
+									<tr>
+										<td style="color: #333333;
+											width:50%;height:40px;border-right: 1px solid #DDDDDD;border-bottom: 1px solid #DDDDDD;border-left: 1px solid #DDDDDD;padding-left:5px;">
+											Machine Name
+										</td>									
+										<td id="HostName" style="color: #333333;										
+											width:50%;height:40px;border-right: 1px solid #DDDDDD;border-bottom: 1px solid #DDDDDD;border-left: 1px solid #DDDDDD;padding-left:5px;">
+											###
+										</td>								
+									</tr>
+							</table>  
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<table style="width:1104px;border-collapse: collapse;font-family: 'Open Sans';font-size: 14px;" cellspacing="0">
+									<tr>
+										<td style="color: #333333;
+											width:50%;height:40px;border-right: 1px solid #DDDDDD;border-bottom: 1px solid #DDDDDD;border-left: 1px solid #DDDDDD;padding-left:5px;">
+											Observable Name
+										</td>									
+										<td id="ObservableName" style="color: #333333;										
+											width:50%;height:40px;border-right: 1px solid #DDDDDD;border-bottom: 1px solid #DDDDDD;border-left: 1px solid #DDDDDD;padding-left:5px;">
+											###
+										</td>								
+									</tr>
+							</table> 
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<table style="width:1104px;border-collapse: collapse;font-family: 'Open Sans';font-size: 14px;" cellspacing="0">
+									<tr>
+										<td style="color: #333333;
+											width:50%;height:40px;border-right: 1px solid #DDDDDD;border-bottom: 1px solid #DDDDDD;border-left: 1px solid #DDDDDD;padding-left:5px;">
+											Observation Status
+										</td>									
+										<td id="ObservationStatus" style="font-weight:bold;
+											color: #FF1B41;width:50%;height:40px;border-right: 1px solid #DDDDDD;border-bottom: 1px solid #DDDDDD;border-left: 1px solid #DDDDDD;padding-left:5px;">
+											###
+										</td>								
+									</tr>
+							</table>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<table style="width:1104px;border-collapse: collapse;font-family: 'Open Sans';font-size: 14px;" cellspacing="0">
+									<tr>
+										<td style="color: #333333;
+											width:50%;height:40px;border-right: 1px solid #DDDDDD;border-bottom: 1px solid #DDDDDD;border-left: 1px solid #DDDDDD;padding-left:5px;">
+											Observation Time
+										</td>									
+										<td id="ObservationTime" style="color: #333333;										
+											width:50%;height:40px;border-right: 1px solid #DDDDDD;border-bottom: 1px solid #DDDDDD;border-left: 1px solid #DDDDDD;padding-left:5px;">
+											###
+										</td>								
+									</tr>
+							</table> 
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<table style="width:1104px;border-collapse: collapse;font-family: 'Open Sans';font-size: 14px;" cellspacing="0">
+									<tr>
+										<td style="color: #333333;
+											width:50%;height:40px;border-right: 1px solid #DDDDDD;border-bottom: 1px solid #DDDDDD;border-left: 1px solid #DDDDDD;padding-left:5px;">
+											Anomaly Reference Number
+										</td>									
+										<td id="ObservationId" style="font-weight:bold;
+											color: #FF1B41;width:50%;height:40px;border-right: 1px solid #DDDDDD;border-bottom: 1px solid #DDDDDD;border-left: 1px solid #DDDDDD;padding-left:5px;">
+											###
+										</td>								
+									</tr>
+							</table>  
+						</td>
+					</tr> 
+					</table>
+				</td>				
+			</tr>
+			<tr>
+				<td>
+					<table class="LowerMailContainerTable" style="width:1100px;margin-top:40px;margin-left:50px;margin-right:50px;margin-bottom:40px;font-family: 'Open Sans';font-size: 14px;">
+					<tr>
+						<td style="margin-bottom:5px;">
+							Thanks and Regards,<br />
+							Infosys Super Bot<br />					
+						</td>
+					</tr>
+					<tr>
+						<td style="margin-top:5px;margin-bottom:40px;">
+							<img  src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGMAAAAyCAYAAABI6WXHAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ1IDc5LjE2MzQ5OSwgMjAxOC8wOC8xMy0xNjo0MDoyMiAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjQxQTI2RTMwMTI1RjExRUE5OTM4QzBBRjNCOTk1QzlEIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjQxQTI2RTMxMTI1RjExRUE5OTM4QzBBRjNCOTk1QzlEIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6NDFBMjZFMkUxMjVGMTFFQTk5MzhDMEFGM0I5OTVDOUQiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6NDFBMjZFMkYxMjVGMTFFQTk5MzhDMEFGM0I5OTVDOUQiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4tEPGIAAAMoElEQVR42uxc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" alt="InfosysLogo"/>				
+						</td>
+					</tr>
+				</table>				
+				</td>
+			</tr>
+			<tr>
+				<td style="background-color:#077DBB;height:10px;width:700px;">					
+				</td>
+			</tr>
+		
+	</table>
+	
+</body>
+</html>

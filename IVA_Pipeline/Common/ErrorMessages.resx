@@ -1,0 +1,219 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CrawlerMultipleInstanceError" xml:space="preserve">
+    <value>Crawler Task Type cannot have multiple instances run .</value>
+  </data>
+  <data name="Critical" xml:space="preserve">
+    <value>Oops! It seems like we are facing some technical difficulties at the moment, sorry for the inconvenience caused. Please try visiting us later; we are trying to resolve your issue.</value>
+  </data>
+  <data name="Data_Format_Error" xml:space="preserve">
+    <value>Data was not formatted correctly.</value>
+  </data>
+  <data name="Data_NotFound" xml:space="preserve">
+    <value>Data of entity {0} for attribute(s) {1} was not found. For transaction with {2}</value>
+  </data>
+  <data name="Document_Upload_Failed" xml:space="preserve">
+    <value>File with {0} and {1} could not be uploaded. Error Message: {2}</value>
+  </data>
+  <data name="Duplicate_IPAddress" xml:space="preserve">
+    <value>Duplicate_IPAddress</value>
+  </data>
+  <data name="Duplicate_RobotName" xml:space="preserve">
+    <value>Duplicate_RobotName</value>
+  </data>
+  <data name="Duplicate_TaskType_Name" xml:space="preserve">
+    <value>TaskType Name already exists. Please provide another name.</value>
+  </data>
+  <data name="Exception_Failed" xml:space="preserve">
+    <value>The Exception Handling is failed in the {0} method of {1} class.</value>
+  </data>
+  <data name="InCorrectCompanyId" xml:space="preserve">
+    <value>Company Id of the provided robot is not available.</value>
+  </data>
+  <data name="InCorrectIpAddress" xml:space="preserve">
+    <value>Ip Address of the provided robot is not available .</value>
+  </data>
+  <data name="InvalidCharacter_Validation" xml:space="preserve">
+    <value>The value: {0} for property {1} is using reserved keyword(s) which is not permitted. Please modify the name using valid alphanumeric characters only and re-submit.</value>
+  </data>
+  <data name="JobAllocationError" xml:space="preserve">
+    <value>Some error in job allocation process.</value>
+  </data>
+  <data name="JobConfiguration_ATRCreation_Failed" xml:space="preserve">
+    <value>An error occurred while creating ATR XML Configuration. Please verify job configuration.</value>
+  </data>
+  <data name="JobNotFound" xml:space="preserve">
+    <value>Job is not found.</value>
+  </data>
+  <data name="Method_Input_Parameters_Invalid" xml:space="preserve">
+    <value>Parameter values passed to method is Invalid or Empty.</value>
+  </data>
+  <data name="Method_Returned_Null" xml:space="preserve">
+    <value>The {0} method of {1} class returned null for the inputs: {2}</value>
+  </data>
+  <data name="NoTaskAssociated" xml:space="preserve">
+    <value>No task associated with robot.</value>
+  </data>
+  <data name="PKandRK_Validation_Failed" xml:space="preserve">
+    <value>Unable to fetch presentation, as the keys provided do not match with any active records in our database.</value>
+  </data>
+  <data name="Platform_Data_NotFound" xml:space="preserve">
+    <value>Platform Instance details not found for platformId {0} and tenantId {1}</value>
+  </data>
+  <data name="RemediatioPlan_NotFound" xml:space="preserve">
+    <value>The {0} not found in the {1}  table for Parameters: {2}.</value>
+  </data>
+  <data name="Request_Parameters_Invalid" xml:space="preserve">
+    <value>The request send to the worker for procesing conatins either invalid parameters or some mandatory fields do not contain the required data.</value>
+  </data>
+  <data name="RobotAllocationUnsuccessful" xml:space="preserve">
+    <value>Robot Allocation is unsuccessful as robot is not in running state.</value>
+  </data>
+  <data name="RobotInstanceAlreadyRunning" xml:space="preserve">
+    <value>A Robot instance is already running on this system for this task type. Currently this task has been configured to allow only one instance per system.</value>
+  </data>
+  <data name="RobotNotAvailable" xml:space="preserve">
+    <value>Currently No Robot is available to pick up this task. Please try after sometime.</value>
+  </data>
+  <data name="SEE_Response_Null" xml:space="preserve">
+    <value>Script response received null for the actionId: {0} ; ExecutionRequestMessage: {1}.</value>
+  </data>
+  <data name="Standard_Error" xml:space="preserve">
+    <value>You have faced a error we are unable to resolve at the moment. Please contact the administrator (Support ID: {handlingInstanceId}).</value>
+  </data>
+  <data name="TaskRunModeMismatch" xml:space="preserve">
+    <value>There is mismatch between TaskRunMode configured in the client and server side.Please correct the same in the client application.</value>
+  </data>
+  <data name="Validation_Errors" xml:space="preserve">
+    <value>Input Validation Check Failed.</value>
+  </data>
+  <data name="ValuesInsertionUnsuccessful" xml:space="preserve">
+    <value>An error occurred while adding values in the table:  {0}.</value>
+  </data>
+  <data name="ValueUpdationUnsuccessful" xml:space="preserve">
+    <value>An error occured while updating values in the table : {0}.</value>
+  </data>
+  <data name="Value_NullOrEmpty_Error" xml:space="preserve">
+    <value>The Value for the Property {0} is Null or Empty.</value>
+  </data>
+  <data name="ViewExecutionUnsuccessful" xml:space="preserve">
+    <value>An error occurred while executing view:{0} in the DB. Error Message:{1}</value>
+  </data>
+</root>
