@@ -1,10 +1,10 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
-﻿using Infosys.IVA.ComputerVisionLib.OCREngine;
+﻿
+using Infosys.IVA.ComputerVisionLib.OCREngine;
 using System;
 using System.Configuration;
 using System.Drawing;
@@ -23,13 +23,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 {
     public class TessaractWrapper : ITextRecognition
     {
-       
+        
         public string ReadTextArea(double x, double y, double height, double width, string filter, float imageResizeCoeff)
         {
             
             throw new NotImplementedException();
         }
 
+        
 
         public string ReadTextArea(Image image, string filter, float imageResizeCoeff)
         {
@@ -39,12 +40,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
 
 
-            
+           
             string text = String.Empty;
             
 
-
-            
+           
             if (imageResizeCoeff  >1 || imageResizeCoeff<-1)
                 {
                   int incrWidth;
@@ -70,8 +70,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 text = reader.ReadToEnd();
             }
 
-           
-           
+             
+            
 
             return text.Trim();
         }
@@ -106,7 +106,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         private bool CheckSaveOCRImages()
         {
             bool save = false;
-                   
+                     
             string directory = Directory.GetCurrentDirectory();
             string settingsFilePath = directory + @"\Infosys.ATR.WinUIAutomationRuntimeWrapper.xml";
             if (File.Exists(settingsFilePath))

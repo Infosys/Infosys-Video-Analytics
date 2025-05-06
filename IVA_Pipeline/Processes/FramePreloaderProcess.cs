@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿
 using Newtonsoft.Json;
 using System;
@@ -38,7 +37,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         CacheItemPolicy framePolicy = new CacheItemPolicy();
         SC.MaskDetector maskDetector = new SC.MaskDetector();
         static double cacheExpiration = 1.0; 
-       
+
+        public string _taskCode;
+        public FramePreloaderProcess() { }
+        public FramePreloaderProcess(string processId)
+        {
+            _taskCode = TaskRoute.GetTaskCode(processId);
+        }
+
         public override void Dump(QueueEntity.FramePreloaderMetadata message)
         {
 
@@ -150,13 +156,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     string deviceId = framePreLoaderData.DID;
                     DeviceDetails deviceDetails = ConfigHelper.SetDeviceDetails(framePreLoaderData.TID, deviceId, CacheConstants.FramePreloaderCode);
                   
-                    
+                   
                     bool downLoadLot = deviceDetails.DownLoadLot;
                     string baseUrl = deviceDetails.BaseUrl;
 
 
 
-                    
+                   
 
 
                     DownLoadFrames(framePreLoaderData, baseUrl, downLoadLot);
@@ -185,7 +191,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     }
                     else
                     {
-                         
+                        
                         return true;
                     }
                 }
@@ -193,7 +199,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 {
                     LogHandler.LogError(String.Format(ErrorMessages.Exception_Failed, "Process", "FramePreloaderProcess"),
                             LogHandler.Layer.Business, null);
-                    
+                   
                     if (!failureLogged)
                     {
                         LogHandler.LogError(String.Format("Exception Occured while handling an exception in FramePreloaderProcess in Process method. Error message: {0}", ex.Message), LogHandler.Layer.Business, null);
@@ -205,13 +211,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 }
             }
         }
-
-
-
-
-
-
-
 
 
 
@@ -276,7 +275,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 {
                     MemoryStream data = new MemoryStream();
                     String entryFileName = zipEntry.Name;
-                    
+                   
 
                     byte[] buffer = new byte[zipEntry.Size];
 

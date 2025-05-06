@@ -1,17 +1,14 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
-
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
-
 
 using System.Reflection;
 
@@ -32,11 +29,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         private bool appLaunched = true;
         private string _webBrowser;
         private string _webBrowserVersion;
-        private int _getWindowsHandleTimeOut = 3; 
+        private int _getWindowsHandleTimeOut = 3;
 
         private string className = "Application";
 
-        
+       
         #region Event- PropertyHasChanged
         public class PropertyHasChangedArgs : EventArgs
         {
@@ -59,7 +56,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         public event StructureHasChangedEventHandler StructureHasChanged;
         #endregion
 
-        
+       
         public Application(string applicationName, bool launchedApp = false, string applicationClassName = "")
         {
             Core.Utilities.SetDLLsPath();
@@ -80,7 +77,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             LogHandler.LogInfo(Logging.InformationMessages.RUNTIMEWRAPPER_EXIT, LogHandler.Layer.Business, className, Logging.Constants.APPLICATION);
             
         }
-       
+        
         public Application(int pid)
         {
             Core.Utilities.WriteLog("instantiating application with process id");
@@ -91,7 +88,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 LogHandler.LogInfo(Logging.InformationMessages.RUNTIMEWRAPPER_PARAMETERS, LogHandler.Layer.Business, "pid", Logging.Constants.PARAMDIRECTION_IN, pid.ToString());
 
                 _processId = pid;
-                             
+                            
             }
             LogHandler.LogInfo(Logging.InformationMessages.RUNTIMEWRAPPER_EXIT, LogHandler.Layer.Business, className, Logging.Constants.APPLICATION);
         }
@@ -169,9 +166,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         }
 
         public bool ShowAppStartWaitBox { get; set; }
-        
+       
 
-        
+       
         public bool StartApp()
         {
             bool startedSuccwessfully = true;
@@ -180,7 +177,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             
             return startedSuccwessfully;
         }
-        
+       
         public bool StartApp(string appArguement)
         {
             bool startedSuccwessfully = true;
@@ -189,7 +186,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             
             return startedSuccwessfully;
         }
-        
+       
         public void CloseApp()
         {
             if (_processId > 0)

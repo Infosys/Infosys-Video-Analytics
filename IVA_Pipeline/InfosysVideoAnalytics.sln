@@ -21,21 +21,18 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataEntity", "DataEntity\Da
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "References", "References", "{EA04C8DD-EACF-4156-B8BB-0690C3C2C4A7}"
 	ProjectSection(SolutionItems) = preProject
+		references\AWSSecretsAdapter.dll = references\AWSSecretsAdapter.dll
+		references\AzureVaultAdapter.dll = references\AzureVaultAdapter.dll
+		references\Infosys.Lif.AWSS3Adapter.dll = references\Infosys.Lif.AWSS3Adapter.dll
+		references\Infosys.Lif.AzureIoTAdapter.dll = references\Infosys.Lif.AzureIoTAdapter.dll
 		references\Infosys.Lif.IIS_DocAdapter.dll = references\Infosys.Lif.IIS_DocAdapter.dll
-		references\Infosys.Lif.IIS_DocAdapter.pdb = references\Infosys.Lif.IIS_DocAdapter.pdb
 		references\Infosys.Lif.KafkaAdapter.dll = references\Infosys.Lif.KafkaAdapter.dll
-		references\Infosys.Lif.KafkaAdapter.pdb = references\Infosys.Lif.KafkaAdapter.pdb
 		references\Infosys.Lif.LegacyCommon.dll = references\Infosys.Lif.LegacyCommon.dll
-		references\Infosys.Lif.LegacyCommon.pdb = references\Infosys.Lif.LegacyCommon.pdb
 		references\Infosys.Lif.LegacyIntegrator.dll = references\Infosys.Lif.LegacyIntegrator.dll
-		references\Infosys.Lif.LegacyIntegrator.pdb = references\Infosys.Lif.LegacyIntegrator.pdb
 		references\Infosys.Lif.LegacyIntegratorService.dll = references\Infosys.Lif.LegacyIntegratorService.dll
-		references\Infosys.Lif.LegacyIntegratorService.pdb = references\Infosys.Lif.LegacyIntegratorService.pdb
 		references\Infosys.Lif.MemoryDocAdapter.dll = references\Infosys.Lif.MemoryDocAdapter.dll
-		references\Infosys.Lif.MemoryDocAdapter.pdb = references\Infosys.Lif.MemoryDocAdapter.pdb
 		references\Infosys.Lif.MemoryQueueAdapter.dll = references\Infosys.Lif.MemoryQueueAdapter.dll
-		references\Infosys.Lif.MemoryQueueAdapter.pdb = references\Infosys.Lif.MemoryQueueAdapter.pdb
-		references\System.Runtime.Caching.dll = references\System.Runtime.Caching.dll
+		references\Infosys.Lif.RabbitMQAdapter.dll = references\Infosys.Lif.RabbitMQAdapter.dll
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Business", "Business", "{25EB30C1-029F-4224-BDFB-1E13043F330B}"
@@ -77,6 +74,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComputerVisionLib.OCREngine", "ComputerVisionLib.OCREngine\ComputerVisionLib.OCREngine.csproj", "{F2F54551-DF20-4145-89C6-73977B4812C6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ComputerVisionLib.TessaractWrapper", "ComputerVisionLib.TessaractWrapper\ComputerVisionLib.TessaractWrapper.csproj", "{C206F5AE-FF94-4D97-97FE-4745C115F871}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Renderer", "Renderer\Renderer.csproj", "{FD92A17F-5CA5-4FE7-9C4A-2E077E7F0CA9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -269,6 +268,14 @@ Global
 		{C206F5AE-FF94-4D97-97FE-4745C115F871}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C206F5AE-FF94-4D97-97FE-4745C115F871}.Release|x64.ActiveCfg = Release|Any CPU
 		{C206F5AE-FF94-4D97-97FE-4745C115F871}.Release|x64.Build.0 = Release|Any CPU
+		{FD92A17F-5CA5-4FE7-9C4A-2E077E7F0CA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD92A17F-5CA5-4FE7-9C4A-2E077E7F0CA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD92A17F-5CA5-4FE7-9C4A-2E077E7F0CA9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FD92A17F-5CA5-4FE7-9C4A-2E077E7F0CA9}.Debug|x64.Build.0 = Debug|Any CPU
+		{FD92A17F-5CA5-4FE7-9C4A-2E077E7F0CA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD92A17F-5CA5-4FE7-9C4A-2E077E7F0CA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD92A17F-5CA5-4FE7-9C4A-2E077E7F0CA9}.Release|x64.ActiveCfg = Release|Any CPU
+		{FD92A17F-5CA5-4FE7-9C4A-2E077E7F0CA9}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -294,6 +301,7 @@ Global
 		{D5846F0D-47A6-4371-A8AA-2A29A531D682} = {CE8AF6A0-6746-4EB2-82ED-CA67C21BC173}
 		{F2F54551-DF20-4145-89C6-73977B4812C6} = {CE8AF6A0-6746-4EB2-82ED-CA67C21BC173}
 		{C206F5AE-FF94-4D97-97FE-4745C115F871} = {CE8AF6A0-6746-4EB2-82ED-CA67C21BC173}
+		{FD92A17F-5CA5-4FE7-9C4A-2E077E7F0CA9} = {25EB30C1-029F-4224-BDFB-1E13043F330B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {30C388F1-3113-41D3-BB32-F2E6D671A744}

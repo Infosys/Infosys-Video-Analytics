@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 /****************************************************************
  * This file is a part of the Legacy Integration Framework.
  * This file contains IAdapter.
@@ -13,6 +12,7 @@ using System;
 using System.Collections.Specialized;
 using System.Text;
 using System.Collections;
+using System.Threading.Tasks;
 
 namespace Infosys.Lif.LegacyIntegratorService
 {   
@@ -23,20 +23,27 @@ namespace Infosys.Lif.LegacyIntegratorService
        
         event ReceiveHandler Received;
         
-       
+        
 		string Send(ListDictionary adapterDetails, string message);
 
        
         void Receive(ListDictionary adapterDetails);
 
-      
+        
         bool Delete(ListDictionary messageDetails);
 	}
+
+    public interface ISecretsAdapter
+    {
+       
+        Task<string> GetSecrets(ListDictionary adapterDetails);
+
+    }
 
    
     public class ReceiveEventArgs : EventArgs
     {
-        
+       
         public ListDictionary ResponseDetails { get; set; }
     }
 

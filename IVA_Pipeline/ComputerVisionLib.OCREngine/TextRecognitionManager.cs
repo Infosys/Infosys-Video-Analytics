@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +25,7 @@ namespace Infosys.IVA.ComputerVisionLib.OCREngine
             string detectedText = null;
             if (ocr == null)
             {
-               
+                
                 ocr = GetOCREngine();
             }
 
@@ -82,13 +81,13 @@ namespace Infosys.IVA.ComputerVisionLib.OCREngine
             ITextRecognition ocreng = null;
             string directory = Directory.GetCurrentDirectory();
             string ocrdll = "";
-           
+            
             string[] filePaths = Directory.GetFiles(directory + @"\OCRWrapper", "*.dll");
             if (filePaths.Count() > 0)
             {
                 ocrdll = filePaths[0];
             }
-            
+           
             
             if (string.IsNullOrEmpty(ocrdll))
                 ocrdll = defaultOCRWrapper;

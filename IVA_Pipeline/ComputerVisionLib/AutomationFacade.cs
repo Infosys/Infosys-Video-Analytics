@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using System.Net;
@@ -34,20 +33,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         bool getAllMatchingControls=false;
         private string className="AutomationFacade";
         Control parentControl=null; 
-        string iapPackageTypes=".iapw,.iapd";
+        string iapPackageTypes=".iapw,.iapd"; 
         private int InteractiveCheckExists=-1;
         bool findControlInMultipleControlStates=false; 
         int imageMatchConfidenceThreshold=80; 
         Stream pSourceImage=null; 
         private bool multiRotationTemplateMatching=false;
-        
+       
 
 
         
         public string ATRFileDirectory { get; set; }
 
 
-       
+        
         public AutomationFacade(System.Xml.XmlDocument automationConfigXML, bool LaunchApps, bool showAppStartingWaitBox = true, string firstApplicationToStart = "", bool highLightControl = false, bool multipleScaleTemplateMatching = true, bool waitForeverForImageTemplate = false)
         {
             ComputerVisionLib_Core.Utilities.SetDLLsPath();
@@ -78,11 +77,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         
         public AutomationFacade(string xMLPath, bool LaunchApps, bool showAppStartingWaitBox = true, string firstApplicationToStart = "", bool highLightControl = false, bool multipleScaleTemplateMatching = true, bool waitForeverForImageTemplate = false)
         {
-            /*DateTime start = System.DateTime.Now;
-            Console.WriteLine("Going to invoke automation engine setDLLPath...");*/
-
-            ComputerVisionLib_Core.Utilities.SetDLLsPath();
-
             
 
             highlightElement = highLightControl;
@@ -95,7 +89,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             using (LogHandler.TraceOperations(Logging.InformationMessages.RUNTIMEWRAPPER_ENTER, LogHandler.Layer.Business, Guid.Empty, className, Logging.Constants.AUTOMATIONFACADE))
             {
                 
-               
+                
                 ComputerVisionLib_Core.Utilities.ClearCache();
 
                 LogHandler.LogInfo(Logging.InformationMessages.RUNTIMEWRAPPER_PARAMETERS, LogHandler.Layer.Business, "xMLPath", Logging.Constants.PARAMDIRECTION_IN, xMLPath);
@@ -122,7 +116,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 else if (!string.IsNullOrEmpty(xMLPath) && !string.IsNullOrEmpty(typeOfIAPPackage = GetValidPackage(xMLPath)))
                 {
                     xmlpathFound = true;
-                   
+                    
                     string iapPackageLoc = xMLPath.Substring(0, xMLPath.IndexOf(typeOfIAPPackage) + typeOfIAPPackage.Length);
                     string atrLoc = xMLPath.Replace(xMLPath, iapPackageLoc).Replace(@"/", "\\");
 
@@ -161,23 +155,21 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         xmlpathFound = true;
                 }
 
-                
+               
 
                 if (xmlpathFound && string.IsNullOrEmpty(xmlString))
                 {
                     
-
-                    
                     ATRFileDirectory = System.IO.Path.GetDirectoryName(xMLPath);
                     xmlString = System.IO.File.ReadAllText(xMLPath);
 
-                    
+                   
 
                 }
 
                 if (!string.IsNullOrEmpty(xmlString))
                 {
-                    
+                   
 
                     ComputerVisionLib_Core.Utilities.WriteLog("automation initialization started at " + DateTime.Now.ToString()); 
                     TranslateAutomationConfig(xmlString, LaunchApps);
@@ -193,7 +185,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             LogHandler.LogInfo(Logging.InformationMessages.RUNTIMEWRAPPER_EXIT, LogHandler.Layer.Business, className, Logging.Constants.AUTOMATIONFACADE);
         }
 
-        
+       
         public AutomationFacade()
         {
             ComputerVisionLib_Core.Utilities.SetDLLsPath();
@@ -206,7 +198,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             set { applications = value; }
         }
 
-        
+       
         public ComputerVisionLib.Control FindControl(string canonicalPath, string automationId, string automationName, Stream sourceImage = null)
         {
             getAllMatchingControls = false;
@@ -266,13 +258,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                     {
                                         ctl = screen.Controls[canonicalPathParts[i]];
                                         ctl.GetAllMatchingControls = false;
-                                       
+                                        
                                     }
                                     else 
                                     {
                                         ctl = ctl.Controls[canonicalPathParts[i]];
                                         ctl.GetAllMatchingControls = false;
-                                       
+                                        
                                     }
                                     break;
                             }
@@ -309,7 +301,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         
        
 
-        
         public ComputerVisionLib.Control FindControl(string canonicalPath, Stream sourceImage = null)
         {
             return FindControl(canonicalPath, true, false, sourceImage);
@@ -321,7 +312,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             getAllMatchingControls = false;
             using (LogHandler.TraceOperations(Logging.InformationMessages.RUNTIMEWRAPPER_ENTER, LogHandler.Layer.Business, Guid.Empty, className, Logging.Constants.FINDCONTROL))
             {
-                
+               
                 LogHandler.LogInfo(Logging.InformationMessages.RUNTIMEWRAPPER_PARAMETERS, LogHandler.Layer.Business, "canonicalPath", Logging.Constants.PARAMDIRECTION_IN, canonicalPath);
 
                 ComputerVisionLib.Control ctl = null;
@@ -371,13 +362,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                         }
                                         break;
                                     default: 
-                                        
+                                       
                                         if (ctl == null) 
                                         {
                                             ctl = screen.Controls[canonicalPathParts[i]];
 
                                             ctl.GetAllMatchingControls = false;
-                                           
+                                            
                                         }
                                         else 
                                         {
@@ -397,7 +388,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     }
                 }
 
-                
                 if (ctl != null && app != null && screen != null) 
                 {
                     try
@@ -412,14 +402,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     }
 
                 }
-                
+               
 
                 LogHandler.LogInfo(Logging.InformationMessages.RUNTIMEWRAPPER_EXIT, LogHandler.Layer.Business, className, Logging.Constants.FINDCONTROL);
 
                 return ctl;
             }
         }
-        
+       
 
         public List<ComputerVisionLib.Control> FindControls(string canonicalPath,Stream sourceImage=null) {
             return FindControls(canonicalPath,true,false,sourceImage);
@@ -430,7 +420,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         public List<Control> FindControls(string canonicalPath,bool allControlIdentifiersMustMatch,bool forceControlRefresh,Stream sourceImage=null) {
             using(LogHandler.TraceOperations(Logging.InformationMessages.RUNTIMEWRAPPER_ENTER,LogHandler.Layer.Business,Guid.Empty,className,Logging.Constants.FINDCONTROLS)) {
                 getAllMatchingControls=true;
-                /* In param */
+               
                 LogHandler.LogInfo(Logging.InformationMessages.RUNTIMEWRAPPER_PARAMETERS,LogHandler.Layer.Business,"canonicalPath",Logging.Constants.PARAMDIRECTION_IN,canonicalPath);
                 List<Control> ctrls=new List<Control>();
                 Control ctl=null;
@@ -469,7 +459,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                             
                                             if (i + 1 == canonicalPathParts.Length)
                                                 ctl.GetAllMatchingControls = true;
-                                           
+                                            
                                         }
                                         else 
                                         {
@@ -505,6 +495,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 {
                     if (ctl.DiscoveryMode == ElementDiscovertyMode.API || ctl.DiscoveryMode == ElementDiscovertyMode.APIAndImage)
                     {
+                        
                         if (app != null && screen != null)
                         {
                             try
@@ -555,13 +546,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                         }
                                         catch (Exception ex)
                                         {
-                                           
+                                            
                                         }
                                     }
                             
 
 
-                            
+                           
 
                         }
                     }
@@ -573,15 +564,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
         }
 
-       
-       
-       
-       
-
+        
+        
         private List<Control> FindControlsInParallel(Control ctl,Stream sourceImage) {
             List<Control> ctrls=new List<Control>();
             foreach(var item in ctl.ImageReference.SupportedStates) {
-                
+                /* Sid: 25 Dec 2017 - Updated logic to load all identified control in one state to a tempControl list
+                and then load the controls instance. This fixes a bug in which controls identified across states were 
+                overwriting the controls identified in previous state when the FindControlInMultipleControlStates property was
+                set to true. */
                 List<Control> tempControl=null;
                 tempControl=FindControls(item.ImagePath,true,sourceImage);
                 if(tempControl!=null && tempControl.Count>0) {
@@ -599,7 +590,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             return ctrls;
         }
 
-        
+       
         public Control FindControl(string elementImagePath, bool imageRecog, Stream sourceImage = null)
         {
             getAllMatchingControls = false;
@@ -608,7 +599,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             Control ctl = null;
             if (!string.IsNullOrEmpty(elementImagePath) && File.Exists(elementImagePath))
             {
-                
+               
                 ctl = new Control();
                 ctl.ImageReference = new ControlImageReference();
                 ctl.ImageReference.SupportedStates = new List<ControlStateReference>();
@@ -627,19 +618,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             else
                 LogHandler.LogError(Logging.InformationMessages.RUNTIMEWRAPPER_INVALID_DATA, LogHandler.Layer.Business, "Element image path", elementImagePath);
 
-            
+           
 
             LogHandler.LogInfo(Logging.InformationMessages.RUNTIMEWRAPPER_EXIT, LogHandler.Layer.Business, className, Logging.Constants.FINDCONTROL);
             return ctl;
         }
 
        
-        
         public List<Control> FindControls(string elementImagePath,bool ForImagePath,Stream sourceImage=null) {
             LogHandler.TraceOperations(Logging.InformationMessages.RUNTIMEWRAPPER_ENTER,LogHandler.Layer.Business,Guid.Empty,className,Logging.Constants.FINDCONTROLS);
             LogHandler.LogInfo(Logging.InformationMessages.RUNTIMEWRAPPER_PARAMETERS,LogHandler.Layer.Business,"elementImagePath",Logging.Constants.PARAMDIRECTION_IN,elementImagePath);
             int timeout=1000;
-            
+           
             double angle=0;
             if(WaitForever)
                 timeout=-1;
@@ -648,19 +638,19 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 controls=new List<Control>();
                
                 List<TemplateMatching> rects=new List<TemplateMatching>();
-               
+                
                 Core.Utilities.ScaleStep=imageMatchScaleStepSize;
                 Core.Utilities.MaxScaleSteps=imageMatchMaxScaleStepCount;
                 Core.Utilities.TemplateMatchMapBorderColor=templateMatchMappingBorderColor;
                 Core.Utilities.TemplateMatchMapBorderThickness=templateMatchMappingBorderThickness;
                 Core.Utilities.RotationStep=imageMatchRotationStepAngle;
-                
+               
                 if(useTrueColorTemplateMatching)
+                    
                     rects=Core.Utilities.FindAllInstancesInTrueColor(elementImagePath,out angle,timeout,imageMatchConfidenceThreshold,!templateMachingInOriginalScale,multiRotationTemplateMatching,sourceImage,enableTemplateMatchMapping);
+                   
                 else
-                    
                     rects=Core.Utilities.FindAllInstances(elementImagePath,out angle,timeout,imageMatchConfidenceThreshold,!templateMachingInOriginalScale,multiRotationTemplateMatching,sourceImage,enableTemplateMatchMapping);
-                    
 
                 if(rects!=null && rects.Count>0) {
                     rects.ForEach(rect=> {
@@ -686,7 +676,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         }
 
 
-        
+      
         public Application FindApplication(string name, string windowsTitle = "", int timeOut = 0)
         {
             Application app = null;
@@ -697,7 +687,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 if (!string.IsNullOrEmpty(name) && Applications != null && Applications.ContainsKey(name))
                 {
                     app = Applications[name];
-                  
+                    
                     if (!string.IsNullOrEmpty(windowsTitle))
                     {
                         Applications[name].AutomationName = windowsTitle;
@@ -753,7 +743,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             return screen;
         }
 
-        
+       
         private ComputerVisionLib.Control RefreshControl(ComputerVisionLib.Application app, ComputerVisionLib.Screen screen, ComputerVisionLib.Control ctl)
         {
             int counter = numOfTrials;
@@ -762,6 +752,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 ctl = null;
             }
 
+           
             
             if (ctl.DiscoveryMode == ElementDiscovertyMode.Image && !getAllMatchingControls)
             {
@@ -785,6 +776,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         
                     }
 
+                    
                     if (ctl != null && ctl.ImageReference != null)
                     {
                         ComputerVisionLib_Core.Utilities.ScaleStep = imageMatchScaleStepSize;
@@ -810,7 +802,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             Applications = Core.Translation.PopulateApplications(xmlString, launchApps, showWaitBox, firstAppToStart);
         }
 
-       
+        
         private void PopulateRetrySettings()
         {
 
@@ -959,12 +951,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
         
 
-        
-
-        
-
-        
        
+
+       
+
+       
+
         public void Sleep(int seconds)
         {
             System.Threading.Thread.Sleep(seconds * 1000);

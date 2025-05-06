@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿#region Namespaces
 using Infosys.Lif.LegacyIntegratorService;
 using System.Collections.Specialized;
@@ -48,12 +47,12 @@ namespace Infosys.Lif
         private const string ZERO = "$0";
 
         private string response = PROCESSING_INCOMPLETE;
-      
+    
         private static CacheItemPolicy policy;
 
         private static ServiceClient serviceClient;
         private    static DeviceClient deviceClient;
-        
+      
         static private Dictionary<string, ConcurrentQueue<string>> queueDetails = new Dictionary<string, ConcurrentQueue<string>>();
 
 
@@ -97,16 +96,16 @@ namespace Infosys.Lif
                     }
                 }
 
-                
+               
                 MessageDetails messageDetails = ValidateTransportName(transportSection, regionToBeUsed.TransportName);
                 string queueName = messageDetails.QueueName;
-               
+            
                 if (queueName != null)
                 {
                     
                     Thread receiveOphandler = new Thread((ThreadStart)delegate { HandleMessage(OperationType.Receive, messageDetails, null); });
                     receiveOphandler.Start();
-                    
+                  
                 }
                 else
                 {
@@ -151,6 +150,7 @@ namespace Infosys.Lif
                     }
                 }
 
+               
                 MessageDetails messageDetails = ValidateTransportName(transportSection, regionToBeUsed.TransportName);
                 string queueName = messageDetails.QueueName;
  
@@ -183,11 +183,12 @@ namespace Infosys.Lif
 
         #endregion
 
-        
+      
         private MessageDetails ValidateTransportName(Infosys.Lif.LegacyIntegratorService.RabbitMQAdapter transportSection, string transportName)
         {
             MessageDetails messageDetails = null;
             bool isTransportNameExists = false;
+            
             for (int count = 0; count < transportSection.MessageDetails.Count; count++)
             {
                 messageDetails = transportSection.MessageDetails[count] as MessageDetails;
@@ -197,6 +198,7 @@ namespace Infosys.Lif
                     break;
                 }
             }
+     
             if (!isTransportNameExists)
             {
                 throw new LegacyException(transportName + " is not defined in MessageDetails section");
@@ -205,7 +207,6 @@ namespace Infosys.Lif
         }
 
 
-        
         private string HandleMessage(OperationType operation, MessageDetails messageDetails, string message)
         {
             Stopwatch stopwatch2 = Stopwatch.StartNew();
@@ -237,7 +238,7 @@ namespace Infosys.Lif
 
             }
             return response;
-         
+    
             
         }
 
@@ -255,12 +256,12 @@ namespace Infosys.Lif
                 {
                     MqttClient client = new MqttClient("localhost");
                     string clientId = Guid.NewGuid().ToString();
-                    
+                  
                     client.Connect(clientId, messageDetails.UserName, messageDetails.Password);
                     client.MqttMsgPublished += new MqttClient.MqttMsgPublishedEventHandler(client_MqttMsgPublished);
                     ushort t = client.Publish(messageDetails.QueueName, Encoding.UTF8.GetBytes(message), MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, false);
                     client.Disconnect();
-                    
+                   
                 }
                 else
                 {
@@ -283,7 +284,7 @@ namespace Infosys.Lif
                     channel.ExchangeDeclare(exchange: messageDetails.TransportName, type: ExchangeType.Topic, durable: true);
                     channel.QueueDeclare(messageDetails.QueueName, durable: true,
                                          exclusive: false,
-                                         
+                                      
                                          arguments: null);
                     channel.QueueBind(messageDetails.QueueName,
                       exchange: messageDetails.TransportName,
@@ -291,7 +292,7 @@ namespace Infosys.Lif
                     var json = JsonConvert.SerializeObject(message);
                     var body = Encoding.UTF8.GetBytes(json);
 
-                    
+                   
                     channel.BasicPublish(exchange: messageDetails.TransportName, routingKey: messageDetails.TransportName, basicProperties: null, body: body);
                 }
             }
@@ -306,7 +307,7 @@ namespace Infosys.Lif
             Console.WriteLine(e.IsPublished);
             Console.WriteLine(e.MessageId);
         }
-       
+      
         public void StartSendingMessages(MessageDetails messageDetails, string message)
         {            
              StartMessages(messageDetails, message);             
@@ -334,7 +335,7 @@ namespace Infosys.Lif
                     string[] topic = { messageDetails.QueueName };
                     byte[] qoslevels = { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE };
                     client.Subscribe(topic, qoslevels);
-                    
+                   
                     client.MqttMsgPublishReceived += client_MqttMsgPublishReceived;
  
                 }
@@ -360,7 +361,7 @@ namespace Infosys.Lif
                     channel.QueueDeclare(queue: "" +
                         messageDetails.QueueName, durable: true,
                                     exclusive: false,
-                                    
+                                  
                                     arguments: null);
                     channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
                     int messageCount = Convert.ToInt16(channel.MessageCount(messageDetails.QueueName));
@@ -395,9 +396,9 @@ namespace Infosys.Lif
                     {
                         if (ex.Message.ToLower().Contains("Queue not available"))
                         {
-                            
+                          
                         }
-                        
+                       
                         Console.WriteLine($"Consume error: {ex.Message}");
                         Console.WriteLine("Exiting consumer...");
                         LifLogHandler.LogError("RabbitMQ Adapter StartReceivingMessages method FAILED for " +
@@ -419,6 +420,7 @@ namespace Infosys.Lif
         }
         static void client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
         {
+            
             Console.WriteLine("Received = " + Encoding.UTF8.GetString(e.Message) + " on topic " + e.Topic);
         }
         private static void client_PublishArrived(object sender, MqttMsgPublishEventArgs e)
@@ -440,10 +442,9 @@ namespace Infosys.Lif
             Console.WriteLine($"End processing {message}");
         }
        
-        
             private void ProcessReceivedMessage(string msg, MessageDetails message, ConcurrentQueue<string> queue)
         {
-      
+            
             string queueName = message.QueueName;
             try
             {
@@ -458,7 +459,7 @@ namespace Infosys.Lif
             }
             catch (Exception ex)
             {
-                       
+                         
                 LifLogHandler.LogError("RabbitMQ Adapter ProcessReceivedMessage method FAILED for " +
                     " TopicName {0}. Exception Message: {1} and Exception StackTrace: {2}",
                 LifLogHandler.Layer.IntegrationLayer, queueName, ex.Message, ex.StackTrace);
@@ -495,9 +496,6 @@ namespace Infosys.Lif
         private static  void ReceiveC2dAsync(MessageDetails messageDetails)
         {
             
-
-
-
 
         }
     }

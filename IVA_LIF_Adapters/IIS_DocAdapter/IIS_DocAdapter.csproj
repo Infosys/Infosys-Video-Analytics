@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Infosys.Lif.IIS_DocAdapter</AssemblyName>
-    <BaseOutputPath>..\bin</BaseOutputPath>
+    <BaseOutputPath>..\bin\</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

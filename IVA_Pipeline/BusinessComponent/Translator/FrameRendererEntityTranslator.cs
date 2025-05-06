@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using Newtonsoft.Json;
 using System;
@@ -44,7 +43,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.Translator
                 {
                     frameRendererData.PTS = message.Pts;
                 }
-               
+                
                 if (message.Class != null)
                 {
                     frameRendererData.Class = message.Class;
@@ -52,7 +51,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.Translator
                 frameRendererData.FeedId = message.FeedId;
                 BE.PredictionsData[] BEPredArr = null;
 
-              
+               
                 ValidationError validationErr = new ValidationError();
                 validationErr.Code = Errors.ErrorCodes.Value_NullOrEmpty_Error.ToString();
                 validationErr.Description = string.Format(ErrorMessages.Value_NullOrEmpty_Error, "FrameRendererTranslator");

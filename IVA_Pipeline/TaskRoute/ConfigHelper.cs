@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using System;
 using System.Collections.Generic;
@@ -41,13 +40,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                 #endif
                 
                 DeviceDetailsCacheKey=string.Format(CacheConstants.CacheKeyFormat,keyPrefix,tId,deviceId);
-            
+                
                 deviceDetails=(DeviceDetails)ConfigHelper.Cache[ConfigHelper.DeviceDetailsCacheKey];
                 string responseString=string.Empty;
                 if(deviceDetails==null) {
                     if(configSource=="file") {
                         string configFilePath=appSettings.ConfigFilePath;
-                       
+                        
                         using(StreamReader r=new StreamReader(configFilePath)) {
                             responseString=r.ReadToEnd();
                             
@@ -57,26 +56,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                         var uri=String.Format($"{Config.AppSettings.ConfigWebApi}Configuration/GetDeviceAttributes?tid={int.Parse(tId)}&did={deviceId}");
                         responseString=ServiceCaller.ServiceCall(null,uri,"GET");
                     }
-                    /* try {
-                        var rs=JsonConvert.DeserializeObject<AttributeDetailsResMsg>(responseString);
-                    }
-                    catch(Exception e) {
-                        throw e;
-                    } */
+                    
                     var res=JsonConvert.DeserializeObject<AttributeDetailsResMsg>(responseString);
                     var response=AssignConfigValues(JsonConvert.DeserializeObject<AttributeDetailsResMsg>(responseString));
-                    /* var response=AssignConfigValues(channel.GetDeviceAttributes(int.Parse(tId),deviceId)); */                     
+                                        
                     if(response==null)
                         throw new FaceMaskDetectionCriticalException("Failed to get device configuration from services. Response is null.");
                     deviceDetails=new DeviceDetails();
-                    deviceDetails.AllIpAddress=response.AllIpAddress;
                     deviceDetails.ArchiveDirectory=response.ArchiveDirectory;
                     deviceDetails.ArchiveEnabled=response.ArchiveEnabled;
                     deviceDetails.BaseUrl=response.BaseUrl;
                     deviceDetails.BoxColor=response.BoxColor;
                     deviceDetails.CameraURl=response.CameraURl;
-                    deviceDetails.ComplianceLowerThreshold=response.ComplianceLowerThreshold;
-                    deviceDetails.ComplianceUpperThreshold=response.ComplianceUpperThreshold;
                     deviceDetails.ConfidenceThreshold=response.ConfidenceThreshold;
                     deviceDetails.DefaultPenColor=response.DefaultPenColor;
                     deviceDetails.DeviceId=response.DeviceId;
@@ -85,32 +76,24 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                     deviceDetails.EmailNoticationDescription=response.EmailNoticationDescription;
                     deviceDetails.EnableLots=response.EnableLots;
                     deviceDetails.FfmpegArguments=response.FfmpegArguments;
+                    deviceDetails.FfmpegArgumentsRawInput=response.FfmpegArgumentsRawInput;
                     deviceDetails.FrameToPredict=response.FrameToPredict;
                     deviceDetails.FTPPerSeconds=response.FTPPerSeconds;
                     deviceDetails.IpAddress=response.IpAddress;
-                    deviceDetails.IsClientActive=response.IsClientActive;
                     deviceDetails.LabelFontColor=response.LabelFontColor;
                     deviceDetails.LabelFontSize=response.LabelFontSize;
                     deviceDetails.LabelFontStyle=response.LabelFontStyle;
                     deviceDetails.LabelHeight=response.LabelHeight;
                     deviceDetails.LotSize=response.LotSize;
-                    deviceDetails.MaskLabel=response.MaskLabel;
-                    deviceDetails.MaskPenColor=response.MaskPenColor;
                     deviceDetails.MetricType=response.MetricType;
-                    deviceDetails.MlModelUrl=response.MlModelUrl;
                     deviceDetails.ModelName=response.ModelName;
-                    deviceDetails.NoMaskLabel=response.NoMaskLabel;
-                    deviceDetails.NoMaskLowerThreshold=response.NoMaskLowerThreshold;
-                    deviceDetails.NoMaskPenColor=response.NoMaskPenColor;
-                    deviceDetails.NoMaskUpperThreshold=response.NoMaskUpperThreshold;
                     deviceDetails.OfflineVideoDirectory=response.OfflineVideoDirectory;
+                    deviceDetails.MILLibraryName= response.MILLibraryName;
                     deviceDetails.OverlapThreshold=response.OverlapThreshold;
                     deviceDetails.PenThickness=response.PenThickness;
                     deviceDetails.Port=response.Port;
-                    deviceDetails.PredictionClassType=response.PredictionClassType;
                     deviceDetails.PredictionModel=response.PredictionModel;
                     deviceDetails.PreviousFrameCount=response.PreviousFrameCount;
-                    deviceDetails.QueueName=response.QueueName;
                     deviceDetails.SimilarityThreshold=response.SimilarityThreshold;
                     deviceDetails.StorageBaseUrl=response.StorageBaseUrl;
                     deviceDetails.TasksRoute=response.TasksRoute;
@@ -121,7 +104,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                     deviceDetails.UPModelName=response.UPModelName;
                     deviceDetails.VideoFeedType=response.VideoFeedType;
                     deviceDetails.VideoStreamingOption=response.VideoStreamingOption;
-                    /* Fixing name mismatch attributes */
+                    
                     deviceDetails.BaseUrl=response.StorageBaseUrl;
                     deviceDetails.PredictionModel=response.ModelName;
                     deviceDetails.FrameToPredict=response.FrameToPredict;
@@ -133,6 +116,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                     deviceDetails.DeleteFramesFromBlob=response.DeleteFramesFromBlob;
                     deviceDetails.TransportSequencingBufferingSize=response.TransportSequencingBufferingSize;
                     deviceDetails.StreamingPath=response.StreamingPath;
+                    deviceDetails.StreamingPathRaw=response.StreamingPathRaw;
                     deviceDetails.SharedBlobStorage=response.SharedBlobStorage;
                     deviceDetails.MsgVersion=response.MsgVersion;
                     deviceDetails.InfVersion=response.InfVersion;
@@ -154,7 +138,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                     deviceDetails.PanopticSegmentation=response.PanopticSegmentation;
                     deviceDetails.LabelColor=response.LabelColor;
                     deviceDetails.PythonVersion=response.PythonVersion;
-                    deviceDetails.BackGroundColor=response.BackGroundColor;
+                    deviceDetails.BackgroundColor=response.BackgroundColor;
                     deviceDetails.RendererRectanglePointX=response.RendererRectanglePointX;
                     deviceDetails.RendererRectanglePointY=response.RendererRectanglePointY;
                     deviceDetails.RendererLabelPointX=response.RendererLabelPointX;
@@ -163,16 +147,42 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                     deviceDetails.RendererPredictCartListBackgroundColor=response.RendererPredictCartListBackgroundColor;
                     deviceDetails.BackgroundChange=response.BackgroundChange;
                     deviceDetails.FfmpegforBackgroundChange=response.FfmpegforBackgroundChange;
-                    deviceDetails.EnablePrompt=response.EnablePrompt;
                     deviceDetails.PromptInputDirectory=response.PromptInputDirectory;
-                    deviceDetails.MaskImageInput=response.MaskImageInput;
                     deviceDetails.MaskImageDirectory=response.MaskImageDirectory;
-                    deviceDetails.ReplaceImageInput=response.ReplaceImageInput;
                     deviceDetails.ReplaceImageDirectory=response.ReplaceImageDirectory;
-                    deviceDetails.BlobforGenerativeAI=response.BlobforGenerativeAI;
-                    deviceDetails.GENAI=response.GENAI;
                     deviceDetails.OutputImage=response.OutputImage;
                     deviceDetails.PcdDirectory=response.PcdDirectory;
+                    deviceDetails.RenderImageFilePath=response.RenderImageFilePath;
+                    deviceDetails.RenderImageEnabled=response.RenderImageEnabled;
+                    deviceDetails.DebugImageFilePath=response.DebugImageFilePath;
+                    deviceDetails.ImageDebugEnabled=response.ImageDebugEnabled;
+                    deviceDetails.EnablePing=response.EnablePing;
+                    deviceDetails.ClientConnectionRetryCount=response.ClientConnectionRetryCount;
+                    deviceDetails.FrameRenderer_WaitTimeForTransportms=response.FrameRenderer_WaitTimeForTransportms;
+                    deviceDetails.FrameRenderer_EOF_Count=response.FrameRenderer_EOF_Count;
+                    deviceDetails.FrameRenderer_EOF_File_Path=response.FrameRenderer_EOF_File_Path;
+                    deviceDetails.FrameGrabRateThrottlingSleepFrameCount=response.FrameGrabRateThrottlingSleepFrameCount;
+                    deviceDetails.FrameGrabRateThrottlingSleepDurationMsec=response.FrameGrabRateThrottlingSleepDurationMsec;
+                    deviceDetails.FfmpegExeFile=response.FfmpegExeFile;
+                    deviceDetails.CalculateFrameGrabberFPR=response.CalculateFrameGrabberFPR;
+                    deviceDetails.MaxEmptyFrameCount=response.MaxEmptyFrameCount;
+                    deviceDetails.EmptyFrameProcessInterval=response.EmptyFrameProcessInterval;
+                    deviceDetails.FTPCycle=response.FTPCycle;
+                    deviceDetails.ElasticStoreIndexName=response.ElasticStoreIndexName;
+                    deviceDetails.PromptTemplatesDirectory=response.PromptTemplatesDirectory;
+                    deviceDetails.ReduceFrameQualityTo=response.ReduceFrameQualityTo;
+                    deviceDetails.MinThreadOnPool=response.MinThreadOnPool;
+                    deviceDetails.MaxThreadOnPool=response.MaxThreadOnPool;
+                    deviceDetails.MaxFailCount=response.MaxFailCount;
+                    deviceDetails.VideoFormatsAllowed=response.VideoFormatsAllowed;
+                    deviceDetails.ImageFormatsToUse=response.ImageFormatsToUse;
+                    deviceDetails.OfflineProcessInterval=response.OfflineProcessInterval;
+                    deviceDetails.DataStreamTimeOut=response.DataStreamTimeOut;
+                    deviceDetails.ClientConnectionWaitingTime=response.ClientConnectionWaitingTime;
+                    deviceDetails.ProcessLoaderTraceFile=response.ProcessLoaderTraceFile;
+                    deviceDetails.PredictionType=response.PredictionType;
+                    deviceDetails.AnalyticsPredictionType=response.AnalyticsPredictionType;
+                    deviceDetails.DBEnabled=response.DBEnabled;
                     deviceDetails.TemplateMatching=new TemplateMatching();
                     deviceDetails.TemplateMatching.FindControlInMultipleControlStates=response.TemplateMatching.FindControlInMultipleControlStates;
                     deviceDetails.TemplateMatching.ImageRecognitionTimeout=response.TemplateMatching.ImageRecognitionTimeout;
@@ -186,7 +196,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                     deviceDetails.TemplateMatching.TemplateMatchMappingBorderThickness=response.TemplateMatching.TemplateMatchMappingBorderThickness;
                     deviceDetails.TemplateMatching.MultiRotationTemplateMatching=response.TemplateMatching.MultiRotationTemplateMatching;
                     deviceDetails.TemplateMatching.ImageMatchRotationStepAngle=response.TemplateMatching.ImageMatchRotationStepAngle;
-                    if(response.LotSize>1 && response.EnableLots) {
+                    deviceDetails.XaiApiVersion = response.XaiApiVersion;
+                    deviceDetails.EnableElasticStore= response.EnableElasticStore;
+                    deviceDetails.XaiToRun = response.XaiToRun;
+                    deviceDetails.XaiModel = response.XaiModel;
+                    deviceDetails.XaiBatchSize = response.XaiBatchSize;
+                    deviceDetails.XaiTemplateName = response.XaiTemplateName;
+                    deviceDetails.HyperParameters = response.HyperParameters;
+                    deviceDetails.ObjectDetectionRendering = response.ObjectDetectionRendering;
+                    if (response.LotSize>1 && response.EnableLots) {
                         deviceDetails.DownLoadLot=true;
                     }
                 }
@@ -201,7 +219,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
         public static DeviceDetails AssignConfigValues(AttributeDetailsResMsg objSE) {
             LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start,"AssignConfigValues","FrameGrabber"),LogHandler.Layer.FrameGrabber,null);
             DeviceDetails retObj=new DeviceDetails();
-           
+            
             retObj.KpSkeleton=objSE.KpSkeleton;
             
             retObj.TemplateMatching=new TemplateMatching();
@@ -226,41 +244,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                         case "OFFLINE_VIDEO_DIRECTORY":
                             retObj.OfflineVideoDirectory=obj.AttributeValue;
                             break;
+                        case "MIL_LIBRARYNAME":
+                            retObj.MILLibraryName = obj.AttributeValue;
+                            break;
                         case "ARCHIVE_LOCATION":
                             retObj.ArchiveDirectory=obj.AttributeValue;
                             break;
                         case "ARCHIVE_ENABLED":
                             retObj.ArchiveEnabled=obj.AttributeValue.Equals("Yes",StringComparison.InvariantCultureIgnoreCase)?true:false;
                             break;
-                        case "RENDERER_Q":
-                            retObj.QueueName=obj.AttributeValue;
-                            break;
-                        case "MASK_DETECTOR_VIEWER_IP_ADDRESS":
+                        case "VIEWER_IP_ADDRESS":
                             retObj.IpAddress=obj.AttributeValue;
                             break;
-                        case "MASK_DETECTOR_VIEWER_PORT":
+                        case "VIEWER_PORT":
                             retObj.Port=Convert.ToInt32(obj.AttributeValue);
-                            break;
-                        case "ALL_IP_ADDRESS":
-                            retObj.AllIpAddress=obj.AttributeValue;
-                            break;
-                        case "COMPLIANCE_UPPER_THRESHOLD":
-                            retObj.ComplianceUpperThreshold=Convert.ToInt32(obj.AttributeValue);
-                            break;
-                        case "COMPLIANCE_LOWER_THRESHOLD":
-                            retObj.ComplianceLowerThreshold=Convert.ToInt32(obj.AttributeValue);
-                            break;
-                        case "NOMASK_UPPER_THRESHOLD":
-                            retObj.NoMaskUpperThreshold=Convert.ToInt32(obj.AttributeValue);
-                            break;
-                        case "NOMASK_LOWER_THRESHOLD":
-                            retObj.NoMaskLowerThreshold=Convert.ToInt32(obj.AttributeValue);
-                            break;
-                        case "MASK_LABEL":
-                            retObj.MaskLabel=obj.AttributeValue;
-                            break;
-                        case "NOMASK_LABEL":
-                            retObj.NoMaskLabel=obj.AttributeValue;
                             break;
                         case "CONFIDENCE_THRESHOLD":
                             retObj.ConfidenceThreshold=Convert.ToSingle(obj.AttributeValue);
@@ -270,16 +267,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                             break;
                         case "ENABLELOTS":
                             retObj.EnableLots=obj.AttributeValue.Equals("Yes",StringComparison.InvariantCultureIgnoreCase)?true:false;
-                            break;
-                        case "NOMASK_PEN_COLOR":
-                            string noMaskcolor=obj.AttributeValue.ToLower();
-                            noMaskcolor=Char.ToUpper(noMaskcolor[0])+noMaskcolor.Substring(1);
-                            retObj.NoMaskPenColor=noMaskcolor;
-                            break;
-                        case "MASK_PEN_COLOR":
-                            string maskColor=obj.AttributeValue.ToLower();
-                            maskColor=Char.ToUpper(maskColor[0])+maskColor.Substring(1);
-                            retObj.MaskPenColor=maskColor;
                             break;
                         case "BOX_COLOR":
                             string boxColor=obj.AttributeValue.ToLower();
@@ -319,12 +306,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                         case "UNIQUE_PERSON_MODEL":
                             retObj.UPModelName=obj.AttributeValue;
                             break;
-                        case "PREDICTION_CLASS_TYPE":
-                            retObj.PredictionClassType=obj.AttributeValue;
-                            break;
-                        case "ML_MODEL_URL":
-                            retObj.MlModelUrl=obj.AttributeValue;
-                            break;
                         case "METRIC_TYPE":
                             retObj.MetricType=obj.AttributeValue;
                             break;
@@ -349,7 +330,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                         case "MAX_SEQUENCE_NUMBER":
                             retObj.MaxSequenceNumber=Convert.ToInt32(obj.AttributeValue);
                             break;
-                        case "INITIAL_COLLECTION_BUFFERING_SIZE": /* INITIAL_COLLECTION_BUFFERING_SIZE, TRANSPORT_SEQUENCING_BUFFERING_SIZE */
+                        case "INITIAL_COLLECTION_BUFFERING_SIZE": 
                             retObj.InitialCollectionBufferingSize=Convert.ToInt32(obj.AttributeValue);
                             break;
                         case "DELETE_FRAMES_FROM_BLOB":
@@ -367,6 +348,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                         case "STREAMING_PATH":
                             retObj.StreamingPath=obj.AttributeValue;
                             break;
+                        case "STREAMING_PATH_RAW":
+                            retObj.StreamingPathRaw=obj.AttributeValue;
+                            break;
                         case "DISPLAY_ALL_FRAMES":
                             retObj.DisplayAllFrames=obj.AttributeValue.Equals("Yes",StringComparison.InvariantCultureIgnoreCase)?true:false;
                             break;
@@ -376,8 +360,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                         case "FFMPEG_ARGUMENTS":
                             retObj.FfmpegArguments=obj.AttributeValue;
                             break;
-                        case "IS_CLIENT_ACTIVE":
-                            retObj.IsClientActive=obj.AttributeValue.Equals("Yes",StringComparison.InvariantCultureIgnoreCase)?true:false;
+                        case "FFMPEG_ARGUMENTS_RAW_INPUT":
+                            retObj.FfmpegArgumentsRawInput=obj.AttributeValue;
                             break;
                         case "VIDEO_STREAMING_OPTION":
                             retObj.VideoStreamingOption=Convert.ToInt32(obj.AttributeValue);
@@ -388,9 +372,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                         case "SHARED_BLOB_STORAGE":
                             retObj.SharedBlobStorage=obj.AttributeValue.ToLower().Equals("yes",StringComparison.InvariantCultureIgnoreCase)?true:false;
                             break;
-                        /* case "KPSkeleton":
-                            retObj.KPSkeleton=obj.AttributeValue;
-                            break; */
+                        
                         case "CVPREDICT_FIND_CONTROL_IN_MULTIPLE_CONTROL_STATES":
                             retObj.TemplateMatching.FindControlInMultipleControlStates=obj.AttributeValue.Equals("Yes",StringComparison.InvariantCultureIgnoreCase)?true:false;
                             break;
@@ -417,6 +399,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                             break;
                         case "CVPREDICT_WAIT_FOREVER":
                             retObj.TemplateMatching.WaitForever=obj.AttributeValue.Equals("Yes",StringComparison.InvariantCultureIgnoreCase)?true:false;
+                            break;
+                        case "ENABLE_ELASTICSTORE":
+                            retObj.EnableElasticStore = obj.AttributeValue;
                             break;
                         case "CVPREDICT_TEMPLATE_MATCH_MAPPING_BORDER_THICKNESS":
                             retObj.TemplateMatching.TemplateMatchMappingBorderThickness=Convert.ToInt32(obj.AttributeValue);
@@ -485,7 +470,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                             retObj.PythonVersion=obj.AttributeValue;
                             break;
                         case "BACKGROUND_COLOR":
-                            retObj.BackGroundColor=obj.AttributeValue;
+                            retObj.BackgroundColor=obj.AttributeValue;
                             break;
                         case "RENDERER_RECTANGLE_POINT_X":
                             retObj.RendererRectanglePointX=Convert.ToInt32(obj.AttributeValue);
@@ -511,30 +496,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                         case "FFMPEG_BACKGROUNDCHANGE":
                             retObj.FfmpegforBackgroundChange=obj.AttributeValue;
                             break;
-                        case "ENABLE_PROMPT":
-                            retObj.EnablePrompt=obj.AttributeValue;
-                            break;
                         case "PROMPT_INPUT_DIRECTORY":
                             retObj.PromptInputDirectory=obj.AttributeValue;
-                            break;
-                        case "MASK_IMAGE_INPUT":
-                            retObj.MaskImageInput=obj.AttributeValue;
                             break;
                         case "MASK_IMAGE_DIRECTORY":
                             retObj.MaskImageDirectory=obj.AttributeValue;
                             break;
-                        case "REPLACE_IMAGE_INPUT":
-                            retObj.ReplaceImageInput=obj.AttributeValue;
-                            break;
                         case "REPLACE_IMAGE_DIRECTORY":
                             retObj.ReplaceImageDirectory=obj.AttributeValue;
                             break;
-                        case "BLOB_GENAI":
-                            retObj.BlobforGenerativeAI=obj.AttributeValue;
-                            break;
-						case "GENAI":
-							retObj.GENAI=obj.AttributeValue;
-							break;
                         case "OUTPUT_IMAGE":
                             retObj.OutputImage=obj.AttributeValue;
                             break;
@@ -546,6 +516,117 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                             break;
                         case "CVPREDICT_IMAGE_MATCH_ROTATION_STEP_ANGLE":
                             retObj.TemplateMatching.ImageMatchRotationStepAngle=Convert.ToDouble(obj.AttributeValue);
+                            break;
+                        case "XAI_API_VERSION":
+                            retObj.XaiApiVersion = obj.AttributeValue;
+                            break;
+                        case "XAI_TO_RUN":
+                            retObj.XaiToRun = obj.AttributeValue;
+                            break;
+                        case "XAI_MODEL":
+                            retObj.XaiModel = obj.AttributeValue;
+                            break;
+                        case "XAI_BATCH_SIZE":
+                            retObj.XaiBatchSize = Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "XAI_TEMPLATE_NAME":
+                            retObj.XaiTemplateName = obj.AttributeValue;
+                            break;
+                        case "HYPERPARAMETERS":
+                            retObj.HyperParameters = obj.AttributeValue;
+                            break;
+                        case "OBJECTDETECTION_RENDERING":
+                            retObj.ObjectDetectionRendering = obj.AttributeValue;
+                            break;
+                        case "RENDER_IMAGE_FILE_PATH":
+                            retObj.RenderImageFilePath=obj.AttributeValue;
+                            break;
+                        case "RENDER_IMAGE_ENABLED":
+                            retObj.RenderImageEnabled=obj.AttributeValue;
+                            break;
+                        case "DEBUG_IMAGE_FILE_PATH":
+                            retObj.DebugImageFilePath=obj.AttributeValue;
+                            break;
+                        case "IMAGE_DEBUG_ENABLED":
+                            retObj.ImageDebugEnabled=obj.AttributeValue;
+                            break;
+                        case "ENABLE_PING":
+                            retObj.EnablePing=Convert.ToBoolean(obj.AttributeValue);
+                            break;
+                        case "CLIENT_CONNECTION_RETRY_COUNT":
+                            retObj.ClientConnectionRetryCount=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "FRAME_RENDERER_WAIT_TIME_FOR_TRANSPORT_MS":
+                            retObj.FrameRenderer_WaitTimeForTransportms=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "FRAME_RENDERER_EOF_COUNT":
+                            retObj.FrameRenderer_EOF_Count=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "FRAME_RENDERER_EOF_FILE_PATH":
+                            retObj.FrameRenderer_EOF_File_Path=obj.AttributeValue;
+                            break;
+                        case "FRAME_GRAB_RATE_THROTTLING_SLEEP_FRAME_COUNT":
+                            retObj.FrameGrabRateThrottlingSleepFrameCount=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "FRAME_GRAB_RATE_THROTTLING_SLEEP_DURATION_MSEC":
+                            retObj.FrameGrabRateThrottlingSleepDurationMsec=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "FFMPEG_EXE_FILE":
+                            retObj.FfmpegExeFile=obj.AttributeValue;
+                            break;
+                        case "CALCULATE_FRAME_GRABBER_FPR":
+                            retObj.CalculateFrameGrabberFPR=obj.AttributeValue;
+                            break;
+                        case "MAX_EMPTY_FRAME_COUNT":
+                            retObj.MaxEmptyFrameCount=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "EMPTY_FRAME_PROCESS_INTERVAL":
+                            retObj.EmptyFrameProcessInterval=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "FTP_CYCLE":
+                            retObj.FTPCycle=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "ELASTIC_STORE_INDEX_NAME":
+                            retObj.ElasticStoreIndexName=obj.AttributeValue;
+                            break;
+                        case "PROMPT_TEMPLATES_DIRECTORY":
+                            retObj.PromptTemplatesDirectory=obj.AttributeValue;
+                            break;
+                        case "REDUCE_FRAME_QUALITY_TO":
+                            retObj.ReduceFrameQualityTo=Convert.ToDouble(obj.AttributeValue);
+                            break;
+                        case "MIN_THREAD_ON_POOL":
+                            retObj.MinThreadOnPool=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "MAX_THREAD_ON_POOL":
+                            retObj.MaxThreadOnPool=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "MAX_FAIL_COUNT":
+                            retObj.MaxFailCount=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "IMAGE_FORMATS_TO_USE":
+                            retObj.ImageFormatsToUse=obj.AttributeValue;
+                            break;
+                        case "OFFLINE_PROCESS_INTERVAL":
+                            retObj.OfflineProcessInterval=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "DATA_STREAM_TIME_OUT":
+                            retObj.DataStreamTimeOut=obj.AttributeValue;
+                            break;
+                        case "CLIENT_CONNECTION_WAITING_TIME":
+                            retObj.ClientConnectionWaitingTime=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "PROCESS_LOADER_TRACE_FILE":
+                            retObj.ProcessLoaderTraceFile=obj.AttributeValue;
+                            break;
+                        case "PREDICTION_TYPE":
+                            retObj.PredictionType=obj.AttributeValue;
+                            break;
+                        case "ANALYTICS_PREDICTION_TYPE":
+                            retObj.AnalyticsPredictionType=obj.AttributeValue;
+                            break;
+                        case "DB_ENABLED":
+                            retObj.DBEnabled=Convert.ToBoolean(obj.AttributeValue);
                             break;
                         
                         default:

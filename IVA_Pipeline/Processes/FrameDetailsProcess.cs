@@ -1,10 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
-
 ﻿using System;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessScheduler.Framework;
 using QueueEntity = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
@@ -25,6 +23,8 @@ using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Framedetail;
 using System.Runtime.InteropServices;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using static Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common.ApplicationConstants;
+using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue;
+using SE = Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 {
@@ -43,6 +43,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         static private Dictionary<string, int> lastFrameNumberSendForPredictDetails = new Dictionary<string, int>();
         static private Dictionary<string, int> totalFrameCountDetails = new Dictionary<string, int>();
         static private Dictionary<string, int> totalFrameSendForPredictDetails = new Dictionary<string, int>();
+        public string _taskCode;
+
+        public FrameDetailsProcess() { }
+
+        public FrameDetailsProcess(string processId)
+        {
+            _taskCode = TaskRoute.GetTaskCode(processId);
+        }
+
         public override void Dump(QueueEntity.FrameCollectorMetadata message)
         {
 
@@ -119,15 +128,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         {
             
             AppSettings appSettings = Config.AppSettings;
+            BE.DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.FrameCollectorCode);
             if (ConfigurationManager.AppSettings["FrameCacheSlidingExpirationInMins"] != null)
             {
                 frameCacheSlidingExpirationInMins = Convert.ToDouble(System.Configuration.ConfigurationManager.AppSettings["FrameCacheSlidingExpirationInMins"]);
             }
          
-         if(appSettings.PredictionType!=null)
-            {
-              
-              predictionType = appSettings.PredictionType;
+            if(deviceDetails.PredictionType!=null) {
+               
+                predictionType=deviceDetails.PredictionType;
             }
 
 
@@ -186,9 +195,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 }
                
 
-                
                 if (framecount >= totalMessageCount && totalMessageCount > 0)
                 {
+                    
                     if (allFrameReceived.ContainsKey(feedKey))
                     {
                         allFrameReceived[feedKey] = true;
@@ -202,18 +211,24 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
                 using (LogHandler.TraceOperations("FrameDetailsProcess:Process", LogHandler.Layer.Business, Guid.NewGuid(), null))
                 {
-                    if (!message.TE.ContainsKey(TaskRouteConstants.FrameCollectorCode))
+                    if (!message.TE.ContainsKey(_taskCode))
                     {
                         LogHandler.LogError("Message is not processed in FrameDetailsProcess for FrameId = {0} ,TenantId = {1}, deviceId = {2} , module = {3}", LogHandler.Layer.Business, message.Fid, message.Tid, message.Did, TaskRouteConstants.FrameCollectorCode);
                         return true;
                     }
 
-                   
+                  
 
                     cacheExpiration = frameCacheSlidingExpirationInMins;
 
-                    string cacheKey = CacheConstants.FrameCollectorCode + message.Tid + message.Did + message.Fid;
+                    string cacheKey = _taskCode + message.Tid + message.Did + message.Fid;
                     string alreadyInserted = (string)cache[cacheKey];
+                    string sstime = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
+                    if(message.Mtp == null)
+                    {
+                        message.Mtp = new List<SE.Mtp>();
+                    }
+                    message.Mtp.Add(new SE.Mtp() { Etime = "", Src = "DCO", Stime = sstime });
                     
                     if (alreadyInserted != null && alreadyInserted == DataCollectionStatus.frameInserted)
                     {
@@ -251,49 +266,56 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         CreatedBy = username,
                         PredictionType = predictionType,
                         FeedProcessorMasterId = Convert.ToInt32(frameProcessor.FeedId),
-                        MetaData = JsonConvert.SerializeObject(frameProcessor)  
+                        MetaData = JsonConvert.SerializeObject(frameProcessor) 
 
 
                     };
-                    
-                    BE.Queue.Predictions[] BEPredArr = frameProcessor.Fs;
-                    Dictionary<string, string> resultEntity = new Dictionary<string, string>();
-                    bool hasPrediction = false;
-                    foreach (BE.Queue.Predictions predictions in BEPredArr)
-                    {
-                        hasPrediction = true;
-                        if (resultEntity.ContainsKey(predictions.Lb))
-                        {
-                            string count = resultEntity[predictions.Lb];
-                            if (count != null)
-                            {
-                                int value = Convert.ToInt32(count);
-                                value++;
-                                resultEntity[predictions.Lb] = value.ToString();
 
-                            }
-                            else
-                            {
-                                int value = 1;
-                                resultEntity[predictions.Lb] = value.ToString();
-
-                            }
-
-                        }
-                        else
-                        {
-
-                            int value = 1;
-                            resultEntity.Add(predictions.Lb, value.ToString());
-                        }
-
-                    }
                     string facedetails = String.Empty;
-
-
+                    bool hasPrediction = false;
 
                     
-                    facedetails = JsonConvert.SerializeObject(resultEntity);
+                    if (frameProcessor.Fs != null)
+                    {
+                        BE.Queue.Predictions[] BEPredArr = frameProcessor.Fs;
+                        Dictionary<string, string> resultEntity = new Dictionary<string, string>();
+                        foreach (BE.Queue.Predictions predictions in BEPredArr)
+                        {
+                            hasPrediction = true;
+                            if (!string.IsNullOrEmpty(predictions.Lb))
+                            {
+                                if (resultEntity.ContainsKey(predictions.Lb))
+                                {
+                                    string count = resultEntity[predictions.Lb];
+                                    if (count != null)
+                                    {
+                                        int value = Convert.ToInt32(count);
+                                        value++;
+                                        resultEntity[predictions.Lb] = value.ToString();
+
+                                    }
+                                    else
+                                    {
+                                        int value = 1;
+                                        resultEntity[predictions.Lb] = value.ToString();
+
+                                    }
+
+                                }
+                                else
+                                {
+
+                                    int value = 1;
+                                    resultEntity.Add(predictions.Lb, value.ToString());
+                                }
+                            }
+
+                        }
+                        facedetails = JsonConvert.SerializeObject(resultEntity);
+                    }
+
+                    
+
                     FrameMasterDS framemasterDS = new FrameMasterDS();
 
                     string status = "";
@@ -321,7 +343,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         FeedProcessorMasterId = Convert.ToInt32(frameProcessor.FeedId),
                         
                         TenantId = Convert.ToInt32(frameProcessor.Tid),
-                        FileName = frameProcessor.FileName
+                        FileName = frameProcessor.FileName,
+                        Mtp = JsonConvert.SerializeObject(frameProcessor.Mtp)
                     };
 
 
@@ -397,7 +420,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             
             catch (Exception exMP)
             {
-                LogHandler.LogError("Exception in FrameDetailsProcess : {0}", LogHandler.Layer.Business, exMP.Message);
+                LogHandler.LogError("Exception in FrameDetailsProcess : {0}, inner exception: {1}, stack trace: {2}", 
+                    LogHandler.Layer.Business, exMP.Message, exMP.InnerException, exMP.StackTrace);
                 
                 bool failureLogged = false;
                
@@ -433,9 +457,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         }
 
-        /**
-         * Parse the frame metadata and insert into frame_predicted_class_details 
-         * */
+        
         private void InsertPredictedClassDetails(BE.Queue.FrameCollectorMetadata frameProcessor, int partitionKey)
         {
 #if DEBUG
@@ -547,7 +569,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
                 try
                 {
-                    
+                   
                     string eventType = message.EventType;
                     switch (eventType)
                     {
@@ -584,7 +606,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             if (frameInformation != null)
             {
                 string feedKey = frameInformation.TID + FrameRendererKey.UnderScore + frameInformation.DID + FrameRendererKey.UnderScore + frameInformation.FeedId;
-                
+               
                 receivedFrameCountDetails.Add(feedKey, 0);
                 allFrameReceived.Add(feedKey, false);
 
@@ -640,7 +662,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
 
                     feedRequestDS.Update(feedRequest);
-                   
+                    
                     var feedProcessorMaster = feedProcessorMasterDS.GetOneWithMasterId(feedId);
                     FrameMasterDS frameMasterDs = new FrameMasterDS();
                     feedProcessorMaster.FeedProcessorMasterId = feedId;

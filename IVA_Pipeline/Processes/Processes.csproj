@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Infosys.Solutions.Ainauto.VideoAnalytics.Processes</RootNamespace>
     <AssemblyName>Infosys.Solutions.Ainauto.VideoAnalytics.Processes</AssemblyName>
   </PropertyGroup>
@@ -28,6 +28,7 @@
     <ProjectReference Include="..\DataEntity\DataEntity.csproj" />
     <ProjectReference Include="..\Prediction\Prediction.csproj" />
     <ProjectReference Include="..\ProcessScheduler.Framework\ProcessScheduler.Framework.csproj" />
+    <ProjectReference Include="..\Renderer\Renderer.csproj" />
     <ProjectReference Include="..\TaskRoute\TaskRoute.csproj" />
     <ProjectReference Include="..\TCPChannelCommunication\TCPChannelCommunication.csproj" />
   </ItemGroup>

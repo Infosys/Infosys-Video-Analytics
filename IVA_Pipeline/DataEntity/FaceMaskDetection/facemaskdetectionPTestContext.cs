@@ -1,11 +1,11 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.IO;
+using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Configuration;
@@ -77,16 +77,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.VideoAnalytic
         {
             if (!optionsBuilder.IsConfigured)
             {
-                var config = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
-                string DbProvider = config.GetSection("AppSettings:DBProvider").Value;
-                switch (DbProvider)
+                AppSettings appSettings = Config.AppSettings;
+                switch (appSettings.DBProvider)
                 {
                     case "postgres":
-                        optionsBuilder.UseNpgsql(config.GetSection("ConnectionStrings:FaceMaskDetectionEntitiesPostgres").Value);
+                        optionsBuilder.UseNpgsql(appSettings.FaceMaskDetectionEntities);
                         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                         break;
                     default:
-                        optionsBuilder.UseSqlServer(config.GetSection("ConnectionStrings:FaceMaskDetectionEntities").Value);
+                        optionsBuilder.UseSqlServer(appSettings.FaceMaskDetectionEntities);
                         break;
                 }
             }

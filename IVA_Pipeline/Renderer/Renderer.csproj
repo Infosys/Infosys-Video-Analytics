@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Infosys.Solutions.Ainauto.VideoAnalytics.Renderer</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Emgu.CV" Version="4.7.0.5276" />
+    <PackageReference Include="Emgu.CV.Bitmap" Version="4.7.0.5276" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BusinessComponent\BusinessComponent.csproj" />
+    <ProjectReference Include="..\BusinessEntity\BusinessEntity.csproj" />
+    <ProjectReference Include="..\PythonLoader\PythonLoader.csproj" />
+  </ItemGroup>
+
+</Project>

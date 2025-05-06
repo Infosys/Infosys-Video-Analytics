@@ -1,5 +1,6 @@
 {
   "LISettings": {
+    //Provide region details of the host
     "HostRegion": {
       "Region": [
         {
@@ -41,7 +42,7 @@
       ]
     },
     "IISDoc": {
-      "DllPath": "D:\\TFS Workspace\\ManaExpertServices\\Solutions\\FaceMaskDetection\\Source Code\\Dot Net\\DotnetCore\\LIF_CORE\\IIS_DocAdapter\\bin\\Debug\\net5.0\\Infosys.Lif.IIS_DocAdapter.dll",
+      "DllPath": "D:\\Dot Net\\DotnetCore\\LIF_CORE\\IIS_DocAdapter\\bin\\Debug\\net5.0\\Infosys.Lif.IIS_DocAdapter.dll",
       "TypeName": "Infosys.Lif.IIS_DocAdapter",
       "IISDocDetails": [
         {
@@ -51,8 +52,9 @@
         }
       ]
     },
+ 
     "MSMQ": {
-      "DllPath": "D:\\TFS Workspace\\ManaExpertServices\\Solutions\\FaceMaskDetection\\Source Code\\Dot Net\\DotnetCore\\LIF_CORE\\MSMQAdapter\\bin\\Debug\\net5.0\\MSMQAdapter.dll",
+      "DllPath": "D:\\Dot Net\\DotnetCore\\LIF_CORE\\MSMQAdapter\\bin\\Debug\\net5.0\\MSMQAdapter.dll",
       "TypeName": "Infosys.Lif.Ext.MSMQAdapterExtenstion",
       "MSMQDetails": [
         {
@@ -78,7 +80,7 @@
       ]
     },
     "MemoryQueue": {
-      "DllPath": "D:\\TFS Workspace\\ManaExpertServices\\Solutions\\FaceMaskDetection\\Source Code\\Dot Net\\DotnetCore\\LIF_CORE\\MemoryQueueAdapter\\bin\\Debug\\net5.0\\Infosys.Lif.MemoryQueueAdapter.dll",
+      "DllPath": "D:\\Dot Net\\DotnetCore\\LIF_CORE\\MemoryQueueAdapter\\bin\\Debug\\net5.0\\Infosys.Lif.MemoryQueueAdapter.dll",
       "TypeName": "Infosys.Lif.MemoryQueueAdapter",
       "MemoryQueueDetails": [
         {
@@ -118,7 +120,7 @@
       ]
     },
     "MemoryDoc": {
-      "DllPath": "D:\\ado\\ManaExpertServices\\LIF\\LIF_core\\MemoryDocAdapter\\bin\\Debug\\net5.0\\Infosys.Lif.MemoryDocAdapter.dll",
+      "DllPath": "D:\\MemoryDocAdapter\\bin\\Debug\\net5.0\\Infosys.Lif.MemoryDocAdapter.dll",
       "TypeName": "Infosys.Lif.MemoryDocAdapter",
       "MemoryDocDetails": [
         {

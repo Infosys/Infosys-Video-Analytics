@@ -1,8 +1,9 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
+﻿
 
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.VideoAnalytics;
 using System;
@@ -30,6 +31,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess
         public IList<ResourceAttribute> GetAll()
         {
             return dbCon.ResourceAttributes.ToList();
+        }
+
+        public string GetOfflineVideoDirectory(int tenantId, string ResourceId)
+        {
+            using (dbCon = new facemaskdetectionPTestContext())
+            {
+                string directory = dbCon.ResourceAttributes.Where(r => r.TenantId == tenantId && r.ResourceId == ResourceId && r.AttributeName == "OFFLINE_VIDEO_DIRECTORY").Select(r => r.AttributeValue).FirstOrDefault();
+                return directory;
+            }
         }
 
         public IList<ResourceAttribute> GetAll(ResourceAttribute Entity)

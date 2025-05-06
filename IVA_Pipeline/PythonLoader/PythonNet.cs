@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System.Diagnostics;
  
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
@@ -16,23 +15,26 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.PythonLoader
     public class PythonNet
     {
 
-   
+        
         dynamic? scope;
         dynamic? inferenceModule;
         private static PythonNet? instance = null;
         private static readonly object Instancelock = new object();
-        public static string modelUrl = "PythonModelExecutor";
-  
+       
+        public static string MILLibraryName = "";
+        
         private static DeviceDetails deviceDetails = null;
+
         public PythonNet()
         {
 
             if (ConfigHelper.Cache != null)
-                deviceDetails = (DeviceDetails)ConfigHelper.Cache[ConfigHelper.DeviceDetailsCacheKey];     
+                deviceDetails = (DeviceDetails)ConfigHelper.Cache[ConfigHelper.DeviceDetailsCacheKey]; 
+            MILLibraryName= deviceDetails.MILLibraryName;
             var pathToVirtualEnv = deviceDetails.PythonVirtualPath;
             if(deviceDetails.PythonVersion.Contains("python39.dll"))
             {
-                #region Python Virtual Environment   3.9    
+                #region Python Virtual Environment   3.9
                 if (Runtime.PythonDLL == null)
                 {
                     Runtime.PythonDLL = deviceDetails.PythonVersion;
@@ -71,7 +73,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.PythonLoader
             }
         }
 
-       
+        
 
 
         private PythonNet(string name)
@@ -95,7 +97,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.PythonLoader
                     {
                         if (instance == null)
                         {
-                            instance = new PythonNet(modelUrl);
+                            instance = new PythonNet(MILLibraryName);
                         }
                     }
                 }
@@ -105,13 +107,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.PythonLoader
 
         public dynamic Inference(dynamic req, string modelName)
         {
-           
+            
             dynamic detection;
             using (Py.GIL())
             {
-              
-                detection = inferenceModule.executeModel(req);
                
+                detection = inferenceModule.executeModel(req);
+              
             }
             return detection;
 
@@ -120,6 +122,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.PythonLoader
         
         public dynamic HeatMapInference(dynamic req)
         {
+            
             dynamic detection;
             using (Py.GIL())
             {

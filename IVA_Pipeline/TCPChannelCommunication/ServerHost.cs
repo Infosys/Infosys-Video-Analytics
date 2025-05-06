@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using System;
 using System.Collections.Generic;
@@ -70,7 +69,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPChannelComm
                     while (true)
                     {
                         bytesRead = readerStream.BaseStream.Read(payloadbytes, 0, payloadbytes.Length);
-                
+                        
                         this.OnHandleLog.Invoke(String.Format("Received bytes: {0}", bytesRead));
 
                         if (bytesRead > 0)
@@ -88,7 +87,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPChannelComm
 
                             byte[] firstTenBytes = new byte[10];
                             firstTenBytes = payloadbytes.Take(10).ToArray<byte>();
-                           
+                            
                             string sizeString = Encoding.UTF8.GetString(firstTenBytes);
                             this.OnHandleLog.Invoke(String.Format("firstTenBytes: {0}", sizeString));
                             if (int.TryParse(sizeString, out int n))
@@ -104,20 +103,21 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPChannelComm
                                 }
 
                             }
-                          
+                           
                             this.OnHandleLog.Invoke(String.Format("sizeOfTotalBytes : {0}", sizeOfTotalBytes));
-                       
+                            
                             Array.Resize(ref tempData, bytesRead);
                             tempData = payloadbytes.Take(bytesRead).ToArray<byte>();
-                         
+                            
                             totalPayloadRead = JoinArrays(totalPayloadRead, tempData);
-                     
+                            
+                            
                         }
 
                         if (totalPayloadRead.Length >= sizeOfTotalBytes && sizeOfTotalBytes > 0)
                         {
                             this.OnHandleLog.Invoke("breaking , sizeOfTotalBytes : " + sizeOfTotalBytes);
-
+                            
                             break;
                         }
                     }
@@ -134,6 +134,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPChannelComm
                 var ElapsedTime = DateTime.Now - StartTime;
                 if (ElapsedTime.TotalMilliseconds >= 1000)
                 {
+                    
                     i = 0;
                     StartTime = DateTime.Now;
                 }
@@ -148,8 +149,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPChannelComm
 
         private byte[] JoinArrays(byte[] totalData, byte[] tempData)
         {
+            
             byte[] outputBytes = totalData.Concat(tempData).ToArray<byte>();
-         
+            
             return outputBytes;
         }
 

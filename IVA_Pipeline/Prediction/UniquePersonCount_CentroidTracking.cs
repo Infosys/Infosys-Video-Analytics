@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message;
 using SE = Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts;
@@ -21,11 +20,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 {
     public class UniquePersonCount_CentroidTracking : ExecuteBase
     {
+        
         public override bool InitializeModel()
         {
             return true;
         }
 
+        
         public override string MakePrediction(Stream st, ModelParameters modelParameters)
         {
             ObjectCache cache = MemoryCache.Default;
@@ -60,6 +61,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
 
 
+                
+
                 if (modelParameters.FrameNumber == 1)
                 {
                     Ad = "";
@@ -93,16 +96,32 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     Model = modelParameters.ModelName,
                     Per = null,
                     Ad = Ad,
-                    Base_64 = base64_image,
-                    C_threshold = modelParameters.ConfidenceThreshold, 
+                    Base_64 = base64_image,// for yolov7
+                    C_threshold = modelParameters.ConfidenceThreshold, // for yolov7
 
-                         Ffp = modelParameters.Ffp,
+                    Ffp = modelParameters.Ffp,
                     Ltsize = modelParameters.Ltsize,
-                    Lfp = modelParameters.Lfp
+                    Lfp = modelParameters.Lfp,
+                    I_fn = modelParameters.videoFileName,
+                    Hp = modelParameters.Hp,
                 };
+
+                if (!string.IsNullOrEmpty(modelParameters.Prompt))
+                {
+                    LogHandler.LogDebug($"Formatting prompt: {modelParameters.Prompt} to list of list", LogHandler.Layer.Business);
+                    reqMsg.Prompt = JsonConvert.DeserializeObject<List<List<string>>>(modelParameters.Prompt);
+                }
+                else
+                {
+                    reqMsg.Prompt = new List<List<string>>();
+                    List<string> list = new List<string>();
+                    reqMsg.Prompt.Add(list);
+                }
+
                 #region  Commenting old request part for testing new response structure
                 /*
-               
+               //var response = channel.GetDetectPersonCount_t7(reqMsg);
+               //metadata = JsonConvert.SerializeObject(response);
 
                var apiResponse = ServiceCaller.ApiCaller(reqMsg, baseUrl + "/" + modelname, "POST");
 
@@ -116,7 +135,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
                 ObjectDetectorAPIResMsg response = null;
 
-                 var apiResponse = ServiceCaller.ApiCaller(reqMsg, modelParameters.BaseUrl + "/" + modelParameters.ModelName, "POST");
+                 var apiResponse = ServiceCaller.ApiCaller(reqMsg, modelParameters.BaseUrl + "/" + modelParameters.ModelName, "POST").Result;
 
                 #region Testing for new changes for IVA request/response structure
                 /*
@@ -133,6 +152,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
                     if (!string.IsNullOrEmpty(apiResponse))
                     {
+                        
                         response = JsonConvert.DeserializeObject<ObjectDetectorAPIResMsg>(apiResponse);
                         string etime = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
                         for (int i = 0; i < response.Mtp.Count; i++)
@@ -142,6 +162,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                                 response.Mtp[i].Etime = etime;
                             }
                         }
+                        for (int i = 0; i < response.Fs.Count; i++)
+                        {
+                            response.Fs[i].TaskType = modelParameters.TaskType;
+                        }
+                        response.Prompt = reqMsg.Prompt;
                     }
                     var cacheItemPolicy = new CacheItemPolicy
                     {

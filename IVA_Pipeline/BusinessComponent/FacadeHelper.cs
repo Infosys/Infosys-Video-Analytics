@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Infosys.Ainauto.Framework.Facade;
 using Infosys.Ainauto.Framework.Facade.Entity;
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
@@ -31,6 +30,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
     {
         Facade facade = new Facade();
         public static string applicationName = "";
+        //  string source = System.Configuration.ConfigurationManager.AppSettings["ApplicationName"];
         public static string eventType = "";
         public static string metricIngestor_JobName = System.Configuration.ConfigurationManager.AppSettings["metricIngestorJobName"];
         public static string blobService = "";
@@ -178,6 +178,60 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
 
 
+//        private DeviceDetails SetDeviceDetails(string tId, string deviceId)
+//        {
+//            DeviceDetails deviceDetails = null;
+//#if DEBUG
+//            using (LogHandler.TraceOperations("FrameRendererProcess:SetDeviceDetails", LogHandler.Layer.Business, Guid.NewGuid()))
+//            {
+//                LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "SetDeviceDetails", "FrameRendererProcess"), LogHandler.Layer.Business, null);
+//                LogHandler.LogDebug(String.Format("The SetDeviceDetails Method of FrameRendererProcess class is getting executed with parameters : deviceId ={0}; ", deviceId),
+//                LogHandler.Layer.Business, null);
+//#endif
+//                string deviceDetailsCacheKey = tId + deviceId;
+//                // var channel = maskDetector.ServiceChannel;
+//                deviceDetails = (DeviceDetails)cache[deviceDetailsCacheKey];
+//                if (deviceDetails == null)
+//                {
+//                    var uri = String.Format($"{Config.AppSettings.ConfigWebApi}Configuration/GetDeviceAttributes?tid={tId}&did={deviceId}");
+//                    var apiResponse = ServiceCaller.ApiCaller(null, uri, "GET");
+//                    var response = Helper.AssignConfigValues(JsonConvert.DeserializeObject<AttributeDetailsResMsg>(apiResponse));
+
+//                    //  var response = Helper.AssignConfigValues(channel.GetDeviceAttributes(int.Parse(tId), deviceId));
+//                    if (response == null)
+//                        throw new FaceMaskDetectionCriticalException("Failed to get device configuration from services. response is null");
+//                    deviceDetails = new DeviceDetails();
+//                    deviceDetails.IpAddress = response.IpAddress;
+//                    deviceDetails.Port = response.Port;
+//                    deviceDetails.BaseUrl = response.StorageBaseUrl;
+//                    deviceDetails.EnableLots = response.EnableLots;
+//                    deviceDetails.PredictionModel = response.ModelName;
+//                    deviceDetails.MaskPenColor = response.MaskPenColor;
+//                    deviceDetails.NoMaskPenColor = response.NoMaskPenColor;
+//                    deviceDetails.PenThickness = response.PenThickness;
+//                    deviceDetails.LabelHeight = response.LabelHeight;
+//                    deviceDetails.LabelFontStyle = response.LabelFontStyle;
+//                    deviceDetails.LabelFontSize = response.LabelFontSize;
+//                    deviceDetails.LabelFontColor = response.LabelFontColor;
+//                    deviceDetails.FrameToPredict = response.LotSize;
+//                    deviceDetails.PredictionClassType = response.PredictionClassType;
+//                    deviceDetails.BoxColor = response.BoxColor;
+//                    deviceDetails.MetricType = response.MetricType;
+//                    deviceDetails.StorageBaseUrl = response.StorageBaseUrl;
+//                    deviceDetails.EmailNoticationDescription = response.EmailNoticationDescription;
+//                    if (response.LotSize > 1 && response.EnableLots)
+//                    {
+//                        deviceDetails.DownLoadLot = true;
+//                    }
+//                    cache.Set(deviceDetailsCacheKey, deviceDetails, policy);
+//                }
+
+//#if DEBUG
+//                LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_End, "SetDeviceDetails", "FrameRendererProcess"), LogHandler.Layer.Business, null);
+//            }
+//#endif
+//            return deviceDetails;
+//        }
 
         public void SendMetricIngestorData(BE.Queue.MetricIngestorMetadata metricIngestorMetadata)
         {
@@ -216,8 +270,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                             {
                                 metrics.MetricName = deviceDetails.MetricType;
                                 metrics.MetricValue = objectList[i].Lb;
-                                metrics.Description = constructDescription(descriptionFormat, metrics.MetricName, metrics.MetricValue,metrics.MetricTime, metricIngestorLink);                            
+                                metrics.Description = constructDescription(descriptionFormat, metrics.MetricName, metrics.MetricValue,metrics.MetricTime, metricIngestorLink);
+                                //string metricIngestorString = JsonConvert.SerializeObject(metrics);
                                 metricData.MetricMessages.Add(metrics);
+                               // sendDataToMetricIngestor(metricIngestorString);
                             }
                             break;
                         case "ClassAggregation":
@@ -226,7 +282,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                             {
                                 metrics.MetricName = labelList[i];
                                 metrics.MetricValue = objectList.Where(x => x.Lb == labelList[i]).Count().ToString();
+                                // string metricIngestorString = JsonConvert.SerializeObject(metricIngestorMetaData);
                                 metrics.Description = constructDescription(descriptionFormat, metrics.MetricName, metrics.MetricValue, metrics.MetricTime, metricIngestorLink);
+                                //  sendDataToMetricIngestor(metricIngestorString);
                                 metricData.MetricMessages.Add(metrics);
                             }
                             break;
@@ -277,8 +335,24 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     string jobName = Config.AppSettings.MetricIngestorJobName;
 
                     var uri = String.Format($"{Config.AppSettings.ConfigWebApi}Configuration/GetConfiguration?tid={tid}&jobname={jobName}");
-                    var apiResponse = ServiceCaller.ApiCaller(null, uri, "GET");
+                    var apiResponse = ServiceCaller.ApiCaller(null, uri, "GET").Result;
                     configData = JsonConvert.DeserializeObject<ConfigData>(apiResponse);
+
+                    //DA.ConfigurationsDS configurationsDS = new DA.ConfigurationsDS();
+                    ////var response = configurationsDS.GetAny().Where(c=>c.TenantId == Convert.ToInt32(tid) && c.ReferenceKey == jobName).ToList();
+                    //var response = configurationsDS.GetAll(new Resource.Entity.VideoAnalyticsModel.Configuration()
+                    //{
+                    //    TenantId = Convert.ToInt32(tid),
+                    //    ReferenceType = jobName
+                    //}).ToList();
+                    //if (response.Count>0)
+                    //{
+                    //    configData = getConfig(response);
+                    //}
+
+
+                    //  JobHelper jobHelper = new JobHelper();
+                    // configData = jobHelper.getConfig(metricIngestor_JobName);
 
 
                     cache.Set(MetricIngestorFacadeClient.metricIngestorConfigKey, configData, policy);
@@ -298,10 +372,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     using (LogHandler.TraceOperations("FacadeHelper:sendDataToMetricIngestor", LogHandler.Layer.WebServiceHost, Guid.NewGuid()))
                     {
                         var uri = String.Format($"http://{metricIngestorUrl}:{metricIngestorPort}/{metricIngestor_Endpoint}");
-                        var apiResponse = ServiceCaller.ApiCaller(JsonConvert.DeserializeObject<MetricData>(metricIngestorMetadata), uri, "POST");
+                        var apiResponse = ServiceCaller.ApiCaller(JsonConvert.DeserializeObject<MetricData>(metricIngestorMetadata), uri, "POST").Result;
                         if (!apiResponse.Contains("Error"))
                         {
 
+                            //JObject jsonObj = (JObject)JsonConvert.DeserializeObject(facadeResult.Data);
+                            //bool result = (Boolean)jsonObj.SelectToken("result");
 #if DEBUG
                             LogHandler.LogDebug(String.Format("sendDataToMetricIngestor call is successful:  Argument passed to MetricIngestor api :" +
                                 " BaseURI={0}; Operation={1};Port={2}; EndPoint={3}, Request Body={4},Response={5} ", metricIngestorUrl, "Post", metricIngestorPort, metricIngestor_Endpoint, metricIngestorMetadata, apiResponse),
@@ -344,6 +420,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 throw ex;
             }
 
+         //   return false;
 
         }
 

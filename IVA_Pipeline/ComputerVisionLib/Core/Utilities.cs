@@ -1,21 +1,23 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
+
 using System.Drawing;
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
+
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using System.Diagnostics;
+
 using System.ComponentModel;
 using System.Reflection;
 using System.IO;
@@ -26,7 +28,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 {
     public class Utilities
     {
-        
+       
 
         private const string stopFile = "stop.iap";
 
@@ -54,13 +56,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         const string ieWebBrowser = "internet explorer";
         const string firefoxWebBrowser = "firefox";
         const string chromeWebBrowser = "chrome";
-        
+       
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern bool SetDllDirectory(string path);
 
         public static Stream IapwPackage = null;
 
 
+       
         public static void SetDLLsPath()
         {
             if (Assembly.GetEntryAssembly() != null) 
@@ -73,7 +76,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
         }
 
-    
+       
         static Utilities()
         {
             SetDLLsPath();
@@ -113,7 +116,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 cacheFocusedElements.Clear();
         }
 
-        
+       
         public static void ClearCache(string controlTreePath)
         {
             if (cacheControlPathElements != null && cacheControlPathElements.Count > 0 && cacheControlPathElements.ContainsKey(controlTreePath))
@@ -122,7 +125,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 cacheFocusedElements.Remove(controlTreePath);
         }
 
-       
+        
         private static Rectangle firstControl = Rectangle.Empty;
         private static Control controlToTrack = null;
         private static bool firstChanceDone = false;
@@ -132,7 +135,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         
         private static System.Threading.AutoResetEvent arEvent = new System.Threading.AutoResetEvent(false);
 
-       
+        
 
         private static string UpdateStartingLevel(string sourcePath, string targetPath)
         {
@@ -145,7 +148,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     string sourcePathPart = sourcePathParts[0]; 
                     int level = int.Parse(sourcePathPart.Split('[')[0]); 
 
-                   
+                    
                     string[] targetPathParts = targetPath.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
                     List<string> peerIndexes = new List<string>();
                     foreach (string st in targetPathParts)
@@ -165,7 +168,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             return targetPath;
         }
 
-        
+       
 
         private static int GetCurrentLevelInAppTree(string appTreePath)
         {
@@ -188,21 +191,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         #region old key press wioth modifier
 
         
-       
-        
 
         #endregion
 
         #region old key press with modifier
-       
+        
 
         #endregion
-       
-
-       
-
-
-       
+        
+      
 
         
 
@@ -214,7 +211,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
            
             if (imageRef != null && imageRef.SupportedStates != null && imageRef.SupportedStates.Count > 0)
             {
-                
                 if (imageRef.SupportedStates.Count > 1)
                     ifImageThenWaitIdenfForTemp = requestedWaitforeverFlag = false;
 
@@ -222,7 +218,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 {
                     foreach (var item in imageRef.SupportedStates)
                     {
-                       
+                        
                         if (!string.IsNullOrEmpty(item.ImagePath) && item.ImagePath.StartsWith("$"))
                             item.ImagePath = item.ImagePath.Replace("$", atrFolder);
 
@@ -247,13 +243,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 while (requestedWaitforeverFlag && imageRef.CurrentBoundingRectangle == Rectangle.Empty);
             }
 
-            return imageRef; 
+            return imageRef;
         }
 
        
         public static Rectangle FindElement(string filename, int timeout = DEFAULT_TIMEOUT, double confidence = 80, bool multipleScaleMatching = true, object searchRegion = null, Stream sourceImageToMatch = null)
         {
-            
             if (Core.Utilities.IsStopRequested())
                 throw new Core.CVExceptions.StopRequested();
 
@@ -268,7 +263,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 if (System.IO.File.Exists(filename) || (IapwPackage != null && IapwPackage.Length > 0))
                 {
                     Image<Gray, byte> template = null;
-                  
+                   
                     if (IapwPackage == null)
                         template = new Image<Gray, byte>(filename);
                     else
@@ -276,7 +271,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                        
                         Stream templateStream = Packaging.ExtractFile(IapwPackage, filename);
                         var bmp = new Bitmap(templateStream);
-                                             
+                                               
                         template = bmp.ToImage<Gray, byte>();
 
                        
@@ -292,18 +287,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         Image<Gray, byte> source = null;
                         if (sourceImageToMatch != null)
                         {
-                         
+                            
 
                             backgroundProcessing = true;
                         }
                        
                         if (multipleScaleMatching)
                         {
-                            
+                           
                             int direction = 1;
                             for (int i = 0; i <= MaxScaleSteps; i++)
                             {
-                               
+                                
                                 double scale = 1 + direction * i * ScaleStep;
                                 Image<Gray, byte> templateTemp = ResizeTemplate(template, scale);
                                 if (templateTemp != null)
@@ -315,6 +310,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                     }
                                 }
 
+                                
                                 scale = 1 + (-direction) * i * ScaleStep;
                                 templateTemp = ResizeTemplate(template, scale);
                                 if (templateTemp != null)
@@ -345,7 +341,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             catch (System.IO.FileNotFoundException ex)
             {
-               
+                
                 string exMessage = ex.Message;
                 string innerExMessage = ex.InnerException != null ? ex.InnerException.Message : "";
                 LogHandler.LogError(string.Format(Logging.ErrorMessages.EXCEPTION, "FindElement", exMessage, innerExMessage), LogHandler.Layer.Business);
@@ -353,13 +349,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             catch (Exception ex)
             {
-               
+                
                 string exMessage = ex.Message;
                 string innerExMessage = ex.InnerException != null ? ex.InnerException.Message : "";
                 LogHandler.LogError(string.Format(Logging.ErrorMessages.EXCEPTION, "FindElement", exMessage, innerExMessage), LogHandler.Layer.Business);
                 
             }
 
+            
             if (searchRegion != null && searchRect != Rectangle.Empty)
             {
                 elementRectTemp.X += searchRect.X;
@@ -368,10 +365,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             return elementRectTemp;
         }
 
-       
+        
         public static Rectangle FindElementInTrueColor(string filename, int timeout = DEFAULT_TIMEOUT, double confidence = 80, bool multipleScaleMatching = true, object searchRegion = null, Stream sourceImageToMatch = null)
         {
-           
+            
             if (Core.Utilities.IsStopRequested())
                 throw new CVExceptions.StopRequested();
 
@@ -385,7 +382,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 if (System.IO.File.Exists(filename) || (IapwPackage != null && IapwPackage.Length > 0))
                 {
                     Image<Bgr, byte> template = null;
-                   
+                    
                     if (IapwPackage == null)
                         template = new Image<Bgr, byte>(filename);
                     else
@@ -407,17 +404,19 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         Image<Bgr, byte> source = null;
                         if (sourceImageToMatch != null)
                         {
+                            
                             var bmp = new Bitmap(sourceImageToMatch);
                             source = bmp.ToImage<Bgr, byte>();
                             backgroundProcessing = true;
                         }
-                       
+                        
                         if (multipleScaleMatching)
                         {
+                            
                             int direction = 1;
                             for (int i = 0; i <= MaxScaleSteps; i++)
                             {
-                               
+                                
                                 double scale = 1 + direction * i * ScaleStep;
                                 Image<Bgr, byte> templateTemp = ResizeTemplateInTrueColor(template, scale);
                                 if (templateTemp != null)
@@ -429,7 +428,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                     }
                                 }
 
-                               
+                                
                                 scale = 1 + (-direction) * i * ScaleStep;
                                 templateTemp = ResizeTemplateInTrueColor(template, scale);
                                 if (templateTemp != null)
@@ -461,7 +460,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             catch (System.IO.FileNotFoundException ex)
             {
-            
+                
                 string exMessage = ex.Message;
                 string innerExMessage = ex.InnerException != null ? ex.InnerException.Message : "";
                 LogHandler.LogError(string.Format(Logging.ErrorMessages.EXCEPTION, "FindElementInTrueColor", exMessage, innerExMessage), LogHandler.Layer.Business);
@@ -476,6 +475,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 
             }
 
+           
             if (searchRegion != null && searchRect != Rectangle.Empty)
             {
                 elementRectTemp.X += searchRect.X;
@@ -506,16 +506,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 }
                 catch (Exception ex)
                 {
-                   
+                    
                 }
                 System.Threading.Thread.Sleep(THREAD_SLEEP_DURATION);
             }
             return elementRectTemp;
         }
 
-       
+        
         public static List<TemplateMatching> FindAllInstances(string filename,out double angle,int timeout=DEFAULT_TIMEOUT_PERINSTANCE,double confidence=80,bool multipleScaleMatching=true,bool multiRotationMatching=true,Stream sourceImageToMatch=null,bool enableTemplateMatchMap=false) {
-            
+           
             List<TemplateMatching> rects=new List<TemplateMatching>();
             List<Point[]> boxes=new List<Point[]>();
             int currentCount=0;
@@ -544,7 +544,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         Image<Gray, byte> source = null;
                         if (sourceImageToMatch != null)
                         {
-                          
+                            
                             var bmp = new Bitmap(sourceImageToMatch);
                             source = bmp.ToImage<Gray, byte>();
 
@@ -554,12 +554,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                 if (templateMatchMapScreen != null)
                                 {
 
-                                    
+                                   
                                     var btmp = new Bitmap(new MemoryStream(templateMatchMapScreen));
                                     sourceMatches = btmp.ToImage<Bgr, byte>();
                                 }
                                 else
                                 {
+                                   
                                     var btmp = new Bitmap(sourceImageToMatch);
                                     sourceMatches = btmp.ToImage<Bgr, byte>();
 
@@ -567,7 +568,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                             }
                         }
                        
-
                         if (boxes != null && boxes.Count > 0)
                         {
                             boxes.ForEach(b =>
@@ -589,11 +589,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                             int direction=1;
                             bool noMatchAboveConfidenceScore=false; 
                             int countBoxes=0;
-                          
+                            
                             for(int i=0;i<=MaxScaleSteps;i++) {
-                             
+                                
                                 try {
-                                   
+                                    
                                     double scale=1+direction*i*ScaleStep;
                                     Image<Gray,byte> templateTemp=ResizeTemplate(template,scale);
                                     if(templateTemp!=null) {
@@ -602,10 +602,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                             
                                             Image<Gray,byte> imageTemp=RotateImage(source,j);
                                             if(imageTemp!=null) {
-                                               
+                                                
                                                 elementRectTemp=FindRectangles(imageTemp,templateTemp,confidence);
                                                 if(elementRectTemp?.Count()>0) {
-                                                    /* int countBoxes=0; */
+                                                    
                                                     for(int icount=0;icount<elementRectTemp.Count();icount++) {
                                                         if(elementRectTemp[icount]?.BoundingBox.Height>0 && elementRectTemp[icount]?.BoundingBox.Width>0) {
                                                             rects.Add(elementRectTemp[icount]);
@@ -618,20 +618,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                                         angle=j;
                                                         break;
                                                     }
-                                                   
+                                                    
                                                 }
                                             }
-                                           
+                                            
                                             imageTemp=RotateImage(source,-i);
                                             if(imageTemp!=null) {
-                                               
+                                                
                                                 elementRectTemp=FindRectangles(imageTemp,templateTemp,confidence);
                                                 if(elementRectTemp?.Count()>0) {
-                                                   
+                                                    
                                                     for(int icount=0;icount<elementRectTemp.Count();icount++) {
                                                         if(elementRectTemp[icount]?.BoundingBox.Height>0 && elementRectTemp[icount]?.BoundingBox.Width>0) {
                                                             rects.Add(elementRectTemp[icount]);
-                                                           
+                                                            
                                                             var boundingBox=RectToBox(elementRectTemp[icount].BoundingBox);
                                                             boxes.Add(boundingBox);
                                                             countBoxes++;
@@ -649,13 +649,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                     if(countBoxes>0) {
                                         break;
                                     }
-                                   
+                                    
                                     scale=1+(-direction)*i*ScaleStep;
                                     templateTemp=ResizeTemplate(template,scale);
                                     if(templateTemp!=null) {
-                                       
+                                        
                                         for(double j=0;j<=180;j+=RotationStep) {
-                                           
+                                            
                                             Image<Gray,byte> imageTemp=RotateImage(source,j);
                                             if(imageTemp!=null) {
                                                 
@@ -674,20 +674,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                                         angle=j;
                                                         break;
                                                     }
-                                                   
+                                                    
                                                 }
                                             }
-                                           
+                                            
                                             imageTemp=RotateImage(source,-i);
                                             if(imageTemp!=null) {
                                                 
                                                 elementRectTemp=FindRectangles(imageTemp,templateTemp,confidence);
                                                 if(elementRectTemp?.Count()>0) {
-                                                  
+                                                   
                                                     for(int icount=0;icount<elementRectTemp.Count();icount++) {
                                                         if(elementRectTemp[icount]?.BoundingBox.Height>0 && elementRectTemp[icount]?.BoundingBox.Width>0) {
                                                             rects.Add(elementRectTemp[icount]);
-                                                           
+                                                            
                                                             var boundingBox=RectToBox(elementRectTemp[icount].BoundingBox);
                                                             boxes.Add(boundingBox);
                                                             countBoxes++;
@@ -697,7 +697,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                                         angle=-j;
                                                         break;
                                                     }
-                                                  
+                                                    
                                                 }
                                             }
                                         }
@@ -709,10 +709,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                 catch(Exception ex) {
                                     LogHandler.LogError(ex.ToString(),LogHandler.Layer.ComputerVision);
                                 }
-                                /* });
-                                tasks.Add(t); */
+                                
                             }
-                           
+                            
                             if(countBoxes==0) {
                                 noMatchAboveConfidenceScore=true;
                             }
@@ -721,13 +720,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         }
                         else if (multipleScaleMatching)
                         {
-                           
+                            
                             int direction = 1;
                             
                             int countBoxes = 0;
                             for (int i = 0; i <= MaxScaleSteps; i++)
                             {
-                               
+                                
                                 double scale = 1 + direction * i * ScaleStep;
                                 Image<Gray, byte> templateTemp = ResizeTemplate(template, scale);
 
@@ -737,7 +736,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                     elementRectTemp = FindRectangles(source, templateTemp, confidence);
                                     if (elementRectTemp != null && elementRectTemp.Count() > 0)
                                     {
-                                      
+                                       
                                         for (int icount = 0; icount < elementRectTemp.Count(); icount++)
                                         {
                                             if (elementRectTemp[icount]?.BoundingBox.Height > 0 && elementRectTemp[icount]?.BoundingBox.Width > 0)
@@ -749,13 +748,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                             }
                                         }
 
-                                      
+                                       
 
                                         if (countBoxes > 0)
                                             break;
                                     }
                                 }
 
+                                
                                 scale = 1 + (-direction) * i * ScaleStep;
                                 templateTemp = ResizeTemplate(template, scale);
 
@@ -765,6 +765,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                     elementRectTemp = FindRectangles(source, templateTemp, confidence);
                                     if (elementRectTemp != null && elementRectTemp.Count() > 0)
                                     {
+                                       
                                         for (int icount = 0; icount < elementRectTemp.Count(); icount++)
                                         {
                                             if (elementRectTemp[icount]?.BoundingBox.Height > 0 && elementRectTemp[icount]?.BoundingBox.Width > 0)
@@ -775,7 +776,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                                 countBoxes++;
                                             }
                                         }
-                                      
+                                       
 
                                         if (countBoxes > 0)
                                             break; 
@@ -783,25 +784,25 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                 }
                             }
 
-                            if (countBoxes == 0)  
+                            if (countBoxes == 0) 
                             {
                                 break;
                             }
                         }
                         else if(multiRotationMatching) {
-                           
+                            
                             bool noMatchAboveConfidenceScore=false;
                             int direction=1;
                             int countBoxes=0;
                             for(double i=0;i<=180;i+=RotationStep) {
                                 try {
-                                   
+                                    
                                     Image<Gray,byte> imageTemp=RotateImage(source,i);
                                     if(imageTemp!=null) {
                                         
                                         elementRectTemp=FindRectangles(imageTemp,template,confidence);
                                         if(elementRectTemp?.Count()>0) {
-                                         
+                                            
                                             for(int icount=0;icount<elementRectTemp.Count();icount++) {
                                                 if(elementRectTemp[icount]?.BoundingBox.Height>0 && elementRectTemp[icount]?.BoundingBox.Width>0) {
                                                     rects.Add(elementRectTemp[icount]);
@@ -814,16 +815,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                                 angle=i;
                                                 break;
                                             }
-                                          
+                                            
                                         }
                                     }
-                                   
+                                    
                                     imageTemp=RotateImage(source,-i);
                                     if(imageTemp!=null) {
-                                       
+                                        
                                         elementRectTemp=FindRectangles(imageTemp,template,confidence);
                                         if(elementRectTemp?.Count()>0) {
-                                           
+                                            
                                             for(int icount=0;icount<elementRectTemp.Count();icount++) {
                                                 if(elementRectTemp[icount]?.BoundingBox.Height>0 && elementRectTemp[icount]?.BoundingBox.Width>0) {
                                                     rects.Add(elementRectTemp[icount]);
@@ -837,7 +838,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                                 angle=-i;
                                                 break;
                                             }
-                                          
+                                           
                                         }
                                     }
                                 }
@@ -845,7 +846,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                     LogHandler.LogError(ex.ToString(),LogHandler.Layer.ComputerVision);
                                 }
                             }
-                           
+                            
                             if(countBoxes==0) {
                                 noMatchAboveConfidenceScore=true;
                             }
@@ -879,7 +880,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                     break; 
                             }
                         }
-                        
+                       
                         System.Threading.Thread.Sleep(THREAD_SLEEP_DURATION);
                     }
                 }
@@ -888,7 +889,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             catch (Exception ex)
             {
-               
+                
                 string exMessage = ex.Message;
                 string innerExMessage = ex.InnerException != null ? ex.InnerException.Message : "";
                 LogHandler.LogError(string.Format(Logging.ErrorMessages.EXCEPTION, "FindElement", exMessage, innerExMessage), LogHandler.Layer.Business);
@@ -903,16 +904,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
        
         public static List<TemplateMatching> FindAllInstancesInTrueColor(string filename,out double angle,int timeout=DEFAULT_TIMEOUT_PERINSTANCE,double confidence=80,bool multipleScaleMatching=true,bool multiRotationMatching=true,Stream sourceImageToMatch=null,bool enableTemplateMatchMap=false) {
-            /* Before
-            List<Rectangle> rects=new List<Rectangle>();
-            After */
+            
             List<TemplateMatching> rects=new List<TemplateMatching>();
             List<Point[]> boxes=new List<Point[]>();
             int currentCount=0;
             bool forever=false;
-            /* Before
-            Rectangle[] elementRectTemp;
-            After */
+            
             TemplateMatching[] elementRectTemp;
             Image<Bgr,byte> sourceMatches=null;
             DateTime startTime=DateTime.Now;
@@ -929,6 +926,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     Image<Bgr, byte> template = new Image<Bgr, byte>(filename);
                     bool backgroundProcessing = false;
 
+                    
                     while ((forever && currentCount == 0)
                         || (System.DateTime.Now - startTime).TotalMilliseconds <= timeout * 1000
                         || (rects.Count - currentCount > 0))
@@ -958,13 +956,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                             else
                             {
 
-                                
+                              
                                 var btmp = source.ToBitmap();
                                 sourceMatches = btmp.ToImage<Bgr, byte>();
                             }
 
                         }
-                      
+                       
                         if (boxes != null && boxes.Count > 0)
                         {
                             boxes.ForEach(b =>
@@ -987,23 +985,23 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                             int direction=1;
                             bool noMatchAboveConfidenceScore=false; 
                             int countBoxes=0;
-                         
+                            
                             for(int i=0;i<=MaxScaleSteps;i++) {
                                 
                                 try {
-                                   
+                                    
                                     double scale=1+direction*i*ScaleStep;
                                     Image<Bgr,byte> templateTemp=ResizeTemplateInTrueColor(template,scale);
                                     if(templateTemp!=null) {
-                                       
+                                        
                                         for(double j=0;j<=180;j+=RotationStep) {
                                            
                                             Image<Bgr,byte> imageTemp=RotateImageInTrueColor(source,j);
                                             if(imageTemp!=null) {
-                                               
+                                                
                                                 elementRectTemp=FindRectanglesInTrueColor(imageTemp,templateTemp,confidence);
                                                 if(elementRectTemp?.Count()>0) {
-                                                  
+                                                    
                                                     for(int icount=0;icount<elementRectTemp.Count();icount++) {
                                                         if(elementRectTemp[icount]?.BoundingBox.Height>0 && elementRectTemp[icount]?.BoundingBox.Width>0) {
                                                             rects.Add(elementRectTemp[icount]);
@@ -1016,7 +1014,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                                         angle=j;
                                                         break;
                                                     }
-                                              
+                                                   
                                                 }
                                             }
                                             
@@ -1025,7 +1023,63 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                                
                                                 elementRectTemp=FindRectanglesInTrueColor(imageTemp,templateTemp,confidence);
                                                 if(elementRectTemp?.Count()>0) {
+                                                    
+                                                    for(int icount=0;icount<elementRectTemp.Count();icount++) {
+                                                        if(elementRectTemp[icount]?.BoundingBox.Height>0 && elementRectTemp[icount]?.BoundingBox.Width>0) {
+                                                            rects.Add(elementRectTemp[icount]);
+                                                            
+                                                            var boundingBox=RectToBox(elementRectTemp[icount].BoundingBox);
+                                                            boxes.Add(boundingBox);
+                                                            countBoxes++;
+                                                        }
+                                                    }
+                                                    if(countBoxes>0) {
+                                                        angle=-j;
+                                                        break;
+                                                    }
+                                                    
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if(countBoxes>0) {
+                                        break;
+                                    }
+                                   
+                                    scale=1+(-direction)*i*ScaleStep;
+                                    templateTemp=ResizeTemplateInTrueColor(template,scale);
+                                    if(templateTemp!=null) {
+                                        
+                                        for(double j=0;j<=180;j+=RotationStep) {
+                                           
+                                            Image<Bgr,byte> imageTemp=RotateImageInTrueColor(source,j);
+                                            if(imageTemp!=null) {
                                                 
+                                                elementRectTemp=FindRectanglesInTrueColor(imageTemp,templateTemp,confidence);
+                                                if(elementRectTemp?.Count()>0) {
+                                                   
+                                                    for(int icount=0;icount<elementRectTemp.Count();icount++) {
+                                                        if(elementRectTemp[icount]?.BoundingBox.Height>0 && elementRectTemp[icount]?.BoundingBox.Width>0) {
+                                                            rects.Add(elementRectTemp[icount]);
+                                                            var boundingBox=RectToBox(elementRectTemp[icount].BoundingBox);
+                                                            boxes.Add(boundingBox);
+                                                            countBoxes++;
+                                                        }
+                                                    }
+                                                    if(countBoxes>0) {
+                                                        angle=j;
+                                                        break;
+                                                    }
+                                                    
+                                                }
+                                            }
+                                            
+                                            imageTemp=RotateImageInTrueColor(source,-i);
+                                            if(imageTemp!=null) {
+                                                
+                                                elementRectTemp=FindRectanglesInTrueColor(imageTemp,templateTemp,confidence);
+                                                if(elementRectTemp?.Count()>0) {
+                                                    
                                                     for(int icount=0;icount<elementRectTemp.Count();icount++) {
                                                         if(elementRectTemp[icount]?.BoundingBox.Height>0 && elementRectTemp[icount]?.BoundingBox.Width>0) {
                                                             rects.Add(elementRectTemp[icount]);
@@ -1039,69 +1093,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                                         angle=-j;
                                                         break;
                                                     }
-                                                   
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if(countBoxes>0) {
-                                        break;
-                                    }
-                                    /* Then scale down and verify for confidence */
-                                    scale=1+(-direction)*i*ScaleStep;
-                                    templateTemp=ResizeTemplateInTrueColor(template,scale);
-                                    if(templateTemp!=null) {
-                                        /* Test purpose only start
-                                        templateTemp.Save(@"d:\images\templateTempDown_"+System.DateTime.Now.Ticks+".jpg");
-                                        Test purpose only end */
-                                        for(double j=0;j<=180;j+=RotationStep) {
-                                            /* Rotate clockwise and verify for confidence */
-                                            Image<Bgr,byte> imageTemp=RotateImageInTrueColor(source,j);
-                                            if(imageTemp!=null) {
-                                                /* Test purpose only start
-                                                imageTemp.Save(@"C:\Users\riya.sharma03\Downloads\outputvideos\"+System.DateTime.Now.Ticks+".jpg");
-                                                Test purpose only end */
-                                                elementRectTemp=FindRectanglesInTrueColor(imageTemp,templateTemp,confidence);
-                                                if(elementRectTemp?.Count()>0) {
-                                                    /* int countBoxes=0; */
-                                                    for(int icount=0;icount<elementRectTemp.Count();icount++) {
-                                                        if(elementRectTemp[icount]?.BoundingBox.Height>0 && elementRectTemp[icount]?.BoundingBox.Width>0) {
-                                                            rects.Add(elementRectTemp[icount]);
-                                                            var boundingBox=RectToBox(elementRectTemp[icount].BoundingBox);
-                                                            boxes.Add(boundingBox);
-                                                            countBoxes++;
-                                                        }
-                                                    }
-                                                    if(countBoxes>0) {
-                                                        angle=j;
-                                                        break;
-                                                    }
-                                                    /* tcs.SetResult(true); */
-                                                }
-                                            }
-                                            /* Then rotate anticlockwise and verify for confidence */
-                                            imageTemp=RotateImageInTrueColor(source,-i);
-                                            if(imageTemp!=null) {
-                                                /* Test purpose only start
-                                                imageTemp.Save(@"C:\Users\riya.sharma03\Downloads\outputvideos\"+System.DateTime.Now.Ticks+".jpg");
-                                                Test purpose only end */
-                                                elementRectTemp=FindRectanglesInTrueColor(imageTemp,templateTemp,confidence);
-                                                if(elementRectTemp?.Count()>0) {
-                                                    /* int countBoxes=0; */
-                                                    for(int icount=0;icount<elementRectTemp.Count();icount++) {
-                                                        if(elementRectTemp[icount]?.BoundingBox.Height>0 && elementRectTemp[icount]?.BoundingBox.Width>0) {
-                                                            rects.Add(elementRectTemp[icount]);
-                                                            /* boxes.Add(RectToBox(elementRectTemp[icount])); */
-                                                            var boundingBox=RectToBox(elementRectTemp[icount].BoundingBox);
-                                                            boxes.Add(boundingBox);
-                                                            countBoxes++;
-                                                        }
-                                                    }
-                                                    if(countBoxes>0) {
-                                                        angle=-j;
-                                                        break;
-                                                    }
-                                                    /* tcs.SetResult(true); */
+                                                    
                                                 }
                                             }
                                         }
@@ -1113,30 +1105,30 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                 catch(Exception ex) {
                                     LogHandler.LogError(ex.ToString(),LogHandler.Layer.ComputerVision);
                                 }
-                                /* });
-                                tasks.Add(t); */
+                               
                             }
-                            /* Task.WhenAny(tcs.Task,Task.WhenAll(tasks)).Wait(); */
+                            
                             if(countBoxes==0) {
                                 noMatchAboveConfidenceScore=true;
                             }
                             if(countBoxes>0 || noMatchAboveConfidenceScore)
-                                break; /* Break if any template matches have been found at the given resolution */
+                                break; 
                         }
                         else if (multipleScaleMatching)
                         {
-                           
+                            
                             int direction = 1;
                            
                             int countBoxes = 0;
 
-                          
+                           
 
                             for (int i = 0; i <= MaxScaleSteps; i++)
                             {
                                 
                                 try
                                 {
+                                   
                                     double scale = 1 + direction * i * ScaleStep;
                                     Image<Bgr, byte> templateTemp = ResizeTemplateInTrueColor(template, scale);
                                     if (templateTemp != null)
@@ -1146,39 +1138,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
                                         if (elementRectTemp?.Count() > 0)
                                         {
-                                          
-                                            for (int icount = 0; icount < elementRectTemp.Count(); icount++)
-                                            {
-                                                if (elementRectTemp[icount]?.BoundingBox.Height > 0 && elementRectTemp[icount]?.BoundingBox.Width > 0)
-                                                {
-                                                    rects.Add(elementRectTemp[icount]);
-                                                    var boundingBox = RectToBox(elementRectTemp[icount].BoundingBox);
-                                                    boxes.Add(boundingBox);
-                                                    countBoxes++;
-                                                }
-                                            }
-
-
-                                            if (countBoxes > 0)
-                                                break;
-                                          
-                                        }
-                                    }
-
-                                    scale = 1 + (-direction) * i * ScaleStep;
-                                    templateTemp = ResizeTemplateInTrueColor(template, scale);
-                                    if (templateTemp != null)
-                                    {
-                                        elementRectTemp = FindRectanglesInTrueColor(source, templateTemp, confidence);
-                                        if (elementRectTemp?.Count() > 0)
-                                        {
                                             
                                             for (int icount = 0; icount < elementRectTemp.Count(); icount++)
                                             {
                                                 if (elementRectTemp[icount]?.BoundingBox.Height > 0 && elementRectTemp[icount]?.BoundingBox.Width > 0)
                                                 {
                                                     rects.Add(elementRectTemp[icount]);
-                                                   
                                                     var boundingBox = RectToBox(elementRectTemp[icount].BoundingBox);
                                                     boxes.Add(boundingBox);
                                                     countBoxes++;
@@ -1188,7 +1153,36 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
                                             if (countBoxes > 0)
                                                 break;
-                                          
+                                            
+                                        }
+                                    }
+
+                                    
+                                    scale = 1 + (-direction) * i * ScaleStep;
+                                    templateTemp = ResizeTemplateInTrueColor(template, scale);
+                                    if (templateTemp != null)
+                                    {
+                                        
+                                        elementRectTemp = FindRectanglesInTrueColor(source, templateTemp, confidence);
+                                        if (elementRectTemp?.Count() > 0)
+                                        {
+                                           
+                                            for (int icount = 0; icount < elementRectTemp.Count(); icount++)
+                                            {
+                                                if (elementRectTemp[icount]?.BoundingBox.Height > 0 && elementRectTemp[icount]?.BoundingBox.Width > 0)
+                                                {
+                                                    rects.Add(elementRectTemp[icount]);
+                                                    
+                                                    var boundingBox = RectToBox(elementRectTemp[icount].BoundingBox);
+                                                    boxes.Add(boundingBox);
+                                                    countBoxes++;
+                                                }
+                                            }
+
+
+                                            if (countBoxes > 0)
+                                                break;
+                                            
                                         }
                                     }
                                 }
@@ -1197,12 +1191,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                     LogHandler.LogError(ex.ToString(), LogHandler.Layer.ComputerVision);
                                 }
 
-                              
-
-                               
+                                
                             }
 
-                         
+                            
 
                             if (countBoxes == 0)  
                             {
@@ -1211,21 +1203,19 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
                         }
                         else if(multiRotationMatching) {
-                            /* Scale up or down the template */
+                            
                             bool noMatchAboveConfidenceScore=false;
                             int direction=1;
                             int countBoxes=0;
                             for(double i=0;i<=180;i+=RotationStep) {
                                 try {
-                                    /* Rotate clockwise and verify for confidence */
+                                    
                                     Image<Bgr,byte> imageTemp=RotateImageInTrueColor(source,i);
                                     if(imageTemp!=null) {
-                                        /* Test purpose only start
-                                        imageTemp.Save(@"C:\Users\riya.sharma03\Downloads\outputvideos\"+System.DateTime.Now.Ticks+".jpg");
-                                        Test purpose only end */
+                                        
                                         elementRectTemp=FindRectanglesInTrueColor(imageTemp,template,confidence);
                                         if(elementRectTemp?.Count()>0) {
-                                            /* int countBoxes=0; */
+                                           
                                             for(int icount=0;icount<elementRectTemp.Count();icount++) {
                                                 if(elementRectTemp[icount]?.BoundingBox.Height>0 && elementRectTemp[icount]?.BoundingBox.Width>0) {
                                                     rects.Add(elementRectTemp[icount]);
@@ -1238,22 +1228,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                                 angle=i;
                                                 break;
                                             }
-                                            /* tcs.SetResult(true); */
+                                           
                                         }
                                     }
-                                    /* Then rotate anticlockwise and verify for confidence */
+                                    
                                     imageTemp=RotateImageInTrueColor(source,-i);
                                     if(imageTemp!=null) {
-                                        /* Test purpose only start
-                                        imageTemp.Save(@"C:\Users\riya.sharma03\Downloads\outputvideos\"+System.DateTime.Now.Ticks+".jpg");
-                                        Test purpose only end */
+                                        
                                         elementRectTemp=FindRectanglesInTrueColor(imageTemp,template,confidence);
                                         if(elementRectTemp?.Count()>0) {
-                                            /* int countBoxes=0; */
+                                            
                                             for(int icount=0;icount<elementRectTemp.Count();icount++) {
                                                 if(elementRectTemp[icount]?.BoundingBox.Height>0 && elementRectTemp[icount]?.BoundingBox.Width>0) {
                                                     rects.Add(elementRectTemp[icount]);
-                                                    /* boxes.Add(RectToBox(elementRectTemp[icount])); */
+                                                    
                                                     var boundingBox=RectToBox(elementRectTemp[icount].BoundingBox);
                                                     boxes.Add(boundingBox);
                                                     countBoxes++;
@@ -1263,7 +1251,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                                 angle=-i;
                                                 break;
                                             }
-                                            /* tcs.SetResult(true); */
+                                            
                                         }
                                     }
                                 }
@@ -1271,12 +1259,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                     LogHandler.LogError(ex.ToString(),LogHandler.Layer.ComputerVision);
                                 }
                             }
-                            /* Task.WhenAny(tcs.Task,Task.WhenAll(tasks)).Wait(); */
+                            
                             if(countBoxes==0) {
                                 noMatchAboveConfidenceScore=true;
                             }
                             if(countBoxes>0 || noMatchAboveConfidenceScore)
-                                break; /* Break if any template matches have been found at the given resolution */
+                                break; 
                         }
                         else
                         {
@@ -1299,7 +1287,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
 
                                 }
-                              
+                                
                                 if (countBoxes == 0)
                                 {
                                     noMatchAboveConfidenceScore = true;
@@ -1309,7 +1297,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                     break; 
                             }
                         }
-                       
+                        
                         System.Threading.Thread.Sleep(THREAD_SLEEP_DURATION);
                     }
                 }
@@ -1349,6 +1337,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
        
 
        
+
         private static Image<Gray, byte> ResizeTemplate(Image<Gray, byte> template, double scale)
         {
             Image<Gray, byte> resizedTemplate = null;
@@ -1359,8 +1348,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     return null;
                 else if (scale < 0)
                 {
-                    scale = 1 / (scale); 
-                                      
+                    scale = 1 / (scale);  
+                                        
                 }
                 if (scale < 0.5) 
                     return null;
@@ -1376,6 +1365,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             catch
             {
                 
+
+                
             }
             return resizedTemplate;
         }
@@ -1390,6 +1381,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 else if (scale < 0)
                 {
                     scale = 1 / (scale); 
+
+                                        
+
                 }
                 if (scale < 0.5) 
                     return null;
@@ -1397,7 +1391,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             catch
             {
-              
+                
             }
             return resizedTemplate;
         }
@@ -1405,11 +1399,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         private static Image<Bgr,byte> RotateImageInTrueColor(Image<Bgr,byte> image,double angle) {
             Image<Bgr,byte> rotatedImage=null;
             try {
-               
+                
                 rotatedImage=image.Rotate(angle,new Bgr(255,255,255),false);
             }
             catch {
-               
+                
             }
             return rotatedImage;
         }
@@ -1417,11 +1411,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         private static Image<Gray,byte> RotateImage(Image<Gray,byte> image,double angle) {
             Image<Gray,byte> rotatedImage=null;
             try {
-               
+                
                 rotatedImage=image.Rotate(angle,new Gray(1),false);
             }
             catch {
-             
+               
             }
             return rotatedImage;
         }
@@ -1440,6 +1434,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
                     if ((maxValues[0] <= 1.0) && (maxValues[0] >= confidence))
                     {    
+                        
                         rect = new Rectangle(maxLocations[0].X, maxLocations[0].Y, template.Size.Width, template.Size.Height);
 
                     }
@@ -1447,7 +1442,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             catch (Exception ex)
             {
-              
+                
                 Exception ex1 = ex;
             }
             return rect;
@@ -1460,14 +1455,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             try
             {
                 confidence = confidence / 100; 
-               
+                
                 using (Image<Gray, float> result = source.MatchTemplate(template, TemplateMatchingType.CcoeffNormed))
                 {
                     double[] minValues, maxValues;
                     Point[] minLocations, maxLocations;
                     result.MinMax(out minValues, out maxValues, out minLocations, out maxLocations);
 
-                   
+                    
                     objTemplates = new TemplateMatching[maxValues.Count()];
                     for (int iCount = 0; iCount < maxValues.Count(); iCount++)
                     {
@@ -1510,15 +1505,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             catch
             {
-               
+                
             }
             return rect;
         }
-      
+        
+
         private static TemplateMatching[] FindRectanglesInTrueColor(Image<Bgr, byte> source, Image<Bgr, byte> template, double confidence)
         {
 
-          
+            
 
             TemplateMatching[] objTemplates = null;
 
@@ -1530,9 +1526,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     double[] minValues, maxValues, imgMatchConfidenceScores;
                     Point[] minLocations, maxLocations;
                     result.MinMax(out minValues, out maxValues, out minLocations, out maxLocations);
-                   
+                    
                     objTemplates = new TemplateMatching[maxValues.Count()];
-                   
+                    
                     for (int iCount = 0; iCount < maxValues.Count(); iCount++)
                     {
 
@@ -1544,7 +1540,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                             objTemplate.BoundingBox = rect;
                             objTemplate.ConfidenceScore = maxValues[iCount];
 
-                     
+                            
                             objTemplates.SetValue(objTemplate, iCount);
                         }
 
@@ -1554,10 +1550,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             catch (Exception ex)
             {
-            
+                
                 Exception ex1 = ex;
             }
-          
+            
             return objTemplates;
         }
 
@@ -1583,15 +1579,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             int processId = 0;
             List<string> allowedBrowsers = new List<string>() { ieWebBrowser, firefoxWebBrowser, chromeWebBrowser };
 
-            
+             
             if (!string.IsNullOrEmpty(appPath))
             {
                 ProcessStartInfo processStart = new ProcessStartInfo();
                 processStart.CreateNoWindow = false;
-               
+                
                 processStart.WindowStyle = ProcessWindowStyle.Maximized;
 
-             
+                
                 if (appType.ToLower() == "web")
                 {
                     if ((!String.IsNullOrEmpty(webBrowser)) && allowedBrowsers.Contains(webBrowser.ToLower()))
@@ -1607,15 +1603,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                             break;
                         case firefoxWebBrowser:
                             processStart.FileName = "firefox.exe";
-                           
+                            
                             processStart.Arguments = "-new " + appPath;
                             break;
                         case chromeWebBrowser:
                             processStart.FileName = "chrome.exe";
-                           
+                            
                             processStart.Arguments = "-new " + appPath;
                             break;
                         default:
+
                             string argumentParams = "";
                             if (processStart.FileName.ToLower().Contains("iexplore"))
                             {
@@ -1624,14 +1621,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                             }
                             else if (processStart.FileName.ToLower().Contains("firefox"))
                             {
-                               
+                                
 
                                 argumentParams = "-new ";
 
                             }
                             else if (processStart.FileName.ToLower().Contains("chrome"))
                             {
-                               
+                                
                                 argumentParams = "-new ";
                             }
 
@@ -1641,8 +1638,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     }
                     processStart.Arguments = processStart.Arguments + " " + appArgument.Trim();
                 }
-               
+                
 
+                
                 else
                 {
                    
@@ -1662,13 +1660,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 {
                     
                     processId = process.Id;
-                   
+                    
                     System.Threading.Thread.Sleep(2000);
                 }
             }
             else
             {
-                
+               
             }
             Core.Utilities.WriteLog("application process id- " + processId.ToString());
             return processId;
@@ -1695,10 +1693,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             return parts;
         }
 
-       
+        
 
 
-       
+        
         private static string CleanifyBrowserPath(string browserPath)
         {
             string result = string.Empty;
@@ -1711,13 +1709,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             return result;
         }
-        
-
-        
+       
 
        
 
         
+
         private static int GetBrowserVersion(string ver)
         {
             int version = 0;
@@ -1731,7 +1728,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             return version;
         }
 
-       
+        
 
         public static byte[] StreamToByteArray(Stream input)
         {
@@ -1753,7 +1750,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 return false;
         }
 
-       
+        
 
         public static void WriteLog(string message)
         {
@@ -1775,7 +1772,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         }
     }
 
-   
+    
+
 
 
 

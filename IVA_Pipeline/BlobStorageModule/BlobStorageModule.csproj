@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.BlobStorageModule</RootNamespace>
     <AssemblyName>FrameStorageModule</AssemblyName>
   </PropertyGroup>

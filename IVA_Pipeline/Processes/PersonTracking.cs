@@ -1,9 +1,9 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
+﻿
 
 using System;
 using System.Collections;
@@ -39,9 +39,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         CacheItemPolicy policy = new CacheItemPolicy();
         CacheItemPolicy framePolicy = new CacheItemPolicy();
         double cacheExpiration = 30.0;
-      
+        
         static Queue personCountQueue = (Queue)cache.Get(cacheKey);
         TaskRoute taskRouter = new TaskRoute();
+        DeviceDetails deviceDetails;
+        AppSettings appSettings = Config.AppSettings;
+
+        public string _taskCode;
+        public PersonTracking() { }
+        public PersonTracking(string processId)
+        {
+            _taskCode = TaskRoute.GetTaskCode(processId);
+            deviceDetails = ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(), appSettings.DeviceID, "PT");
+        }
+
         public override void Dump(QueueEntity.PersonCountMetaData message)
         {
 
@@ -126,7 +137,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         public override bool Process(QueueEntity.PersonCountMetaData message, int robotId, int runInstanceId, int robotTaskMapId)
         {
-
+           
             try
             {
                 using (LogHandler.TraceOperations("PersonTracking:Process", LogHandler.Layer.Business, Guid.NewGuid(), null))
@@ -145,7 +156,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         
                         ModelParameters maskDetection = new ModelParameters();
                         maskDetection.ModelName = beReceivedMessage.Mod;
-                        
+                      
                         maskDetection.deviceId = beReceivedMessage.Did;
                         maskDetection.tId = beReceivedMessage.Tid;
                         maskDetection.Fid = beReceivedMessage.Fid;
@@ -153,6 +164,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         maskDetection.Src = beReceivedMessage.Src;
                         maskDetection.Etime = beReceivedMessage.Etime;
                         maskDetection.Ts = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
+                        
                         maskDetection.Ts_ntp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
                         maskDetection.Msg_ver = deviceDetails.MsgVersion;
                         maskDetection.Inf_ver = deviceDetails.InfVersion;
@@ -161,24 +173,28 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         maskDetection.ModelName = beReceivedMessage.Mod;
                         maskDetection.ConfidenceThreshold = deviceDetails.ConfidenceThreshold;
                         maskDetection.OverlapThreshold = deviceDetails.OverlapThreshold;
-                        maskDetection.FrameNumber = Convert.ToInt32(beReceivedMessage.FrameNumber);
+                        maskDetection.FrameNumber = long.TryParse(beReceivedMessage.FrameNumber, out long value) == true ? value : 0;
                         maskDetection.Ffp = beReceivedMessage.Ffp;
                         maskDetection.Lfp = beReceivedMessage.Lfp;
                         maskDetection.Ltsize = beReceivedMessage.Ltsize;
                         maskDetection.videoFileName = beReceivedMessage.videoFileName;
-                        
+                        maskDetection.Prompt = beReceivedMessage.Prompt;
+                        maskDetection.Hp = beReceivedMessage.Hp;
+                       
                         string predictedMetadata = "";
 
                         framePolicy.SlidingExpiration = TimeSpan.FromMinutes(cacheExpiration);
 
-
-
+                       
+                       
                         PersonCountPayload payload = new PersonCountPayload();
+                        
                         personCountQueue = (Queue)cache[cacheKey];
                         if (personCountQueue == null)
                         {
                             personCountQueue = new Queue();
                             cache.Set(cacheKey, personCountQueue, framePolicy);
+                          
                         }
 
                         #region  Commenting old request part for testing new response structure
@@ -195,7 +211,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                            payload.Tid = message.Tid;
                            payload.Did = message.Did;
                            payload.Fid = message.Fid;
-                        
+                           
                            payload.Cs = deviceDetails.SimilarityThreshold;
                            payload.Per = boundingboxblank;
                        }
@@ -205,7 +221,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                            payload.Tid = message.Tid;
                            payload.Did = message.Did;
                            payload.Fid = message.Fid;
-                           
+                          
                            payload.Cs = deviceDetails.SimilarityThreshold;
                            payload.Per = boundingboxblank;
 
@@ -215,6 +231,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         #endregion
 
 
+                       
                         var blobImage = VideoAnalytics.BusinessComponent.Helper.DownloadBlob(beReceivedMessage.Did, beReceivedMessage.Fid, beReceivedMessage.Tid, deviceDetails.StorageBaseUrl, ".jpg");
                         if (deviceDetails.SharedBlobStorage)
                         {
@@ -238,19 +255,19 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             if (blobImage != null)
                             {
 
+                                
                                 predictedMetadata = ModelInferenceManager.ModelInference(maskDetection, blobImage.File, "");
-                            }
+                            }                           
                         }
 
 
                         else
                         {
-                           
+                            
                             predictedMetadata = ModelInferenceManager.ModelInference(maskDetection, blobImage.File, "");
 
                         }
 
-                        
                         ObjectDetectorAPIResMsg responseCheck = JsonConvert.DeserializeObject<ObjectDetectorAPIResMsg>(predictedMetadata);
                         Per pobj = new Per();
                         pobj.Fid = responseCheck.Fid;
@@ -263,14 +280,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             if (responseCheck.Fs[i].Dm.X != null || responseCheck.Fs[i].Dm.Y != null || responseCheck.Fs[i].Dm.W != null || responseCheck.Fs[i].Dm.H != null)
                             {
                                 pobj.Fs[i].Dm = responseCheck.Fs[i].Dm;
-                                
                                 pobj.Fs[i].Dm.X = responseCheck.Fs[i].Dm.X;
                                 pobj.Fs[i].Dm.Y = responseCheck.Fs[i].Dm.Y;
                                 pobj.Fs[i].Dm.W = responseCheck.Fs[i].Dm.W;
                                 pobj.Fs[i].Dm.H = responseCheck.Fs[i].Dm.H;
                             }
 
-                            
+                           
                             if (responseCheck.Fs[i].Kp != null)
                             {
                                 pobj.Fs[i].Kp = responseCheck.Fs[i].Kp;
@@ -281,23 +297,33 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             pobj.Fs[i].NoObj = responseCheck.Fs[i].Nobj;
                             pobj.Fs[i].Uid = responseCheck.Fs[i].Uid;
                             pobj.Fs[i].Lb = responseCheck.Fs[i].Lb;
-
+                            pobj.Fs[i].Np = responseCheck.Fs[i].Np;
+                            pobj.Fs[i].TaskType = responseCheck.Fs[i].TaskType;
                         }
 
 
+                      
                         if (responseCheck.Rc == 200)
                         {
+                            
                             var queueItem = JsonConvert.SerializeObject(pobj);
                             if (personCountQueue.Count == int.Parse(deviceDetails.PreviousFrameCount))
                             {
                                 personCountQueue.Dequeue();
                             }
+                      
                             personCountQueue.Enqueue(queueItem);
                             cache.Set(cacheKey, personCountQueue, framePolicy);
+                            if (pobj.Fs[0].Np!=null)
+                            {
+                               
+                                cache.Remove(cacheKey);
+                            }
+                        
                             DE.Queue.FrameRendererMetadata deReceivedFrameRendererMessage = new DE.Queue.FrameRendererMetadata();
-                            deReceivedFrameRendererMessage = BE.FaceMaskTranslator.PersonCountBEToDE(predictedMetadata, message);
                            
-
+                            deReceivedFrameRendererMessage = BE.FaceMaskTranslator.PersonCountBEToDE(predictedMetadata, message);
+                            
                             sendMessage(deReceivedFrameRendererMessage);
 
                             
@@ -341,7 +367,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 catch (Exception ex)
                 {
                     LogHandler.LogError(String.Format(ErrorMessages.Exception_Failed, "Process", "PersonTracking"), LogHandler.Layer.Business, null);
-                  
+                    
                     if (!failureLogged)
                     {
                         LogHandler.LogDebug(String.Format("Exception Occured while handling an exception. error message: {0}", ex.Message), LogHandler.Layer.Business, null);

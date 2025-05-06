@@ -8,10 +8,14 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent</RootNamespace>
     <AssemblyName>Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="FacadeHelper.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Emgu.CV" Version="4.7.0.5276" />
@@ -28,15 +32,10 @@
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\DataAccess\DataAccess.csproj" />
     <ProjectReference Include="..\DataEntity\DataEntity.csproj" />
+    <ProjectReference Include="..\ProcessScheduler.Framework\ProcessScheduler.Framework.csproj" />
     <ProjectReference Include="..\TaskRoute\TaskRoute.csproj" />
     <ProjectReference Include="..\ObjectDetector.Contracts\ObjectDetector.Contracts.csproj" />
     <ProjectReference Include="..\ServiceClientLibrary\ServiceClientLibrary.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Infosys.Ainauto.Framework.Facade">
-      <HintPath>..\references\Infosys.Ainauto.Framework.Facade.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>

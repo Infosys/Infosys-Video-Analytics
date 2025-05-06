@@ -1,23 +1,29 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Table;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessScheduler.Framework;
 using QueueEntity = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
-using System.Runtime.Caching;
-using System.Configuration;
-using Newtonsoft.Json;
 using FG = Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.FrameGrabber;
+using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute;
+using Infosys.Solutions.Ainauto.VideoAnalytics.AIModels;
+
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 {
     public class FrameGrabberProcess : ProcessHandlerBase<TableDetails>
     {
+        private string _taskCode;
+        public FrameGrabberProcess() { }
+
+        public FrameGrabberProcess(string processId)
+        {
+            _taskCode = TaskRoute.GetTaskCode(processId);
+        }
         public override void Dump(TableDetails message)
         {
 
@@ -53,7 +59,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             {
                 using (LogHandler.TraceOperations("FrameGrabberProcess:Process", LogHandler.Layer.Business, Guid.NewGuid(), null))
                 {
-
+                    FG._taskCode = _taskCode;
                     FG.FrameGrabberProcess(false);
                     return true;
                 }
@@ -84,7 +90,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 {
                     LogHandler.LogError(String.Format(ErrorMessages.Exception_Failed, "Process", "FrameGrabberProcess"),
                             LogHandler.Layer.Business, null);
-                    
+                  
                     if (!failureLogged)
                     {
                         LogHandler.LogError(String.Format("Exception Occured while handling an exception in FrameGrabberProcess in Process method. error message: {0}", ex.Message), LogHandler.Layer.Business, null);

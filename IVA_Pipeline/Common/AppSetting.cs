@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +10,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using Newtonsoft.Json;
+using Microsoft.Practices.EnterpriseLibrary.Logging.Filters;
+using System.Configuration;
+using System.Text.Json;
+using System.Reflection;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
 {
@@ -38,7 +42,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             {
                 lock (lockObj)
                 {
-                    RefreshConfig(); 
+                    RefreshConfig();
                     return _deviceConfig;
                 }
             }
@@ -46,20 +50,36 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         }
         public static void RefreshConfig()
         {
-
             _appSettings = new AppSettings();
-            var config = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
-            config.Bind("AppSettings", _appSettings);
-            config.Bind("DeviceConfiguration", _deviceConfig);
-
-
+            try
+            {
+                var config = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).Build();
+                config.Bind("AppSettings", _appSettings);
+                config.Bind("ConnectionStrings", _appSettings);
+                if (!string.IsNullOrEmpty(_appSettings.ConfigurationManagement))
+                {
+                    Dictionary<string, string> secrets = new Dictionary<string, string>();
+                    List<string> secretsList = config.GetSection("Appsettings:Secrets").Value.Split(',', StringSplitOptions.TrimEntries).ToList();
+                    for (int i = 0; i < secretsList.Count; i++)
+                    {
+                        secrets.Add(secretsList[i], "");
+                    }
+                    string secretsResponse = new LIFAdapter().GetConfigurations(_appSettings.ConfigurationManagement, secrets);
+                    LogHandler.LogDebug("Fetched secrets from {0}: {1}", LogHandler.Layer.Resource, _appSettings.ConfigurationManagement, secretsResponse);
+                    JsonConvert.PopulateObject(secretsResponse, _appSettings);
+                }
+                config.Bind("DeviceConfiguration", _deviceConfig);
+            }
+            catch(Exception ex)
+            {
+                LogHandler.LogError($"Error while reading the configuration files", LogHandler.Layer.Resource);
+            }
         }
 
         public static string GetConnectionString(string connectingStringName)
         {
-            var config = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
-
-            return config.GetConnectionString(connectingStringName);
+            PropertyInfo propertyInfo = typeof(AppSettings).GetProperty(connectingStringName);
+            return propertyInfo.GetValue(connectingStringName)?.ToString();
         }
 
 
@@ -74,42 +94,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
     }
     public class AppSettings
     {
-        public bool EnableAllLogs { get; set; }
-        public bool EnablePerformanceLog { get; set; }
         public int TenantID { get; set; }
         public string DeviceID { get; set; }
-        public int MaxFailCount { get; set; }
-        public int MaxThreadOnPool { get; set; }
-        public int MinThreadOnPool { get; set; }
-        public double ReduceFrameQualityTo { get; set; }
-        public List<string> VideoFormatsToUse { get; set; }
-        public int OfflineProcessInterval { get; set; }
-        public string ServiceBaseUrl { get; set; }
-        public int FTPCycle { get; set; }
-        public double FrameTimeDifferenceIgnoreThreshold { get; set; }
         public string ConfigWebApi { get; set; }
-        public string FrameDetailsWebApi { get; set; }
-        public int EmptyFrameProcessInterval { get; set; }
-        public int MaxEmptyFrameCount { get; set; }
-        public string CalculateFrameGrabberFPR { get; set; }
-        public int FARCheckWaitTime { get; set; }
-        public string CounterInstanceToBeReset { get; set; }
-        public string ProcessLoaderTraceFile { get; set; }
-        public int ClientConnectionWaitingTime { get; set; }
-        public string DataStreamTimeOut { get; set; }
-        public int FrameRenderer_WaitTimeForTransportms { get; set; }
-        public bool FrameRender_IsSharedResource { get; set; }
-        public string DebugImageFilePath { get; set; }
-        public string ImageDebugEnabled { get; set; }
-        public bool EnablePing { get; set; }
-        public int ClientConnectionRetryCount { get; set; }
-        public string PredictionType { get; set; }
-
-        public string AnalyticsPredictionType { get; set; }
+        
         public string MetricIngestorJobName { get; set; }
-        public string FfmpegExeFile { get; set; }
         public string ConfigSource { get; set; }
-        public bool DBEnabled { get; set; }
         public string ConfigFilePath { get; set; }
         public string FgDebugImageFilePath { get; set; }
         public string ProcessConfigFilePath { get; set; }
@@ -120,22 +110,17 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         public string ServiceFolder { get; set; }
         public string Resources { get; set; }
 
-        public int FrameGrabRateThrottlingSleepDurationMsec { get; set; }
-        public int FrameGrabRateThrottlingSleepFrameCount { get; set; }
 
-        public int frameRenderer_WaitTimeForSequencingMsec { get; set; }
-        public string FrameRenderer_EOF_File_Path { get; set; }
-        public int FrameRenderer_EOF_Count { get; set; }
-
+        
         public string ElasticsearchUrl { get; set; }
 
-        public List<string> ImageFormatsToUse { get; set; }  
-
-        public string RenderImageEnabled { get; set; }
-
-        public string RenderImageFilePath { get; set; }
-
-        public string ElasticStoreIndexName { get; set; }
+        
+        
+        
+        public string DBProvider { get; set; }
+        public string ConfigurationManagement { get; set; }
+        public string FrameDetailStore { get; set; }
+        public string FaceMaskDetectionEntities { get; set; }
 
     }
 }

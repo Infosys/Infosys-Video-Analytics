@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -34,7 +33,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         public static string modelLabelPath = string.Empty;
         private static DeviceDetails deviceDetails = null;
         public static ModelParameters modelParameters = new ModelParameters();
+        
         public string[] labels;
+
+        
         public static SingletonComputerVision GetInstance
         {
             get
@@ -56,6 +58,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             }
         }
 
+        
         private SingletonComputerVision(string modelPath,string modelLabelPath,ModelParameters modelParameters) {
             #if DEBUG
             LogHandler.LogUsage(String.Format("SingletonComputerVision method of FrameProcessor is getting executed at {0}",DateTime.UtcNow.ToLongTimeString()),null);
@@ -102,6 +105,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         }
     }
 
+    //--------------------------------------------------------------------------------------------------
 
     public class ComputerVisionInference : ExecuteBase
     {
@@ -112,6 +116,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         public override bool InitializeModel(ModelParameters modeltoInfer /*string modelPath, string modelLabelPath = null*/)
         {
 
+            
 #if DEBUG
             using (LogHandler.TraceOperations("ObjectDetectionOfflineInferenceAPI:InitializeModel", LogHandler.Layer.MaskPrediction, Guid.NewGuid(), null))
             {
@@ -120,7 +125,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                SingletonComputerVision.modelPath = modeltoInfer.ModelPath;
                SingletonComputerVision.modelLabelPath = modeltoInfer.ModelLabelPath;
                 modelObject = SingletonComputerVision.GetInstance;
-               
                 
                 if (modelObject == null)
                     return false;
@@ -132,7 +136,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 #endif
             
             
-           
+            
         }
 
         
@@ -165,15 +169,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     personDetails.Dm.W=W.ToString();
                     personDetails.Cs=ctr.ImageReference.ConfidenceScore.ToString();
                     personDetails.Lb=ctr.ImageReference.CurrentState.ToString();
-                    personDetails.Info=ctr.ImageReference.Angle.ToString();;
+                    personDetails.Info=ctr.ImageReference.Angle.ToString();
+                    personDetails.TaskType=modelParameters.TaskType;
                     predictions.Fs.Add(personDetails);
-                    /* var predictions=new ObjectDetectorAPIResMessage();
-                    predictions.Fs[0]=new Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message.PersonDetails();
-                    predictions.Fs[0].Dm=new Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue.BoundingBox();
-                    predictions.Fs[0].Dm.X=x.ToString();
-                    predictions.Fs[0].Dm.Y=y.ToString();
-                    predictions.Fs[0].Dm.W=W.ToString();
-                    predictions.Fs[0].Dm.H=H.ToString(); */
+                    
                 }
                 predictions.Mtp=new List<Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message.Mtp>();
                 var mtp=new Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message.Mtp();
@@ -187,32 +186,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 predictions.Ts=modelParameters.Ts.ToString();
                 predictions.Ts_ntp=modelParameters.Ts_ntp;
                 predictions.Msg_ver=modelParameters.Msg_ver.ToString();
-                /* predictions.Msg_ver="1"; */
+                
                 predictions.Inf_ver=modelParameters.Inf_ver.ToString();
-                /* predictions.Inf_ver="2"; */
+                
                 predictions.Ad=modelParameters.Ad.ToString();
-                /* predictions.Ad="Test"; */
+                
                 predictions.Rc=200;
                 predictions.Rm="success";
                 return JsonConvert.SerializeObject(predictions);
-                /* var prediction=new Predictions();
-                prediction.Dm=new BusinessEntity.Queue.BoundingBox();
-                prediction.Dm.X=ctr.ImageReference.CurrentBoundingRectangle.X.ToString();
-                prediction.Dm.Y=ctr.ImageReference.CurrentBoundingRectangle.Y.ToString();
-                prediction.Dm.H=ctr.ImageReference.CurrentBoundingRectangle.Height.ToString();
-                prediction.Dm.W=ctr.ImageReference.CurrentBoundingRectangle.Width.ToString();
-                prediction.Lb=ctr.ImageReference.CurrentState.ToString();
-                prediction.Cs="";
-                predictions.Add(prediction);
-                if(modelObject.automationFacade.TemplateMatchesMapScreen!=null) {
-                    using(System.Drawing.Image image1=System.Drawing.Image.FromStream(new MemoryStream(modelObject.automationFacade.TemplateMatchesMapScreen))) {
-                        image1.Save(@"D:\IVF\FindControlTest\iphone\output.jpg",System.Drawing.Imaging.ImageFormat.Jpeg);  Or png
-                    }
-                }
-                var i1=System.Drawing.Image.FromStream(st);
-                i1.Save(@"D:\IVF\FindControlTest\iphone\output1.jpg",System.Drawing.Imaging.ImageFormat.Jpeg);
-                }  
-                return JsonConvert.SerializeObject(predictions); */
+                
             }
         }
     }

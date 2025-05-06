@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using Npgsql;
 using System;
@@ -18,11 +17,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity
 {
     public class PostgressqlExtension
     {
-        string connectionString =  "Host=vainpdblr-62;Database=AutonomousStoreResources;Username=postgres;Password=postgres";
+        string connectionString = "Host=[Host];Database=[Database];Username=[Username];Password=[Password]";
+      
       
 
 
-       
 
 
 
@@ -127,11 +126,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity
 
 
 
-
-
-
-
        
+
+
+
+
+        
 
 
     }

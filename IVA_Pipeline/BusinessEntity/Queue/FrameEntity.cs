@@ -1,16 +1,23 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
+﻿/*
+ *© 2019 Infosys Limited, Bangalore, India. All Rights Reserved. Infosys believes the information in this document is accurate as of its publication date; such information is subject to change without notice. Infosys acknowledges the proprietary rights of other companies to the trademarks, product names and such other intellectual property rights mentioned in this document. Except as expressly permitted, neither this document nor any part of it may be reproduced, stored in a retrieval system, or transmitted in any form or by any means, electronic, mechanical, printing, photocopying, recording or otherwise, without the prior permission of Infosys Limited and/or any named intellectual property rights holders under this document.   
+ * 
+ * © 2019 INFOSYS LIMITED. CONFIDENTIAL AND PROPRIETARY 
+ */
 
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
+using SE = Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue
 {
@@ -40,10 +47,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue
         public string Lfp { get; set; }
 
         public string videoFileName { get; set; }
-        public List<List<string>> Prompt { get; set; }
+        public string Prompt { get; set; }
         public List<string> Msk_img { get; set; }
         public List<string> Rep_img { get; set; }
         public byte[] Pcd { get; set; }
+        public List<PersonDetails> Fs { get; set; }
+        public string Hp { get; set; }
     }
 
     public class FrameCollectorMetadata {
@@ -60,6 +69,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue
         public string FileName {get;set;}
         public List<string> Obase_64 {get;set;}
         public List<string> Img_url {get;set;}
+        public string Prompt { get; set; }
+        public List<SE.Mtp> Mtp { get; set; }
+        public string Hp { get; set; }
     }
 
 
@@ -86,8 +98,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue
         public Dictionary<int, List<float>> Kp { get; set; }
 
         public List<List<float>> Tpc { get; set; }
-
+        public string Info { get; set; }
         public List<List<float>> Bpc { get; set; }
+        public string TaskType { get; set; }
 
     }
     public class BoundingBox
@@ -107,9 +120,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue
         public string Did { get; set; } 
         public string Fid { get; set; } 
         public string Mod { get; set; } 
-        public string FeedId { get; set; } 
+        public string FeedId { get; set; }
         public Dictionary<string, List<string>> TE { get; set; } 
-        public string SequenceNumber { get; set; } 
+        public string SequenceNumber { get; set; }
         public string FrameNumber { get; set; } 
 
         public string Fp { get; set; } 
@@ -127,6 +140,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue
 
         public string Lfp { get; set; }
         public string videoFileName { get; set; }
+        public string Prompt { get; set; }
+        public string Hp { get; set; }
     }
     public class DeepSortPersonCountMetaData
     {
@@ -260,6 +275,61 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue
         [DataMember]
         public DateTime Stime { get; set; }
     }
+    public class SensorMetaData
+    {
+        public string Tid { get; set; } /* Tenant Id */
+        public string Did { get; set; } /* Device Id */
+        public string Mid { get; set; } /* Message Id */
+        public string SensorMetadata { get; set; } /* Sensor Data*/
+        public string Ts { get; set; } /* Time Stamp */
+        public Dictionary<string, List<string>> TE { get; set; } 
+        public string Msg_ver { get; set; } /* Message Versiom */
+        public string SensorType { get; set; } /* Sensor Type */
+        public string SensorId { get; set; } /* Sensor ID */
+        public string LocationID { get; set; } /* Location ID */
+        public string InstallationDate { get; set; } /* Installation Date */
+        public string Manufacturer { get; set; } /* Manufacturer */
+        public string CaliberationDeatils { get; set; } /* Caliberation Details */
+        public string Value { get; set; } /* Value */
+        public string UnitOfMeasurement { get; set; } /* UnitOfMeasurement */
+        public string Status { get; set; } /* Status */
+        public string AggregatedValue { get; set; } /* Aggregated Value */
 
+        public string AggregatedPeriod { get; set; } /* Aggregated Period */
 
+    }
+    public class FrameExplainerModeMetaData
+    {
+        public string Tid { get; set; } 
+        public string Did { get; set; } 
+        public string Fid { get; set; } 
+        public string Pts { get; set; }  
+        public string Class { get; set; } 
+        public string Np { get; set; } 
+        public Predictions[] Fs { get; set; } 
+        public string FeedId { get; set; } 
+        public Dictionary<string, List<string>> TE { get; set; } 
+        public List<string> Fids { get; set; } 
+        public string Status { get; set; } 
+        public string SequenceNumber { get; set; } 
+
+        public string FrameNumber { get; set; } 
+
+        public string videoFileName { get; set; }
+
+        public List<SE.Mtp> Mtp { get; set; }
+
+        public string Ad { get; set; } 
+        public List<string> ExpToRun { get; set; }
+
+        public string I_Fn { get; set; }
+        public string ExpVer { get; set; }
+        public string ModelName { get; set; }
+
+        public List<string> Obase_64 { get; set; }
+        public List<string> Img_url { get; set; }
+        public List<List<string>> Prompt { get; set; }
+        public List<Dictionary<string, Dictionary<string, string>>> Explainer_Metadata { get; set; }
+
+    }
 }

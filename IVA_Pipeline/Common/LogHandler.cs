@@ -1,8 +1,9 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
+﻿
 
 using System;
 using System.Diagnostics;
@@ -28,6 +29,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
 
 
             
+            
 
         }
 
@@ -44,7 +46,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             MaskPrediction = 508,
             TCPChannelCommunication = 509,
             BlobCleaner = 510,
-            ComputerVision = 511
+            ComputerVision = 511,
+            FrameProcessor = 512,
+            FrameRenderer = 513,
+            PromptHandler = 514,
+            PromptInjector = 515,
+            PcdHandler=516,
+            DataAggregator=517
         }
 
 
@@ -60,7 +68,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         }
 
 
-        
 
         public static void LogError(string message, Layer applicationLayer, params object[] messageArguments)
         {
@@ -83,7 +90,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         {
             try
             {
-               
+              
                 logger.Info(message, messageArguments);
             }
             catch (Exception) { }
@@ -111,13 +118,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         public static IDisposable TraceOperations(string message, Layer applicationLayer, Guid activityId, params object[] messageArguments)
         {
             return null;
+           
         }
 
         #region Old Code
        
-
-
-        private static string enablePerfMonLogsConfig = Config.AppSettings.EnablePerformanceLog.ToString();
+        
         private static bool enablePerfMonLogs;
 
 

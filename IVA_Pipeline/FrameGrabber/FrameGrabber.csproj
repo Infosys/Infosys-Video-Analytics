@@ -9,7 +9,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Infosys.Solutions.Ainauto.VideoAnalytics.FrameGrabber</RootNamespace>
     <AssemblyName>Infosys.Solutions.Ainauto.VideoAnalytics.FrameGrabber</AssemblyName>
   </PropertyGroup>
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\Host.ProcessLoader\Configurations\LiSettings.json" Link="Configurations\LiSettings.json">
+    <Content Include="..\ProcessLoader\Configurations\LiSettings.json" Link="Configurations\LiSettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="appsettings.json">

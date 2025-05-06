@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,11 +24,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         private string _automationControlName;
 
         private bool _highlightElement = false; 
-       
+      
 
         private string className = "Control";
 
-       
+        
         #region Event- PropertyHasChanged
         public class PropertyHasChangedArgs : EventArgs
         {
@@ -114,8 +113,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         public ElementDiscovertyMode DiscoveryMode { get; set; }
 
         
-       
-
         
 
        
@@ -159,7 +156,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         }
         
 
-        
+       
         public string ReadTextArea(double offsetX, double offsetY, double height, double width, string filter = "", float imageResizeCoeff = 1)
         {
             using (LogHandler.TraceOperations(Logging.InformationMessages.RUNTIMEWRAPPER_ENTER, LogHandler.Layer.Business, Guid.Empty, className, Logging.Constants.RIGHTCLICK))
@@ -186,14 +183,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
             Rectangle rect = new Rectangle();
 
-                         
+                          
             if (ImageBoundingRectangle != null)
             {
                 rect = ImageBoundingRectangle;
             }
             
 
-           
+            
             if (offsetX == 0 && offsetY == 0)
             {
                 absoluteX = rect.X;
@@ -256,7 +253,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
         }
 
-       
+        
     }
 
     
@@ -282,7 +279,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         public double ConfidenceScore { get; set; }
     }
 
-    
+   
 
     public enum ElementDiscovertyMode
     {

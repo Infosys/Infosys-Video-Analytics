@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Emgu.CV.Structure;
 using Emgu.CV;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
@@ -54,7 +53,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 {
                     Image<Gray, byte> template = new Image<Gray, byte>(filename);                    
                     bool backgroundProcessing = false;
-                   
+                    
                     while ((forever && currentCount == 0) || (System.DateTime.Now - startTime).TotalMilliseconds <= timeout * 1000 ||
                         (rects.Count - currentCount > 0))
                     {
@@ -107,7 +106,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                             int countBoxes = 0;
                             for (int i = 0; i <= MaxScaleSteps; i++)
                             {
-                               
+                                
                                 double scale = 1 + direction * i * ScaleStep;
                                 Image<Gray, byte> templateTemp = ResizeTemplate(template, scale);
 
@@ -142,7 +141,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                     elementRectTemp = FindRectangles(source, templateTemp, confidence);
                                     if (elementRectTemp != null && elementRectTemp.Count() > 0)
                                     {
-                                       
+                                        
                                         for (int icount = 0; icount < elementRectTemp.Count(); icount++)
                                         {
                                             if (elementRectTemp[icount]?.BoundingBox.Height > 0 && elementRectTemp[icount]?.BoundingBox.Width > 0)
@@ -220,11 +219,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             try
             {
                 if (scale == 0)
-                 
+                    
                     return null;
                 else if (scale < 0)
                 {
-                    scale = 1 / (scale); 
+                    scale = 1 / (scale);  
+                                         
                 }
                 if (scale < 0.5) 
                     return null;
@@ -239,7 +239,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             catch
             {
-               
+                
             }
             return resizedTemplate;
         }
@@ -274,6 +274,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             catch (Exception ex)
             {
+                
                 Exception ex1 = ex;
             }
             return objTemplates;
@@ -316,6 +317,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         Image<Bgr, byte> source = null;
                         if (sourceImageToMatch != null)
                         {
+                            
                             var bmp = new Bitmap(sourceImageToMatch);
                             source = bmp.ToImage<Bgr, byte>();
                             backgroundProcessing = true;
@@ -358,7 +360,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                             int countBoxes = 0;
                             for (int i = 0; i <= MaxScaleSteps; i++)
                             {
-                               
+                                
                                 double scale = 1 + direction * i * ScaleStep;
                                 Image<Bgr, byte> templateTemp = ResizeTemplateInTrueColor(template, scale);
                                 if (templateTemp != null)
@@ -368,7 +370,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
                                     if (elementRectTemp?.Count() > 0)
                                     {
-                                        
+                                       
                                         for (int icount = 0; icount < elementRectTemp.Count(); icount++)
                                         {
                                             if (elementRectTemp[icount]?.BoundingBox.Height > 0 && elementRectTemp[icount]?.BoundingBox.Width > 0)
@@ -437,16 +439,17 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
 
                                 }
+                                
                                 if (countBoxes == 0)
                                 {
                                     noMatchAboveConfidenceScore = true;
                                 }
 
                                 if (countBoxes > 0 || noMatchAboveConfidenceScore)
-                                    break; 
+                                    break;
                             }
                         }
-                     
+                        
                         System.Threading.Thread.Sleep(THREAD_SLEEP_DURATION);
                     }
                 }
@@ -492,6 +495,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 else if (scale < 0)
                 {
                     scale = 1 / (scale); 
+                                         
                 }
                 if (scale < 0.5) 
                     return null;
@@ -499,6 +503,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             catch
             {
+                
             }
             return resizedTemplate;
         }
@@ -506,12 +511,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         private TemplateMatching[] FindRectanglesInTrueColor(Image<Bgr, byte> source, Image<Bgr, byte> template, double confidence)
         {
 
+            
 
             TemplateMatching[] objTemplates = null;
 
             try
             {
-                confidence = confidence / 100; 
+                confidence = confidence / 100;
                 using (Image<Gray, float> result = source.MatchTemplate(template, TemplateMatchingType.CcoeffNormed))
                 {
                     double[] minValues, maxValues, imgMatchConfidenceScores;
@@ -525,6 +531,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
                         if ((maxValues[iCount] <= 1.0) && (maxValues[iCount] >= confidence))
                         {   
+                            
+
                             Rectangle rect = new Rectangle(maxLocations[iCount].X, maxLocations[iCount].Y, template.Size.Width, template.Size.Height);
                             TemplateMatching objTemplate = new TemplateMatching();
                             objTemplate.BoundingBox = rect;
@@ -539,6 +547,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             catch (Exception ex)
             {
+                
                 Exception ex1 = ex;
             }
             

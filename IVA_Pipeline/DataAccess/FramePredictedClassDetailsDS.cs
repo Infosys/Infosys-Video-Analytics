@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -73,7 +72,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess
             }
             catch (Exception ex)
             {
-                LogHandler.LogError("Error while Inserting into FramePredictedClassDetail table. message: {0}", LogHandler.Layer.Business, ex.Message);
+                LogHandler.LogError("Error while Inserting into FramePredictedClassDetail table. exception: {0}, inner exception: {1}, stack trace: {2}", 
+                    LogHandler.Layer.Business, ex.Message, ex.InnerException, ex.StackTrace);
                 return null;
             }
 

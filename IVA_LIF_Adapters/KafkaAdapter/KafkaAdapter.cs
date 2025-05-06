@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using Confluent.SchemaRegistry;
@@ -131,16 +130,16 @@ namespace Infosys.Lif
                     }
                 }
 
-               
+                
                 KafkaDetails kafkaDetails = ValidateTransportName(transportSection, regionToBeUsed.TransportName);
                 string topicName = kafkaDetails.TopicName;
               
                 if (topicName != null)
                 {
-                    
+                   
                     Thread receiveOphandler = new Thread((ThreadStart)delegate { HandleMessage(KafkaOperationType.Receive, kafkaDetails, null); });
                     receiveOphandler.Start();
-                   
+                  
                 }
                 else
                 {
@@ -186,12 +185,12 @@ namespace Infosys.Lif
                 
                 KafkaDetails kafkaDetails = ValidateTransportName(transportSection, regionToBeUsed.TransportName);
                 string queueName = kafkaDetails.TopicName;
-               
+             
                 if (queueName != null && message != null)
                 {
-                  
+
                     response = HandleMessage(KafkaOperationType.Send, kafkaDetails, message);
-                    
+
                 }
                 else
                 {
@@ -221,12 +220,12 @@ namespace Infosys.Lif
             Send, Receive, Delete
         }
 
-     
+       
         private KafkaDetails ValidateTransportName(Infosys.Lif.LegacyIntegratorService.Kafka transportSection, string transportName)
         {
             KafkaDetails kafkaDetails = null;
             bool isTransportNameExists = false;
-            
+          
             for (int count = 0; count < transportSection.KafkaDetails.Count; count++)
             {
                 kafkaDetails = transportSection.KafkaDetails[count] as KafkaDetails;
@@ -236,7 +235,7 @@ namespace Infosys.Lif
                     break;
                 }
             }
-           
+            
             if (!isTransportNameExists)
             {
                 throw new LegacyException(transportName + " is not defined in KafkaDetails section");
@@ -245,6 +244,7 @@ namespace Infosys.Lif
         }
 
        
+        
         private string HandleMessage(KafkaOperationType operation, KafkaDetails kafkaDetails, string message)
         {
             Stopwatch stopwatch2 = Stopwatch.StartNew();
@@ -271,7 +271,7 @@ namespace Infosys.Lif
                 LifLogHandler.LogError("Kafka Adapter HandleMessage method FAILED for " +
                     " TopicName {0}. Exception Message: {1} and Exception StackTrace: {2}",
                 LifLogHandler.Layer.IntegrationLayer, kafkaDetails.TopicName, e.Message, e.StackTrace);
-                
+               
                 
             }
             return response;
@@ -296,12 +296,12 @@ namespace Infosys.Lif
             _ = Task.Run(async () =>
               {
                   Stopwatch stopwatch1 = Stopwatch.StartNew();
-                 
+                
                   string cacheKey = kafkaDetails.TransportName + "_ProducerBuilder";
                   IProducer<long, string> producer = (IProducer<long, string>)producerBuilders[cacheKey];
                   if (producer == null)
                   {
-                     
+                    
                       LifLogHandler.LogInfo("producer builder not created", LifLogHandler.Layer.IntegrationLayer);
 
                   }
@@ -309,7 +309,7 @@ namespace Infosys.Lif
 
                   try
                   {
-                   
+                     
                       LifLogHandler.LogInfo("\nProducer loop started...\n\n", LifLogHandler.Layer.IntegrationLayer);
                       int i = 0;
 
@@ -331,8 +331,7 @@ namespace Infosys.Lif
                       }
                       stopwatch8.Stop();
                       LifLogHandler.LogInfo("Produce async took time: {0}", LifLogHandler.Layer.IntegrationLayer, stopwatch8.ElapsedMilliseconds);
-
-                      
+                     
 
                   }
                   catch (ProduceException<long, string> e)
@@ -353,6 +352,7 @@ namespace Infosys.Lif
         private static void CreateProducerBuilder(KafkaDetails kafkaDetails)
         {
             string cacheKey = kafkaDetails.TransportName + "_ProducerBuilder";
+            
             IProducer<long, string> producer=null;
             if (producerBuilders.ContainsKey(cacheKey))
             {
@@ -362,23 +362,22 @@ namespace Infosys.Lif
             else
             {
 
-          
+            
 
             Stopwatch stopwatch6 = Stopwatch.StartNew();
                 var _producerConfig = new ProducerConfig
                 {
                     BootstrapServers = kafkaDetails.BootstrapServer,
                     ClientId = Dns.GetHostName(),
-                    
                    
                     Acks = Acks.All,
                     
                     MessageSendMaxRetries = kafkaDetails.MessageSendMaxRetries,
-                   
-                   
+                    
+                    RetryBackoffMs = kafkaDetails.RetryBackoffMs,
                     EnableIdempotence = kafkaDetails.EnableIdempotence,
                     SecurityProtocol = SecurityProtocol.Plaintext,
-                   
+
                 };
 
                 producer = new ProducerBuilder<long, string>(_producerConfig)
@@ -389,7 +388,6 @@ namespace Infosys.Lif
                 .SetErrorHandler((_, e) => Console.WriteLine($"Error: {e.Reason}. Is Fatal: {e.IsFatal}"))
                 .Build();
                 stopwatch6.Stop();
-         
                 LifLogHandler.LogInfo("Creating Producer took time: {0}", LifLogHandler.Layer.IntegrationLayer, stopwatch6.ElapsedMilliseconds);
                 Stopwatch stopwatch7 = Stopwatch.StartNew();
                 producerBuilders[cacheKey] =  producer;
@@ -398,21 +396,21 @@ namespace Infosys.Lif
             }
         }
 
-    
+        
         private void StartReceivingMessages(KafkaDetails kafkaDetails)
         {
             
-            
+           
             int initialoffset=0,currentoffset=0, count = 0;
             var _consumerConfig = new ConsumerConfig
             {
                 BootstrapServers = kafkaDetails.BootstrapServer,
                 EnableAutoCommit = kafkaDetails.EnableAutoCommit,
                 EnableAutoOffsetStore = kafkaDetails.EnableAutoOffsetStore,
-       
+               
                 GroupId = kafkaDetails.GroupId,
                 SecurityProtocol = SecurityProtocol.Plaintext, 
-            
+              
                 AutoOffsetReset = AutoOffsetReset.Latest
                
             
@@ -438,7 +436,7 @@ namespace Infosys.Lif
                     try
                     {
                         consumerConnectionRetryCount++;
-                       
+                        
                         DateTime starttime = DateTime.Now;
                         
                         consumer.Subscribe(kafkaDetails.TopicName);
@@ -453,7 +451,7 @@ namespace Infosys.Lif
                             DateTime MsgConsumedTime = DateTime.UtcNow;
                             if (String.IsNullOrEmpty(message))
                             {
-                          
+                               
 
                                 if (count > 0)
                                 {
@@ -462,21 +460,18 @@ namespace Infosys.Lif
                                     Console.WriteLine("Duration in Minutes : " + DateTime.Now.Subtract(starttime).TotalMinutes);
                                 }
                                 Console.WriteLine("Messages are not found ");
-                                
                             }
                             else
                             {
                                 LifLogHandler.LogInfo(
+
                                 $"Received message: {consumerResult.Message.Key}  Offset: {consumerResult.Offset.Value}" +
                                 $"  Topic: {consumerResult.Topic} & Partition: {consumerResult.Partition.Value} ",
                                 LifLogHandler.Layer.IntegrationLayer);
                                 response = SUCCESSFUL_RECEIVE_MESSAGE;
-                         
+                                
                                 LifLogHandler.LogInfo("MESSAGE : {0}", LifLogHandler.Layer.IntegrationLayer, message);
                                
-                                ProcessReceivedMessage(message, kafkaDetails, null);
-                               
-
                                 count++;
 
                                 if (count == 1)
@@ -486,9 +481,8 @@ namespace Infosys.Lif
 
                                 consumer.Commit(consumerResult);
                                 consumer.StoreOffset(consumerResult);
-                                
                             }
-                            
+                           
                         }
 
                     }
@@ -504,7 +498,7 @@ namespace Infosys.Lif
                         LifLogHandler.LogError("Kafka Adapter StartReceivingMessages method FAILED for " +
                             " TopicName {0}. Exception Message: {1} and Exception StackTrace: {2}",
                         LifLogHandler.Layer.IntegrationLayer, kafkaDetails.TopicName, e.Message, e.StackTrace);
-                   
+                       
                     }
                     finally
                     {
@@ -530,7 +524,7 @@ namespace Infosys.Lif
             
         }
 
-       
+        
         public static async Task CreateTopicAsync(KafkaDetails kafkaDetails)
         {
            
@@ -569,7 +563,8 @@ namespace Infosys.Lif
                LifLogHandler.Layer.IntegrationLayer, kafkaDetails.TopicName, e.Message, e.StackTrace);
             }
             catch (Exception ex)
-            {         
+            {
+                         
                 LifLogHandler.LogError("Kafka Adapter CreateTopic method FAILED for " +
                     " TopicName {0}. Exception Message: {1} and Exception StackTrace: {2}",
                 LifLogHandler.Layer.IntegrationLayer, kafkaDetails.TopicName, ex.Message, ex.StackTrace);
@@ -577,7 +572,7 @@ namespace Infosys.Lif
             }
         }
 
-    
+       
         static void DeleteTopics(KafkaDetails kafkaDetails)
         {
             using var adminClient = new AdminClientBuilder(
@@ -600,7 +595,7 @@ namespace Infosys.Lif
             }
             catch (Exception ex)
             {
-                        
+                      
                 LifLogHandler.LogError("Kafka Adapter DeleteTopic method FAILED for " +
                     " TopicName {0}. Exception Message: {1} and Exception StackTrace: {2}",
                 LifLogHandler.Layer.IntegrationLayer, kafkaDetails.TopicName, ex.Message, ex.StackTrace);
@@ -610,6 +605,7 @@ namespace Infosys.Lif
 
         }
 
+        
         private ReceiveEventArgs ConstructResponse(string msg, string newMessageId)
         {
             ReceiveEventArgs args = new ReceiveEventArgs();
@@ -628,7 +624,7 @@ namespace Infosys.Lif
             }
             args.ResponseDetails.Add("MessageIdentifier", newMessageId);
             args.ResponseDetails.Add("Status", response);
-          
+            
             if (response == SUCCESSFUL_SENT_MESSAGE || response == SUCCESSFUL_RECEIVE_MESSAGE)
                 args.ResponseDetails.Add("StatusCode", SUCCESSFUL_STATUS_CODE);
             else
@@ -636,13 +632,12 @@ namespace Infosys.Lif
             return args;
         }
 
-      
         private void ProcessReceivedMessage(string msg, KafkaDetails kafkaDetails, ConcurrentQueue<string> queue)
         {            
             string queueName = kafkaDetails.TopicName;
             try
             {             
-               
+                
                 Guid msgId = Guid.NewGuid();
                 ReceiveEventArgs args = ConstructResponse(msg, msgId.ToString());
 
@@ -653,7 +648,7 @@ namespace Infosys.Lif
             }
             catch (Exception ex)
             {               
-                        
+                      
                 LifLogHandler.LogError("Kafka Adapter ProcessReceivedMessage method FAILED for " +
                     " TopicName {0}. Exception Message: {1} and Exception StackTrace: {2}",
                 LifLogHandler.Layer.IntegrationLayer, queueName, ex.Message, ex.StackTrace);

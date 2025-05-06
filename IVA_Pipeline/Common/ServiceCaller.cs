@@ -1,12 +1,13 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -19,14 +20,17 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
 {
     public class ServiceCaller
     {
-        static long framecount = 0;
+        private static readonly HttpClient _httpClient = new HttpClient();
 
+        static long framecount = 0;
+        
         public T GenerateApi<T, U>(string URL, HttpMethod method, U postData)
         {
             HttpClient client = new HttpClient();
@@ -34,36 +38,39 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             return (T)Convert.ChangeType("", typeof(T));
         }
 
-        public static string ApiCaller(dynamic reqMsg,string URL,string methodType) 
+        public static async Task<string> ApiCaller(dynamic reqMsg, string URL, string methodType)
         {
             string result = "";
             try
             {
-                using (var client = new WebClient())
-                { /* WebClient  */
-                    client.Headers.Add("Content-Type:application/json"); /* Content-Type */
-                    client.Headers.Add("Accept:application/json");
-                    var input = JsonConvert.SerializeObject(reqMsg);
-#if DEBUG
-                    framecount++;
-                    LogHandler.LogInfo("Request message for request{0} is :\n{1}", LogHandler.Layer.Business, framecount, input);
-#endif
-                    if (methodType.ToUpper() != "GET")
-                        result = client.UploadString(URL, methodType, input);
-                    else
-                        result = client.DownloadString(URL); /* URI */
-                    /* var metadata=System.Text.Json.JsonSerializer.Deserialize<dynamic>(result); */
-#if DEBUG
-                    LogHandler.LogInfo("Response message for response{0} is :\n{1}", LogHandler.Layer.Business, framecount, result);
-#endif
+                string input = JsonConvert.SerializeObject(reqMsg);
+                LogHandler.LogDebug("Sending input to the api {0}, with payload: {1}", LogHandler.Layer.FrameProcessor, URL, input);
+                if (methodType.ToUpper() != "GET")
+                {
+                    var content = new StringContent(input, encoding: Encoding.UTF8, "application/json");
+                    HttpResponseMessage response = await _httpClient.PostAsync(URL, content);
+                    response.EnsureSuccessStatusCode();
+                    result = await response.Content.ReadAsStringAsync();
                 }
+                else
+                {
+                    HttpResponseMessage response = await _httpClient.GetAsync(URL);
+                    response.EnsureSuccessStatusCode();
+                    result = await response.Content.ReadAsStringAsync();
+                }
+                LogHandler.LogDebug("Result from the api: {0}", LogHandler.Layer.FrameProcessor, result);
+                return result;
             }
-            catch(Exception ex) 
+            catch (HttpRequestException e)
+            {
+                throw e;
+            }
+            catch (Exception ex)
             {
                 LogHandler.LogError("Error in APICaller, exception message:{0}\nStackTrace:{1}", LogHandler.Layer.Business, ex.Message, ex.StackTrace);
                 throw ex;
-            }
-            return result;
+            }      
+            
         }
 
         public static string ServiceCall(dynamic reqMsg, string URL, string methodType)
@@ -71,21 +78,21 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             string result = "";
             try
             {
-                using (var client = new WebClient())   
-                {
-                    client.Headers.Add("Content-Type:application/json");
-                    client.Headers.Add("Content-Type:text/plain");
-                    client.Headers.Add("Accept:application/json");
-                    client.Headers.Add("Accept:text/plain");
+            using (var client = new WebClient())   
+            {
+                client.Headers.Add("Content-Type:application/json"); 
+                client.Headers.Add("Content-Type:text/plain");
+                client.Headers.Add("Accept:application/json");
+                client.Headers.Add("Accept:text/plain");
                     var input = JsonConvert.SerializeObject(reqMsg);
 #if DEBUG
                     framecount++;
                     LogHandler.LogInfo("Request message for frame{0} is :\n{1}", LogHandler.Layer.Business, framecount, input);
 #endif
-                    if (methodType.ToUpper() != "GET")
-                        result = client.UploadString(URL, methodType, JsonConvert.SerializeObject(reqMsg));
-                    else
-                        result = client.DownloadString(URL); 
+                if (methodType.ToUpper() != "GET")
+                    result = client.UploadString(URL, methodType, JsonConvert.SerializeObject(reqMsg));
+                else
+                    result = client.DownloadString(URL);  
 #if DEBUG
                     LogHandler.LogInfo("Response message for frame{0} is :\n{1}", LogHandler.Layer.Business, framecount, result);
 #endif
@@ -165,10 +172,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
                     response = client.PostAsync(URL,content).Result;  
                     break;
                 case "PUT":
-                    response = client.PutAsync(URL, content).Result;  
+                    response = client.PutAsync(URL, content).Result; 
                     break;
                 case "DELETE":
-                    response = client.DeleteAsync(URL).Result; 
+                    response = client.DeleteAsync(URL).Result;  
                     break;
 
             }
@@ -238,14 +245,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
                     response = client.PutAsync(URL, content).Result;  
                     break;
                 case "DELETE":
-                    response = client.DeleteAsync(URL).Result;  
+                    response = client.DeleteAsync(URL).Result; 
                     break;
 
             }
             return response;
         }
 
-
+        
     }
     public class ApiResponse
     {

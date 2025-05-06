@@ -1,11 +1,11 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.IO;
+using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Configuration;
@@ -33,20 +33,23 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Framedetail
         public virtual DbSet<MediaMetadatum> MediaMetadata { get; set; }
         public virtual DbSet<ObjectTrackingDetail> ObjectTrackingDetails { get; set; }
 
+        public virtual DbSet<TemplateDetails> TemplateDetails { get; set; }
+
+        public virtual DbSet<Template> Template { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-                var config = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
-                string DbProvider = config.GetSection("AppSettings:DBProvider").Value;
-                switch(DbProvider)
+                AppSettings appSettings = Config.AppSettings;
+                switch(appSettings.DBProvider)
                 {
                     case "postgres":
-                        optionsBuilder.UseNpgsql(config.GetSection("ConnectionStrings:FrameDetailStorePostgres").Value);
+                        optionsBuilder.UseNpgsql(appSettings.FrameDetailStore);
                         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                         break;
                     default:
-                        optionsBuilder.UseSqlServer(config.GetSection("ConnectionStrings:FrameDetailStore").Value);
+                        optionsBuilder.UseSqlServer(appSettings.FrameDetailStore);
                         break;
                 }
             }
@@ -178,6 +181,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Framedetail
                 entity.Property(e => e.Status)
                     .HasMaxLength(50)
                     .IsUnicode(false);
+
+                entity.Property(e => e.Mtp).HasPrecision(6);
             });
 
             modelBuilder.Entity<FrameMetadatum>(entity =>
@@ -329,6 +334,70 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Framedetail
                     .IsUnicode(false);
 
                 entity.Property(e => e.ModifiedDate).HasPrecision(6);
+            });
+
+            modelBuilder.Entity<TemplateDetails>(entity =>
+            {
+                entity.HasNoKey();
+                entity.ToTable("TemplateDetails");
+                entity.Property(e => e.TemplateId)
+            .IsRequired()
+            .HasMaxLength(50)
+
+            .IsUnicode(false);
+                entity.Property(e => e.TemplateName)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.AttributeName)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.AttributeValue)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.AttributeComparison)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.AttributeApplicability).HasPrecision(6);
+
+                entity.Property(e => e.ModifiedBy)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+                entity.Property(e => e.CreatedBy)
+             .IsRequired()
+             .HasMaxLength(50)
+             .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<Template>(entity =>
+            {
+                entity.ToTable("Template");
+
+                entity.Property(e => e.TemplateId)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TemplateName)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+
+
+                entity.Property(e => e.ModifiedBy)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+                entity.Property(e => e.CreatedBy)
+             .IsRequired()
+             .HasMaxLength(50)
+             .IsUnicode(false);
             });
 
             OnModelCreatingPartial(modelBuilder);

@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessScheduler.Framework;
 using QueueEntity = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
 using DE = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity;
@@ -39,8 +38,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         PartitionKeyUtility partitionKeyUtility = new PartitionKeyUtility();
 
         int exceptionCount = 0;
-      
+        
         static string  predictionType = string.Empty;
+
+        public string _taskCode;
+        public Analytics() { }
+        public Analytics(string processId)
+        {
+            _taskCode = TaskRoute.GetTaskCode(processId);
+        }
+
         public override void Dump(QueueEntity.PersonCountQueueMsg message)
         {}
 
@@ -115,12 +122,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         private void ReadFromConfig()
         {
-            if (Config.AppSettings.AnalyticsPredictionType != null)
-            {
-                AnalyticsHelper.predictionType = Config.AppSettings.AnalyticsPredictionType;
-                predictionType = Config.AppSettings.AnalyticsPredictionType;
+            AppSettings appSettings=Config.AppSettings;
+            DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.AnalyticsCode);
+            if(deviceDetails.AnalyticsPredictionType!=null) {
+                AnalyticsHelper.predictionType=deviceDetails.AnalyticsPredictionType;
+                predictionType=deviceDetails.AnalyticsPredictionType;
             }
-           
+            
 
         }
 
@@ -187,9 +195,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             FeedProcessorMasterId = Convert.ToInt32(message.FeedId),
                             CreatedBy = username,
                             CreatedDate = createdDate,
-                            
+                            //ModifiedBy = System.Security.Principal.WindowsIdentity.GetCurrent().Name,
+                            //ModifiedDate = modifiedDate,
                             TenantId = Convert.ToInt32(message.Tid),
                         };
+                            //if already record is inserted no need to process the message
                             var frameMasterEntity = framemasterDS.GetRecord(frameMaster);
                             if (frameMasterEntity != null)
                             {
@@ -197,7 +207,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                 Dictionary<string, string> frameMasterObj = JsonConvert.DeserializeObject<Dictionary<string, string>>(frameMasterMessage);
                                 Dictionary<string, string> personCountObj = JsonConvert.DeserializeObject<Dictionary<string, string>>(personCountString);
                             personCountObj.ToList().Where(p => !frameMasterObj.ContainsKey(p.Key)).ToList().ForEach(x => frameMasterObj.Add(x.Key, x.Value));
-                         
+                            //personCountObj.ToList().ForEach(x => frameMasterObj.Add(x.Key, x.Value));
                                 frameMasterEntity.ClassPredictionCount = JsonConvert.SerializeObject(frameMasterObj);
                                 var entity = framemasterDS.UpdatePersonCount(frameMasterEntity);
 
@@ -263,7 +273,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             frameRendererMetadata.SequenceNumber = message.SequenceNumber;
                             frameRendererMetadata.FrameNumber = message.FrameNumber;
 
-                            frameRendererMetadata.Fs = new Predictions[  message.Fs.Length + regions.Count];
+                            frameRendererMetadata.Fs = new Predictions[message.Fs.Length + regions.Count];
                             for (var i = 0; i < message.Fs.Length; i++ )
                             {
                                 frameRendererMetadata.Fs[i] = new Predictions();
@@ -290,7 +300,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                     frameRendererMetadata.Fs[j].Cs = reg.PredictedClass;
                                     frameRendererMetadata.Fs[j].Dm = JsonConvert.DeserializeObject<QueueEntity.BoundingBox>(reg.Region);
                                     frameRendererMetadata.Fs[j].Lb = reg.PredictedClass;
-                                   
+                                    // frameRendererMetadata.Fs[j].Np = message.Fs[i].Np;
                                 }
 
                                 j++;
@@ -329,8 +339,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                         CreatedBy = username,
                                         CreatedDate = DateTime.UtcNow,
                                         TenantId = Convert.ToInt32(message.Tid),
-                                        PredictionType = Config.AppSettings.AnalyticsPredictionType
-                                        
+                                        PredictionType=predictionType
+                                        //ConfigurationManager.AppSettings["AnalyticsPredictionType"] //"UniquePerson"
                                     });
                                 
                                 if (face.Dm != null)
@@ -409,18 +419,28 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     }
                     else
                     {
+                        //Set as a succesfull operation as the message was invalid since an equivalent presentation entity was
+                        //not found in the database. This could be a rogue transaction.
+                        //returning a true since the message has been sent with invalid presentation id and has to be deleted
+                        //to avoid further processing
+                       // if (exceptionCount == exceptionCount_threshold )
+                        //    return false;
                          return true;
                     }
                 }
                 catch (Exception ex)
                 {
                     LogHandler.LogError("Exception in Analytics : {0} , trace : {1}", LogHandler.Layer.Business, ex.Message, ex.StackTrace);
-                   
+                    //Any messages which would have to indicate to the worker process that the transaction has failed
+                    // and the messahe should be retried
+                    //Request  processing failed
                     if (!failureLogged)
                     {
                         LogHandler.LogDebug(String.Format("Exception Occured while handling an exception. error message: {0}", ex.Message), LogHandler.Layer.Business, null);
                     }
 
+                  //  if (exceptionCount == exceptionCount_threshold)
+                    //    return false;
                      return true;
                 }
             }

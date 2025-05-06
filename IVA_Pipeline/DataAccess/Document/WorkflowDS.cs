@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Specialized;
 using System.Threading;
@@ -16,6 +15,7 @@ using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.Document
 {
 
+    
     public class WorkflowDS : IDocument<DocumentEntity.Workflow>
     {
         string SuccessMessage = "Document successfully uploaded.";
@@ -24,7 +24,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.Document
         private System.IO.Stream _presentation = null;
         private string response = "";
         private string frameId = "";
-      
+        
         public DocumentEntity.Workflow Upload(DocumentEntity.Workflow workflowRequest)
         {
             if (workflowRequest.File?.Length > 0)
@@ -48,14 +48,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.Document
                     dictionary.Add("file_name", workflowRequest.FrameId); 
 
                    
-                    dictionary.Add("device_id", workflowRequest.DeviceId); 
-                    dictionary.Add("tenant_id", workflowRequest.TenantId.ToString()); 
+                    dictionary.Add("device_id", workflowRequest.DeviceId);
+                                                                           
+                    dictionary.Add("tenant_id", workflowRequest.TenantId.ToString());
 
 
                     if (!string.IsNullOrWhiteSpace(workflowRequest.UploadedBy))
                         dictionary.Add("uploaded_by", workflowRequest.UploadedBy);
 
 
+                    
                     LogHandler.LogDebug(
                         "Document.WorkflowDS: Document {0} message to be posted. The document is for device with id {1} for company with Id {3}",
                         LogHandler.Layer.Resource,
@@ -97,6 +99,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.Document
         }
 
 
+       
         public DocumentEntity.Workflow Download(DocumentEntity.Workflow workflowRequest)
         {
             using (LogHandler.TraceOperations("Document.WorkflowDS:Download",
@@ -106,12 +109,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.Document
 
                 AdapterManager adapterManager = new AdapterManager();
 
+                
                 adapterManager.ResponseReceived +=
                     new AdapterManager.AdapterReceiveHandler((ea) => adapterManager_ResponseReceived(ea, arEvent));
 
                 NameValueCollection dictionary = new NameValueCollection();
                 string frameId = workflowRequest.FrameId;
-               
+                
                 Uri uri = new Uri(workflowRequest.StorageBaseURL);
                 dictionary.Add("UriScheme", uri.Scheme);
                 dictionary.Add("RootDNS", uri.DnsSafeHost);
@@ -120,9 +124,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.Document
                 dictionary.Add("container_name", ConstructContainerName(workflowRequest.TenantId, workflowRequest.DeviceId));
                 dictionary.Add("file_name", workflowRequest.FrameId);
 
-               
+                
                 dictionary.Add("device_id", workflowRequest.DeviceId);
-             
                 dictionary.Add("tenant_id", workflowRequest.TenantId.ToString());
 
                 LogHandler.LogDebug("Download Presentation by using httpAdapter for Device Id {0}",
@@ -130,7 +133,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.Document
 
                 adapterManager.Receive(ApplicationConstants.DOCUMENTSTORE_KEY, dictionary);
 
-               
+                
                 arEvent.WaitOne();
 
                 workflowRequest.File = _presentation;
@@ -221,7 +224,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.Document
                 "Download File (adapterManager_ResponseReceived) by using httpAdapter call completed",
                 LogHandler.Layer.Resource);
 
-          
+            
             arEvent.Set();
         }
     
@@ -242,7 +245,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.Document
 
                 NameValueCollection dictionary = new NameValueCollection();
 
-               
+                
                 Uri uri = new Uri(workflowRequest.StorageBaseURL);
                 dictionary.Add("UriScheme", uri.Scheme);
                 dictionary.Add("RootDNS", uri.DnsSafeHost);
@@ -251,8 +254,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.Document
                 dictionary.Add("container_name", ConstructContainerName(workflowRequest.TenantId, workflowRequest.DeviceId)); 
                 dictionary.Add("file_name", workflowRequest.FrameId); 
 
-              
-                dictionary.Add("device_id", workflowRequest.DeviceId);
+                
+                dictionary.Add("device_id", workflowRequest.DeviceId); 
 
                 dictionary.Add("tenant_id", workflowRequest.TenantId.ToString()); 
 

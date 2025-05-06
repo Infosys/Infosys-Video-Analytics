@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Elasticsearch.Net;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity;
@@ -81,7 +80,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.ElasticSe
 
                 frameMetaDataActions = searchResponse.Documents.ToList();
                 
-               
+                
             }
             catch (Exception ex)
             {
@@ -92,10 +91,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.ElasticSe
         }
         public string GetLabelStatus(Predictions[] BEPredArr, string fsname, string index)
         {
+            
             var frameMetaDataActions = new List<FrameMetaData>();
             List<string> esdata = new List<string>();
             var client = elasticsearchExtensions.client;
 
+            
 
             bool chkrvalue = BEPredArr[0].Lb.Equals(fsname);
             bool value = false;
@@ -155,6 +156,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.ElasticSe
             }
             catch (Exception ex)
             {
+                
                 throw;
             }
             return rval;
@@ -163,8 +165,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.ElasticSe
         public IList<FrameMetaData> GetUnprocessedFlag()
         {
             var customerActions = new List<FrameMetaData>();
-           
-
+            
             return customerActions;
         }
 
@@ -196,10 +197,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.ElasticSe
                 
                 if (!client.Indices.Exists(index).Exists)
                 {
-                   
+                    
                     var res = client.Indices.Create(index, c => c
                     .Map<FrameMetaData>(m => m.AutoMap()));
-                   
+                    
                     if (!res.IsValid)
                     {
 
@@ -224,7 +225,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.ElasticSe
                 LogHandler.LogError("error during insert operation : message {0}", LogHandler.Layer.Business, ex.Message);
                 throw ex;
             }
-            
+           
             return true;
         }
 
@@ -236,7 +237,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.ElasticSe
         public bool UpdateCustomerActionssValue(FrameMetaData entity)
         {
             var result = false;
-            
+           
             return result;
         }
 

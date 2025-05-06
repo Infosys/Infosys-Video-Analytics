@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using System.IO;
+//using SC = Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ServiceClientLibrary;
 using SE = Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts;
 using Newtonsoft.Json;
 using Infosys.Solutions.Ainauto.VideoAnalytics.AIModels;
@@ -20,8 +20,10 @@ using System.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
 using System.Threading;
+//using Infosys.Solutions.Ainauto.VideoAnalytics.Entity;
 using System.Diagnostics;
 using System.Runtime.Caching;
+//using static Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common.ExtentionMethodsClass;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 {
@@ -32,7 +34,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         List<PersonCountAPIResMsg> objectDetectorResponse = null;
         string metadata = "";
         double cacheExpiration = 10.0;
-        
+        /// Initialize instance of ml model
         public override bool InitializeModel()
         {
             return true;
@@ -53,10 +55,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
             LogHandler.LogUsage(String.Format("TrackingInferenceAPI MakePrediction is getting executed at : {0}", DateTime.UtcNow.ToLongTimeString()), null);
 #endif
-            string metadata = "";      
+            string metadata = "";
             
             string base64_image = "";
-          
+            
             using (MemoryStream memoryStream = new MemoryStream())
             {
                 stream.CopyTo(memoryStream);
@@ -77,28 +79,37 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 Model = modelParameters.ModelName,
                 Per = null,
                 Ad = " ",
-                Base_64 = base64_image,
-                C_threshold = modelParameters.ConfidenceThreshold,
+                Base_64 = base64_image,// for yolov7
+                C_threshold = modelParameters.ConfidenceThreshold, // for yolov7
                      Ffp = modelParameters.Ffp,
                 Ltsize = modelParameters.Ltsize,
                 Lfp = modelParameters.Lfp,
                 Msk_img = modelParameters.Msk_img == null ? new List<string>() : modelParameters.Msk_img,
                 Rep_img = modelParameters.Rep_img == null ? new List<string>() : modelParameters.Rep_img,
-                Prompt = modelParameters.Prompt == null ? new List<List<string>>() : modelParameters.Prompt,
+                I_fn = modelParameters.videoFileName,
+                Hp = modelParameters.Hp,
             };
-
+            if (!string.IsNullOrEmpty(modelParameters.Prompt))
+            {
+                LogHandler.LogDebug($"Formatting prompt: {modelParameters.Prompt} to list of list", LogHandler.Layer.Business);
+                reqMsg.Prompt = JsonConvert.DeserializeObject<List<List<string>>>(modelParameters.Prompt);
+            }
+            else
+            {
+                reqMsg.Prompt = new List<List<string>>();
+                List<string> list = new List<string>();
+                reqMsg.Prompt.Add(list);
+            }
             var response = MakePredictionRequestAsync(reqMsg, Convert.ToDouble(modelParameters.ConfidenceThreshold), modelParameters.BaseUrl, modelParameters.AuthenticationUrl, modelParameters.TokenCacheExpirationTime).GetAwaiter().GetResult();
-            
             return response;
-            
-        }
+        }
         
         public async Task<string> MakePredictionRequestAsync(ObjectDetectorAPIReqMsg objectDetectorAPIReqMsgAICloud,
             double confidenceThreshold, string baseUrl, string authenticationUrl, double tokenCacheExpirationTime)
         {
             try
             {
-                
+                // to add cookies refer https://d-fens.ch/2016/12/27/howto-set-cookie-header-on-defaultrequestheaders-of-httpclient/
                 var client = new HttpClient(new HttpClientHandler { UseCookies = false });
                 string authenticationToken = "";
                 string response = "";
@@ -151,11 +162,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     string response = "";
 
                     HttpResponseMessage httpresponse;
+                    
                     client.DefaultRequestHeaders
               .Accept
               .Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     httpresponse = await client.PostAsync(authenticationUrl, null);
                     response = await httpresponse.Content.ReadAsStringAsync();
+                   
 
                     return response;
                 }

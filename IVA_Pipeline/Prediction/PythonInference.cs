@@ -1,9 +1,13 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
+﻿/*
+ *© 2019 Infosys Limited, Bangalore, India. All Rights Reserved. Infosys believes the information in this document is accurate as of its publication date; such information is subject to change without notice. Infosys acknowledges the proprietary rights of other companies to the trademarks, product names and such other intellectual property rights mentioned in this document. Except as expressly permitted, neither this document nor any part of it may be reproduced, stored in a retrieval system, or transmitted in any form or by any means, electronic, mechanical, printing, photocopying, recording or otherwise, without the prior permission of Infosys Limited and/or any named intellectual property rights holders under this document.   
+ * 
+ * © 2019 INFOSYS LIMITED. CONFIDENTIAL AND PROPRIETARY 
+ */
 
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using System;
@@ -19,20 +23,23 @@ using System.Collections.Generic;
 using Python.Runtime;
 using System.Collections;
 using System.Runtime.Caching;
+using System.Linq;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 {
     public class PythonInference : ExecuteBase
     {
         static List<Per> perValue = new List<Per>();
+        
         PythonNet pNet;
+        
         public override bool InitializeModel()
         {
             try
             {
 
                 pNet = new PythonNet();
-              
+                
                 pNet = PythonNet.GetInstance;
 
                 if (pNet == null)
@@ -42,14 +49,17 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             }
             catch (Exception ex)
             {
+
                 throw ex;
             }
 
 
         }
 
+        
         public override string MakePrediction(Stream st, ModelParameters modelParameters)
         {
+            
             string sstime = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
 
             List<SE.Message.Mtp> MtpData = new List<SE.Message.Mtp>()
@@ -63,19 +73,26 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 LogHandler.LogUsage(String.Format("PythonInference MakePrediction is getting executed at : {0}", DateTime.UtcNow.ToLongTimeString()), null);
 #endif
                 string metadata = "";
-                st.Position = 0;
-                string base64_image = ""; 
+                string base64_image = ""; //Changed As Per New IVA Request : Yoges Govindaraj
                 ObjectCache cache = MemoryCache.Default;
                 string cacheKey = CacheConstants.UniquePersonCode + modelParameters.tId + modelParameters.deviceId;
-               
+                string lastFrameStatus = null;
+                
 
 
-
-                using (MemoryStream memoryStream = new MemoryStream())
+                if (st != null)
                 {
-                    st.CopyTo(memoryStream);
-                    base64_image = Convert.ToBase64String(memoryStream.ToArray());
-                    memoryStream.Dispose();
+                    st.Position = 0;
+                    using (MemoryStream memoryStream = new MemoryStream())
+                    {
+                        st.CopyTo(memoryStream);
+                        base64_image = Convert.ToBase64String(memoryStream.ToArray());
+                        memoryStream.Dispose();
+                    }
+                }
+                if (modelParameters.Pcd != null && modelParameters.Pcd.Length != 0)
+                {
+                    base64_image = Convert.ToBase64String(modelParameters.Pcd);
                 }
                 if (modelParameters.FrameNumber > 1)
                 {
@@ -90,7 +107,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                                 perValue.RemoveAt(0);
                             }
                             perValue.Add(JsonConvert.DeserializeObject<Per>(result.Dequeue().ToString()));
+
                         }
+                        
                     }
                 }
                 SE.Message.ObjectDetectorAPIReqMsg reqMsg = new SE.Message.ObjectDetectorAPIReqMsg()
@@ -106,7 +125,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     Model = modelParameters.ModelName,
                     Per = perValue,
                     Ad = " ",
-                    Base_64 = base64_image,
+                    Base_64 = base64_image,// for yolov7
                     C_threshold = modelParameters.ConfidenceThreshold, 
 
                     Ffp = modelParameters.Ffp,
@@ -114,9 +133,27 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     Lfp = modelParameters.Lfp,
                     Msk_img = modelParameters.Msk_img == null ? new List<string>() : modelParameters.Msk_img,
                     Rep_img = modelParameters.Rep_img == null ? new List<string>() : modelParameters.Rep_img,
-                    Prompt = modelParameters.Prompt == null ? new List<List<string>>() : modelParameters.Prompt,
+                    I_fn = modelParameters.videoFileName,
+                    Hp = modelParameters.Hp,
 
+                    
                 };
+                if (modelParameters.Fs != null)
+                {
+                    reqMsg.Fs = new();
+                    reqMsg.Fs.AddRange(modelParameters.Fs);
+                }
+                if (!string.IsNullOrEmpty(modelParameters.Prompt))
+                {
+                    LogHandler.LogDebug($"Formatting prompt: {modelParameters.Prompt} to list of list", LogHandler.Layer.Business);
+                    reqMsg.Prompt = JsonConvert.DeserializeObject<List<List<string>>>(modelParameters.Prompt);
+                }
+                else
+                {
+                    reqMsg.Prompt = new List<List<string>>();
+                    List<string> list = new List<string>();
+                    reqMsg.Prompt.Add(list);
+                }
 
                 ObjectDetectorAPIResMsg response = null;
                 
@@ -140,14 +177,22 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     }
                     */
                     #endregion
-
+                    
                     var apiResponse = pNet.Inference(JsonConvert.SerializeObject(reqMsg), modelParameters.ModelName);
+                    
                     string respose = Convert.ToString(apiResponse);
+                    if (reqMsg.Lfp == "1")
+                    {
+                        lastFrameStatus = reqMsg.Lfp;
+                        perValue = new List<Per>();
+                        
+                    }
 
                     if (!string.IsNullOrEmpty(respose))
                     {
                         response = JsonConvert.DeserializeObject<ObjectDetectorAPIResMsg>(respose);
-
+                        response.Prompt = reqMsg.Prompt;
+                        //   Console.WriteLine("Response from Payload{0}:{1}", response.Fid, JsonConvert.SerializeObject(response.Fs));
                         string etime = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
                         for (int i = 0; i < response.Mtp.Count; i++)
                         {
@@ -156,6 +201,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                                 response.Mtp[i].Etime = etime;
                             }
                         }
+                        for (int i = 0; i < response.Fs.Count; i++)
+                        {
+                            response.Fs[i].TaskType = modelParameters.TaskType;
+                        }
+                        response.I_fn = modelParameters.videoFileName; /* Appended Video Filename */
+                        
                     }
                 }
                 catch (Exception ex)

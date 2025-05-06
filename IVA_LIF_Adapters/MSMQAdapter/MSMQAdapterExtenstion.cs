@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -11,7 +10,7 @@ using System.Collections;
 using System.Linq;
 using System.Text;
 
-//using System.Messaging;
+
 using Experimental.System.Messaging;
 
 using System.Threading;
@@ -22,7 +21,7 @@ using Newtonsoft.Json;
 
 
 
-//using Infosys.Lif.LegacyIntegratorService;
+
 
 namespace Infosys.Lif.Ext
 {
@@ -67,7 +66,7 @@ namespace Infosys.Lif.Ext
             MSMQDetails msMQDetails = null;
             bool isTransportNameExists = false;
             
-            // Find the IBMMQ region to which it should connect for sending message.
+           
             for (int count = 0; count < transportSection.MSMQDetails.Count; count++)
             {
                 msMQDetails = transportSection.MSMQDetails[count] as MSMQDetails;
@@ -77,7 +76,7 @@ namespace Infosys.Lif.Ext
                     break;
                 }
             }
-            // If MSMQ region is not set in the config then throw the exception
+          
             if (!isTransportNameExists)
             {
                 throw new LegacyException(transportName + " is not defined in MSMQDetails section");
@@ -87,35 +86,30 @@ namespace Infosys.Lif.Ext
         private string HandleMessage(MSMQOperationType operation, MSMQDetails msMQDetails, string message)
         {
             LifLogHandler.LogDebug("MSMQ Adapter- Handle Message called for operation of type- " + operation.ToString(), LifLogHandler.Layer.IntegrationLayer);
-            //string response = string.Empty;
+           
             MessageQueue queue = new MessageQueue();
-            // Set the queue's MessageReadPropertyFilter property to enable the
-            // message's ArrivedTime property.
+            
             queue.MessageReadPropertyFilter.ArrivedTime = true;
 
-            //set the queue to keep the message even after m/c start-up, this will make the msmq more available and reliable
             queue.DefaultPropertiesToSend.Recoverable = true;
 
             if (msMQDetails.QueueType == MSMQType.Private.ToString())
             {
-                //queue.Path = "FormatName:Direct=OS:" + msMQDetails.ServerName + @"\Private$\" + msMQDetails.QueueName;
-                if (msMQDetails.ServerName.Contains('.') && msMQDetails.ServerName != ".") //i.e. IP address is given for the server
+                if (msMQDetails.ServerName.Contains('.') && msMQDetails.ServerName != ".") 
                     queue.Path = "FormatName:Direct=TCP:" + msMQDetails.ServerName + @"\Private$\" + msMQDetails.QueueName;
                 else
                     queue.Path = "FormatName:Direct=OS:" + msMQDetails.ServerName + @"\Private$\" + msMQDetails.QueueName;
-                //queue.Path = msMQDetails.ServerName + @"\Private$\" + msMQDetails.QueueName;
+               
             }
             else if (msMQDetails.QueueType == MSMQType.Public.ToString())
                 queue.Path = msMQDetails.ServerName + @"\" + msMQDetails.QueueName;
 
-            //assign the formatter with the target type of the message body
+           
             ((XmlMessageFormatter)queue.Formatter).TargetTypes = new Type[] { typeof(string) };
 
             try
             {
-                //check the MSMQ send pattern configured
                 LifLogHandler.LogDebug("MSMQ Adapter (transport- {0})- Send pattern configured- None", LifLogHandler.Layer.IntegrationLayer, msMQDetails.TransportName);
-                //set the message dequeue count also
                 queue.Send(message, msMQDetails.MessageLabel + "$0");
                 response = SUCCESSFUL_SENT_MESSAGE;
                 queue.Close();
@@ -150,11 +144,9 @@ namespace Infosys.Lif.Ext
                     {
                         string summa = JsonConvert.SerializeObject(items.Value);
                         transportSection = JsonConvert.DeserializeObject<MSMQq>(summa);
-                        //transportSection = items.Value as MSMQq;
                     }
                 }
 
-                // Validates whether TransportName specified in the region, exists in MSMQDetails section.
                 MSMQDetails msMQDetails = ValidateTransportName(transportSection, regionToBeUsed.TransportName);
 
                 #region change

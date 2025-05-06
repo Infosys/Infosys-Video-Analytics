@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.Translator;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessScheduler.Framework;
 using System;
@@ -30,7 +29,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 {
     public class MetricIngestor : ProcessHandlerBase<QueueEntity.MetricIngestorMetadata>
     {
-
+        public string _taskCode;
+        public MetricIngestor() { }
+        public MetricIngestor(string processId)
+        {
+            _taskCode = TaskRoute.GetTaskCode(processId);
+        }
         public override void Dump(QueueEntity.MetricIngestorMetadata message)
         {
 
@@ -104,18 +108,19 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         {
             if (ConfigurationManager.AppSettings["ApplicationName"] != null)
             {
-              
+               
             }
             if (ConfigurationManager.AppSettings["EventType"] != null)
             {
-              
+               
             }
             if (ConfigurationManager.AppSettings["metricIngestorJobName"] != null)
             {
-               
+                
             }
             if (ConfigurationManager.AppSettings["BlobService"] != null)
             {
+               
             }
             
         }
@@ -145,9 +150,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     
                         MetricIngestorEntityTranslator metricIngestorrEntityTranslator = new MetricIngestorEntityTranslator();
                         BE.Queue.MetricIngestorMetadata metricBotMetricIngestorMetadata = metricIngestorrEntityTranslator.MetricEntityTranslator(message);
-                        FacadeHelper facadeHelper = new FacadeHelper();
-                        facadeHelper.SendMetricIngestorData(metricBotMetricIngestorMetadata);
-                      
+                        
                    
                     return true;
                  }
@@ -170,6 +173,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     }
                     else
                     {
+                         
                         return true;
                     }
                 }
@@ -177,7 +181,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 {
                     LogHandler.LogError(String.Format(ErrorMessages.Exception_Failed, "Process", "MetricIngestor"),
                             LogHandler.Layer.Business, null);
-                    
+                   
                     if (!failureLogged)
                     {
                         LogHandler.LogError(String.Format("Exception Occured while handling an exception in MetricIngestor in Process method. error message: {0}", ex.Message), LogHandler.Layer.Business, null);

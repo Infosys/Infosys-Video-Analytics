@@ -1,18 +1,15 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
+﻿/*
+ *© 2019 Infosys Limited, Bangalore, India. All Rights Reserved. Infosys believes the information in this document is accurate as of its publication date; such information is subject to change without notice. Infosys acknowledges the proprietary rights of other companies to the trademarks, product names and such other intellectual property rights mentioned in this document. Except as expressly permitted, neither this document nor any part of it may be reproduced, stored in a retrieval system, or transmitted in any form or by any means, electronic, mechanical, printing, photocopying, recording or otherwise, without the prior permission of Infosys Limited and/or any named intellectual property rights holders under this document.   
+ * 
+ * © 2019 INFOSYS LIMITED. CONFIDENTIAL AND PROPRIETARY 
+ */
 
-﻿
-using Emgu.CV;
-
-using Infosys.Solutions.Ainauto.VideoAnalytics.AIModels;
-using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
-
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,6 +26,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
         private static AppSettings appSettings = Config.AppSettings;
 
+        
         public static string ModelInference(ModelParameters modeltoInfer,Stream st) {
             #if DEBUG
             using(LogHandler.TraceOperations("ModelInferenceManager:ModelInference",LogHandler.Layer.MaskPrediction,Guid.NewGuid(),null)) {
@@ -37,10 +35,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 string metadata=string.Empty;
                 bool status=true;
                 ExecuteBase client=null;
-               
+                
                 modeltoInfer.ModelType=GetModelType(modeltoInfer.ModelName);
                 modeltoInfer.PredictionKey=GetPredictionKey(modeltoInfer.ModelName);
                 modeltoInfer.AuthenticationUrl=GetAuthenticationUrl(modeltoInfer.ModelName);
+                modeltoInfer.TaskType = GetTaskType(modeltoInfer.ModelName);
                 modeltoInfer.Host=GetHost(modeltoInfer.ModelName);
                 modeltoInfer.BaseUrl=GetModelUrl(modeltoInfer.ModelName);
                 modeltoInfer.ModelPath=GetModelPath(modeltoInfer.ModelName);
@@ -49,7 +48,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 modeltoInfer.ImagePixelExtractionOrder=GetImagePixelExtractionOrder(modeltoInfer.ModelName);
                 modeltoInfer.GPUDeviceId=GetGPUDevceId(modeltoInfer.ModelName);
                 modeltoInfer.CPUFallbackValue=GetCPUFallbackValue(modeltoInfer.ModelName);
-                /* Getting AWS details */
+                modeltoInfer.ExplainerURL= GetModelUrl(modeltoInfer.ExplainerURL);
+                
                 var awsDetails=GetAWSDetails(modeltoInfer.ModelName);
                 if(awsDetails.Count>0) {
                     modeltoInfer.AWSEndpointName=awsDetails[0];
@@ -65,20 +65,53 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 else
                     throw new NullReferenceException();
                 if(client != null) {
-                 
+                    
                     if(!(string.IsNullOrEmpty(modeltoInfer.ModelLabelPath) && string.IsNullOrEmpty(modeltoInfer.ModelPath))) {
                           status=client.InitializeModel(modeltoInfer);
-                        
+                         
                     }
                     else {
-                     
+                        
                         status=client.InitializeModel();
                     }
                    
                     if(status) {
                         metadata=client.MakePrediction(st,modeltoInfer);
                         #region Commenting old cod for IVA new request/response structure
-                        
+                        /*
+                        if (!string.IsNullOrEmpty(modeltoInfer.PredictionKey))
+                        {
+                            metadata = client.MakePrediction(st, modeltoInfer.ConfidenceThreshold, modeltoInfer.OverlapThreshold, modeltoInfer.BaseUrl, modeltoInfer.ModelName, modeltoInfer.PredictionKey);
+                        }
+                        else if (!string.IsNullOrEmpty(modeltoInfer.AuthenticationUrl))
+                        {
+                            metadata = client.MakePrediction(st, modeltoInfer.ConfidenceThreshold, modeltoInfer.OverlapThreshold, modeltoInfer.BaseUrl, modeltoInfer.ModelName, modeltoInfer.AuthenticationUrl, modeltoInfer.Host, modeltoInfer.TokenCacheExpirationTime);
+                        }
+                        else if (!string.IsNullOrEmpty(modeltoInfer.CanonicalPath))
+                        {
+                            metadata = client.MakePrediction(st, modeltoInfer);
+                        }
+                        //else
+                        //{   // Earlier just single below line was there, but for calling "UniquePersonCount_CentroidTracking" class, made the below access.
+                        //    //metadata = client.MakePrediction(st, modeltoInfer.ConfidenceThreshold.ToString(), modeltoInfer.OverlapThreshold, modeltoInfer.BaseUrl, modeltoInfer.ModelName);
+                        //    string modelName = "";
+                        //    string baseUrl = "";
+                        //    modelName = modeltoInfer.ModelName;
+                        //    baseUrl = GetModelUrl(modelName);
+                        //    metadata = client.MakePrediction(st.ToString(), baseUrl, modelName);
+                        //}
+                        else
+                        {
+                            //metadata = client.MakePrediction(st, modeltoInfer.ConfidenceThreshold.ToString(), modeltoInfer.OverlapThreshold,
+                            //    modeltoInfer.BaseUrl, modeltoInfer.ModelName);
+
+                            // New changes for IVA request/response structure
+                            metadata = client.MakePrediction(st, modeltoInfer.deviceId, modeltoInfer.tId, modeltoInfer.Fid, modeltoInfer.Stime, modeltoInfer.Src, modeltoInfer.Etime, modeltoInfer.Ts.ToString(), modeltoInfer.Ts_ntp.ToString(), modeltoInfer.Msg_ver, modeltoInfer.Inf_ver, modeltoInfer.Per, modeltoInfer.Ad, modeltoInfer.ConfidenceThreshold.ToString(),
+                                                             modeltoInfer.BaseUrl, modeltoInfer.ModelName, modeltoInfer.OverlapThreshold);
+
+                            
+                        }
+                        */
                         #endregion
                     }
                     else
@@ -92,6 +125,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             #endif
         }
 
+
+        
         private static string GetModelType(string modelType)
         {
 #if DEBUG
@@ -103,7 +138,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
                 XElement root = XElement.Load(AppDomain.CurrentDomain.BaseDirectory + GetModelXmlPath());
                 var objType = from modeltype in root.Elements("Type")
-                              where modeltype.Attribute("key").Value.ToLower().Contains(modelType?.ToLower())
+                              where modeltype.Attribute("key").Value.ToLower().Equals(modelType?.ToLower())
                               select modeltype.Value;
 
                 if (objType.FirstOrDefault() != null)
@@ -127,7 +162,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
 
                 var objModelUrl = from modeltype in root.Elements("Type")
-                                  where modeltype.Attribute("key").Value.ToLower().Contains(modelType.ToLower())
+                                  where modeltype.Attribute("key").Value.ToLower().Equals(modelType.ToLower())
                                   select modeltype?.Attribute("modelPath")?.Value;
 
                 if (objModelUrl?.FirstOrDefault() != null)
@@ -223,7 +258,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
 
                 var objModelUrl = from modeltype in root.Elements("Type")
-                                  where modeltype.Attribute("key").Value.ToLower().Contains(modelType.ToLower())
+                                  where modeltype.Attribute("key").Value.ToLower().Equals(modelType.ToLower())
                                   select modeltype.Attribute("modelUrl")?.Value;
 
                 if (objModelUrl.FirstOrDefault() != null)
@@ -370,7 +405,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
 
                 var objModelPredictionKey = from modeltype in root.Elements("Type")
-                                            where modeltype.Attribute("key").Value.ToLower().Contains(modelType.ToLower())
+                                            where modeltype.Attribute("key").Value.ToLower().Equals(modelType.ToLower())
                                             select modeltype.Attribute("predictionKey")?.Value;
 
 
@@ -384,7 +419,30 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 #endif
         }
 
-     
+        private static string GetTaskType(string modelName)
+        {
+#if DEBUG
+            using (LogHandler.TraceOperations("ModelInferenceManager:GetTaskType", LogHandler.Layer.MaskPrediction, Guid.NewGuid(), null))
+            {
+#endif
+                string renderType = "";
+
+                XElement root = XElement.Load(AppDomain.CurrentDomain.BaseDirectory + GetModelXmlPath());
+
+                var objModelUrl = from modeltype in root.Elements("Type")
+                where modeltype.Attribute("key").Value.ToLower().Equals(modelName.ToLower())
+                                  select modeltype.Attribute("taskType")?.Value;
+
+                if (objModelUrl.FirstOrDefault() != null)
+                    renderType = objModelUrl.FirstOrDefault().ToString();
+
+                return renderType;
+#if DEBUG
+            }
+#endif
+        }
+
+        
         public static string ModelInference(ModelParameters modeltoInfer, string st)
         {
 #if DEBUG
@@ -399,11 +457,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
                 ExecuteBase client = null;
 
+                
                 modelName = modeltoInfer.ModelName;
                 modelType = GetModelType(modelName);
 
                 baseUrl = GetModelUrl(modelName);
-         
+                
+                
                 if (!String.IsNullOrEmpty(modelType))
                 {
                     modelType = "Infosys.Solutions.Ainauto.VideoAnalytics.AIModels" + "." + modelType;
@@ -414,6 +474,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
                 if (client != null)
                 {
+                   
                     status = client.InitializeModel();
 
                     if (status)
@@ -430,7 +491,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 #endif
         }
 
-       
+        //unique person
         public static string ModelInference(ModelParameters modeltoInfer, Stream stream, string st)
         {
 #if DEBUG
@@ -445,15 +506,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 string authenticationUrl = "";
                 ExecuteBase client = null;
 
+                
+
                 modelName = modeltoInfer.ModelName = modeltoInfer.ModelName;
                 modelType = GetModelType(modelName);
                 modeltoInfer.AuthenticationUrl = GetAuthenticationUrl(modelName);
                 modeltoInfer.BaseUrl = GetModelUrl(modelName);
+                modeltoInfer.TaskType = GetTaskType(modelName);
 
                 var host = GetHost(modelName);
                 string confidenceThreshold = modeltoInfer.ConfidenceThreshold.ToString();
                 float overlapThreshold = modeltoInfer.OverlapThreshold;
 
+                
+                /// 
                 if (!String.IsNullOrEmpty(modelType))
                 {
                     modelType = "Infosys.Solutions.Ainauto.VideoAnalytics.AIModels" + "." + modelType;
@@ -464,6 +530,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
                 if (client != null)
                 {
+                    
                     status = client.InitializeModel();
                     
                     if (status)
@@ -500,6 +567,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         }
 
 
+        
         private static string GetModelXmlPath()
         {
             string xmlFilePath = "";

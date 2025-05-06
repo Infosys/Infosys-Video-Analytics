@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +11,7 @@ using System.Threading.Tasks;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using System;
 using System.IO;
+//using SC = Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ServiceClientLibrary;
 using SE = Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts;
 using Newtonsoft.Json;
 using Infosys.Solutions.Ainauto.VideoAnalytics.AIModels;
@@ -21,6 +21,7 @@ using System.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
 using System.Threading;
+//using Infosys.Solutions.Ainauto.VideoAnalytics.Entity;
 using System.Diagnostics;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Entity;
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue;
@@ -31,6 +32,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
     public class AzureCustomVisionInferenceAPI : ExecuteBase
     {
         ObjectDetectorAPIResMsg objectDetectorResponse = null;
+        
         public override bool InitializeModel()
         {
             return true;
@@ -38,6 +40,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
 
         
+
         public override string MakePrediction(Stream st, ModelParameters modelParameters)
         {
             string sstime = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
@@ -63,7 +66,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     image_byte_array = memoryStream.ToArray();
                     memoryStream.Dispose();
                 }
-            
+                
                 MakePredictionRequestAsync(image_byte_array, modelParameters).GetAwaiter().GetResult();
 
 
@@ -88,8 +91,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 var client = new HttpClient();
                 string response = "";
 
+                
                 client.DefaultRequestHeaders.Add("Prediction-Key", predictionKey);
 
+                
 
                 HttpResponseMessage httpresponse;
 
@@ -105,6 +110,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 stopWatch.Stop();
                 DateTime etime = DateTime.Now;
 
+                
 
                 var azurePredictionModel = (AzurePredictionModel)JsonConvert.DeserializeObject<AzurePredictionModel>(response);
                 ObjectDetectorAPIResMsg result = new ObjectDetectorAPIResMsg();
@@ -153,16 +159,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 mtp.Etime = etime.ToString("HH:mm:ss tt");
                 mtp.Src = "Azure Vision Inference API";
                 result.Mtp.Add(mtp);
+                
                 result.Did = modelParameters.deviceId;
                 result.Tid = modelParameters.tId;                
                 result.Fid = modelParameters.Fid;
+                
                 result.Ts = modelParameters.Ts;
                 result.Ts_ntp = modelParameters.Ts_ntp;
+                
                 result.Msg_ver = modelParameters.Msg_ver;
                 result.Inf_ver = modelParameters.Inf_ver;
                 result.Ad = modelParameters.Ad;
                 result.Rc = 200;
                 result.Rm = "success";
+                result.Hp = modelParameters.Hp;
 
                 objectDetectorResponse = result;
             }

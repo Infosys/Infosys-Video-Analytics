@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +21,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         private static string startingFolder = "";
         static Package zip1;      
 
-        
+       
         public static Result Package(string pyFullyqualifiedFile, string packageFileExtension = "iapd")    
         {
             Result result = null;
@@ -44,7 +43,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             Result result = new Result();
             try
             {
-                
+               
                 if (File.Exists(fullyqualifiedFile))
                 {
                     string folder = Path.GetDirectoryName(fullyqualifiedFile);
@@ -82,13 +81,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             return result;
         }
 
-        
+       
         public static Result Package(string xamlName, Stream xamlStream, string dependencyFolderPath="")
         {
             Result result = null;
             if (!string.IsNullOrEmpty(xamlName) && xamlStream.Length > 0)
             {
-                
+               
                 string xamlString = StreamToString(xamlStream);
                 xamlStream.Close();
 
@@ -96,7 +95,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
                 if (string.IsNullOrEmpty(dependencyFolderPath))
                 {
                     dependencyFolderPath = GetAppPath();
-                    
+                   
                     string newFolder= Path.Combine(dependencyFolderPath, "iapw");
                     if(System.IO.Directory.Exists(newFolder))
                         System.IO.Directory.Delete(newFolder);
@@ -107,7 +106,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
                 string destination = Path.Combine(dependencyFolderPath, xamlName + ".xaml");
                 if (File.Exists(destination))
                     File.Delete(destination);
-               
+                
                 File.WriteAllText(destination, xamlString);
 
                 startingFolder = dependencyFolderPath;
@@ -149,17 +148,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             return file;
         }
 
-       
         public static void ClosePackage()
         {
             if (zip1 != null)
                 zip1.Close();
         }
        
-        
+       
         public static Result Unpackage(string package, string extractToFolder)
         {
-            bool overWriteExistingFile = true; 
+            bool overWriteExistingFile = true;
             Result result = new Result();
             result.IsSuccess = true;
             try
@@ -170,7 +168,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
                     extractToFolder = Path.Combine(extractToFolder, Path.GetFileNameWithoutExtension(package));
                     foreach (PackagePart part in zip.GetParts())
                     {
-                        
+                       
                         string destination = extractToFolder + Uri.UnescapeDataString(part.Uri.ToString().Replace(@"/", "\\"));
                         string directoryName = Path.GetDirectoryName(destination);
                         if (!Directory.Exists(directoryName))
@@ -253,6 +251,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             result.IsSuccess = true;
             try
             {
+                
                 string relativeTargetFolder = folderToBeAdded.Replace(startingFolder, "");
                 if (Directory.Exists(folderToBeAdded))
                 {
@@ -280,7 +279,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             return result;
         }
 
-        
+       
         private static void CopyStream(System.IO.Stream inputStream, System.IO.Stream outputStream)
         {
             inputStream.Position = 0;
@@ -323,7 +322,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
 
         
 
-        
+       
         public static List<Stream> ExtractFiles(Stream iapdOrIapwStream, string extension)
         {
             List<Stream> resourceFiles = new List<Stream>(); 

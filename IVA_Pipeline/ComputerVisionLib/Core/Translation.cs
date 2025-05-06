@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,11 +25,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         {
             Core.Utilities.WriteLog("populating applications"); 
             Dictionary<string, Application> applications = new Dictionary<string, Application>();
-           
+            
             AutomationConfig autoConfig = Deserialize(xmlString, typeof(AutomationConfig)) as AutomationConfig;
             Application app = null;
             if (autoConfig != null)
             {
+                
                 if (!string.IsNullOrEmpty(firstAppToStart))
                 {
                     if (!autoConfig.AppConfigs.Any(a => a.AppName == firstAppToStart))
@@ -61,13 +61,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
                     if (app != null)
                     {
-                       
+                        
                         baseImageDir = appconfig.BaseImageDir;
                         app.Name = appconfig.AppName;
                         app.AppType = appconfig.AppControlConfig.ApplicationType;
                         app.AppLocationPath = appconfig.AppControlConfig.ApplicationLocationPath;
                         app.UIFwk = appconfig.AppControlConfig.UIFwk;
-                    
                         ScreensAndControlsUnderScreen data = PopulateApplicationScreens(appconfig, appconfig.AppControlConfig.ApplicationType, app.Name);
                         app.Screens = data.Screens;
                         app.Controls = data.ControlsUndderScreens;
@@ -100,14 +99,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     appScreenQualifier = appName + "." + screenConfig.ScreenName;
                     screen = new Screen(screenConfig.ScreenControlConfig.ControlName, screenConfig.ScreenControlConfig.ControlClass); 
                     screen.Name = screenConfig.ScreenName;
-                    
                     screen.Controls = PopulateControls(screenConfig, applicationType, appScreenQualifier);
-                   
+                    
                     screens.Add(screenConfig.ScreenName, screen);
                 }
                 else
                 {
                     appScreenQualifier = appName;
+                    
                     controls.AddRange(PopulateControls(screenConfig, applicationType, appScreenQualifier));
                 }
             }
@@ -119,7 +118,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         {
             Core.Utilities.WriteLog("populating controls"); 
             Dictionary<string, Control> controls = new Dictionary<string, Control>();
-           
             Control ctl = null;
             string fullControlQualifier = "";
             if (objConfig.GetType().Equals(typeof(ScreenConfig)))
@@ -131,9 +129,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
                     if (!string.IsNullOrEmpty(entityConfig.EntityName))
                     {
-                        Core.Utilities.WriteLog("control being added- " + entityConfig.EntityName);
+                        Core.Utilities.WriteLog("control being added- " + entityConfig.EntityName); 
                         fullControlQualifier = ControlQualifier + "." + entityConfig.EntityName;
-                       
+                        
+                        
                         
                         ctl = new Control(); 
                         if (entityConfig.EntityControlConfig.ControlClass == null || entityConfig.EntityControlConfig.ControlClass.ToLower() == "na" || entityConfig.EntityControlConfig.ControlClass.ToLower() == "none")
@@ -142,9 +141,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         ctl.DiscoveryMode = GetDiscoveryMode(entityConfig);
                         Core.Utilities.WriteLog("got discovery mode"); 
                         ctl.ImageReference = PopulateEntityImage(entityConfig.EntityImageConfig);
-                       
+                        
                         ctl.Name = entityConfig.EntityName;
-                     
+                       
                         if (entityConfig.EntityChildConfig != null && entityConfig.EntityChildConfig.Count > 0)
                         {
                             ctl.Controls = PopulateControls(entityConfig, applicationType, fullControlQualifier); 
@@ -177,17 +176,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         else
                         ctl.DiscoveryMode = GetDiscoveryMode(entitychildConfig);
                         ctl.ImageReference = PopulateEntityImage(entitychildConfig.EntityImageConfig);
-                       
+                        
                         ctl.Name = entitychildConfig.EntityName;
                        
                         if (entitychildConfig.EntityChildConfig != null && entityConfig.EntityChildConfig.Count > 0)
                         {
-                            
                             ctl.Controls = PopulateControls(entitychildConfig, applicationType, fullControlQualifier);
                         }
+                        
                         controls.Add(ctl.Name, ctl);
                     }
                     else
+                        
                         controls.AddRange(PopulateControls(entitychildConfig, applicationType, fullControlQualifier));
                 }
             }
@@ -197,7 +197,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
         private static ControlImageReference PopulateEntityImage(ImageConfig entityImageConfig)
         {
-            
             ControlImageReference imageRef = new ControlImageReference();
             if (entityImageConfig != null)
             {
@@ -287,7 +286,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         }
 
 
-       
+        
     }
 
     static class CollectionAddRangeExtension
@@ -308,7 +307,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 }
                 catch (ArgumentException) 
                 {
-
+                    
                 }
             }
         }
@@ -316,7 +315,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
     class ScreensAndControlsUnderScreen
     {
-        
+       
         public Dictionary<string, Screen> Screens { get; set; }
         
         public Dictionary<string, Control> ControlsUndderScreens { get; set; }

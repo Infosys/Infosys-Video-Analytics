@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Infosys.Lif.LegacyIntegratorService;
 using Infosys.Lif.LegacyCommon;
 using System;
@@ -15,7 +14,6 @@ using System.IO;
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using MemoryDocAdapter;
-
 
 namespace Infosys.Lif
 {
@@ -85,7 +83,7 @@ namespace Infosys.Lif
                         case 1: 
                             gcTriggerExpireCount = memoryDocDetails.ExpirationTriggerCount;
                             break;
-                        case 2: 
+                        case 2:
                             SetCacheSettingsForMemoryControl(cacheMemoryLimitBytes, physicalMemoryLimitPrctg, cacheSettings);
                             break;
                         case 3: 
@@ -104,9 +102,7 @@ namespace Infosys.Lif
                         cacheSettings.Add("pollingInterval", Convert.ToString(cachePollingInterval));
                     }
 
-                  
-
-                    
+                   
                     if (expirationValue > 0)
                     {
                         policy.SlidingExpiration = TimeSpan.FromMinutes(expirationValue);
@@ -154,7 +150,7 @@ namespace Infosys.Lif
                 
                 if (physicalMemoryLimitPrctg > 0)
                 {
-                    CacheSettings.Add("physicalMemoryLimitPercentage", Convert.ToString(physicalMemoryLimitPrctg));  
+                    CacheSettings.Add("physicalMemoryLimitPercentage", Convert.ToString(physicalMemoryLimitPrctg));  //set % here
                 }
             }
         }
@@ -162,7 +158,7 @@ namespace Infosys.Lif
 
         public bool Delete(ListDictionary adapterDetails)
         {
-           
+            
             Infosys.Lif.LegacyIntegratorService.MemoryDoc transport = null;
             Infosys.Lif.LegacyIntegratorService.Region region = null;
             foreach (DictionaryEntry items in adapterDetails)
@@ -192,7 +188,7 @@ namespace Infosys.Lif
                     REGION, TRANSPORT_SECTION, TARGETURLDETAILS));
             }
 
-          
+           
             bool check = targetURLDetails.AllKeys.Contains("container_name")
                             && !string.IsNullOrWhiteSpace(targetURLDetails["container_name"]);
             if (!check)
@@ -203,7 +199,7 @@ namespace Infosys.Lif
             if (!check)
                 throw new LegacyException("MemoryDoc Adapter- 'file_name' missing in metadata.");
 
-           
+            
             MemoryDocDetails docDetails = ValidateTransportName(transport, region.TransportName);
 
             if (docDetails == null)
@@ -265,7 +261,7 @@ namespace Infosys.Lif
 
 
 
-              
+                
                 MemoryDocDetails docDetails = ValidateTransportName(transportSection, regionToBeUsed.TransportName);
 
                 HandleStream(docDetails, DocAccessType.Receive, null);
@@ -319,7 +315,7 @@ namespace Infosys.Lif
                 if (dataStream == null && targetURLDetails == null)
                     throw new LegacyException("MemoryDoc Adapter- File Stream and metadata details both cannot be empty.");
 
-              
+             
                 bool check = targetURLDetails.AllKeys.Contains("container_name")
                                 && !string.IsNullOrWhiteSpace(targetURLDetails["container_name"]);
                 if (!check)
@@ -330,7 +326,7 @@ namespace Infosys.Lif
                 if (!check)
                     throw new LegacyException("MemoryDoc Adapter- 'file_name' missing in metadata.");
 
-                
+           
                 MemoryDocDetails docDetails = ValidateTransportName(transportSection, regionToBeUsed.TransportName);
 
                 response = HandleStream(docDetails, DocAccessType.Send, dataStream);
@@ -360,7 +356,7 @@ namespace Infosys.Lif
         }
         #endregion
 
-        
+       
         private MemoryDocDetails ValidateTransportName(Infosys.Lif.LegacyIntegratorService.MemoryDoc transportSection,
             string transportName)
         {
@@ -368,7 +364,7 @@ namespace Infosys.Lif
                 LifLogHandler.Layer.IntegrationLayer);
             MemoryDocDetails blobDetails = null;
             bool isTransportNameExists = false;
-            
+         
             for (int count = 0; count < transportSection.MemoryDocDetails.Count; count++)
             {
                 blobDetails = transportSection.MemoryDocDetails[count] as MemoryDocDetails;
@@ -414,7 +410,7 @@ namespace Infosys.Lif
 
                                 while ((_bytesRead = dataStream.Read(_buffer, 0, _buffer.Length)) != 0)
                                 {
-                                                                      
+                                                                    
 
                                 }
 
@@ -428,7 +424,7 @@ namespace Infosys.Lif
 
                             break;
                         case DocAccessType.Receive:
-                           
+                          
 
 
                             byte[] DataStream = cache[cacheKey] as byte[];
@@ -453,6 +449,7 @@ namespace Infosys.Lif
                             {
                                 response = UNSUCCESSFUL_DATA_RECEIVED;
                                 string errormsg = response + "Because data is not avavilable in memory cache:" + cacheKey;
+                              
                                 Exception exResponse = new Exception(errormsg);
                                 throw exResponse;
                             }
@@ -486,6 +483,7 @@ namespace Infosys.Lif
                     response = response + ". Inner Error Message- " + ex.InnerException.Message;
                 }
 
+                //and then raise the event for receive operation
                 LifLogHandler.LogError("MemoryDoc Adapter- HandleStream- exception raised, reason- {0}",
                     LifLogHandler.Layer.IntegrationLayer, ex);
                 ReceiveEventArgs args = new ReceiveEventArgs();

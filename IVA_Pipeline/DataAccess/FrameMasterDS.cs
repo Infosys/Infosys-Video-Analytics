@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,6 +57,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess
             {
                 using (dbCon = new framedetailsNewContext())
                 {
+                    if (entity.FrameGrabTime.Kind != DateTimeKind.Utc)
+                    {
+                        entity.FrameGrabTime = entity.FrameGrabTime.ToUniversalTime();
+                    }
                     entity.CreatedDate = DateTime.UtcNow;
                     dbCon.FrameMasters.Add(entity);
                     dbCon.SaveChanges();
@@ -65,7 +68,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("PRIMARY KEY constraint") || ex.InnerException.InnerException.Message.Contains("PRIMARY KEY constraint"))
+                if (ex.Message.Contains("PRIMARY KEY constraint") || (ex.InnerException != null && ex.InnerException.InnerException.Message.Contains("PRIMARY KEY constraint")))
                 {
                     LogHandler.LogError("error in insert metadata : message {0}", LogHandler.Layer.Business, ex.Message);
                     throw new DuplicateRecordException();

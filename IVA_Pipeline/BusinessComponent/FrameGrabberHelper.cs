@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -36,7 +35,10 @@ using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.VideoAnalytics;
 using Nest;
 using System.Threading.Channels;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message;
+using Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Data;
 using System.Reflection;
+using System.IO.MemoryMappedFiles;
+using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Framedetail;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 {
@@ -57,11 +59,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         public static int totalLotCount = 0;
         public static int totalImgCount = 0;
 
-       
+        
         public static AppSettings appSettings = Config.AppSettings;
-        public static readonly int MaxFailureCount = appSettings.MaxFailCount;
-        public static readonly int MaxThreadOnPool = appSettings.MaxThreadOnPool;
-        public static readonly int IntervalWaitTime = appSettings.OfflineProcessInterval;
+        public static readonly int MaxFailureCount = 0;
+        public static readonly int IntervalWaitTime = 0;
         public static readonly bool StopAfterMaxFail;
         public static int FrameCount = 0;
         public static int TotalFramesGrabbed = 0;
@@ -70,10 +71,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         public static int lastFrameNumberSendForPredict = 0;
         public static readonly int tenantId = appSettings.TenantID;
         public static readonly string deviceId = appSettings.DeviceID;
-        public static readonly int FrameCompressPercent = Convert.ToInt32(appSettings.ReduceFrameQualityTo);
+        public static readonly int FrameCompressPercent = 0;
         public static readonly int ZipCompressPercent = Convert.ToInt32(ConfigurationManager.AppSettings["ZipCompressPercent"]);
-        public static readonly string serviceBaseUrl = appSettings.ServiceBaseUrl;
-        public static readonly string serviceUrl = ConfigurationManager.AppSettings["ServiceBaseUrl"];
         public static int FrameGrabFailureCount = 0;
         public static int BlobStoreFailureCount = 0;
         public static int PushMessageFailureCount = 0;
@@ -85,23 +84,17 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         public static readonly string cameraURL;
         public static string modelName;
         public static readonly string UPmodelName;
-        public static readonly string queueName;
         public static readonly string userName = UserDetails.userName;
         public static readonly string videoFeedType;
         public static readonly string offlineVideoBaseDirectory;
+        private static readonly string millibraryname;
         public static readonly string pcdBaseDirectory;
-        
+
         public static readonly string offlinePromptDirectory;
-        public static readonly string promptenabled;
-        public static string promptData = "";
-        public static readonly string maskImageInput;
         public static readonly string maskImageDirectory;
         public static List<string> msk_img = new List<string>();
-        public static string replaceImageInput;
         public static string replaceImageDirectory;
         public static List<string> rep_img = new List<string>();
-        public static string blobForGenerativeAI;
-        public static string GENAI;
 
         public static readonly string archiveLocation;
         public static readonly bool archiveEnabled;
@@ -117,7 +110,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         public static double FPS = 0;
         
         public static int IN_PROGRESS = 1;
-       
+        
         public static int CLOSED = 2;
         
         public static int MARKED_CLOSED = 3;
@@ -127,122 +120,121 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         public static readonly int clientStatusUpdateTime = Convert.ToInt32(ConfigurationManager.AppSettings["ClientStatusUpdateTime"]);
         public static readonly string instanceName = string.Concat(tenantId, "_", deviceId);
         public static readonly string debugImageFilePath = appSettings.FgDebugImageFilePath;
-        public static readonly string enableDebugImage = appSettings.ImageDebugEnabled;
-        public static readonly string videoForamtsAllowed;
+        public static readonly string enableDebugImage;
+        public static readonly string videoFormatsAllowed;
         public static readonly string streamingPath;
         public static readonly bool enforceFrameSequencing;
         public static readonly int maxSequenceNumber;
         public static bool cleanUpStreamingFolder = false;
         private static Dictionary<int, string> framesNotSendForRendering = new Dictionary<int, string>();
-        public static DeviceDetails deviceDetails;
+        public static DeviceDetails deviceDetails = ConfigHelper.SetDeviceDetails(tenantId.ToString(), deviceId, CacheConstants.FrameGrabberCode);
+        public static readonly int MaxThreadOnPool = deviceDetails.MaxThreadOnPool;
         #endregion
 
-        static FrameGrabberHelper() {
-            try {
-                if(MaxThreadOnPool>0)
-                    ThreadPool.SetMaxThreads(MaxThreadOnPool,MaxThreadOnPool); /* Limits the maximum number of active threads on thread pool */
-                /* if(!LogHandler.InitializeRaw(instanceName))
-                    LogHandler.LogError("Initializing raw values for performance monitor failed. The data might be inaccurate for some counters.",LogHandler.Layer.FrameGrabber,null);
-                maskDetector=new SC.MaskDetector();
-                channel=maskDetector.ServiceChannel;
-                Console.WriteLine($"Getting config details for Tenant Id: {tenantId} and Device Id: {deviceId}.");
-                Getting config details */                
-                DateTime apiCallST=DateTime.UtcNow;
-                #if DEBUG
-                LogHandler.LogDebug("The GetDeviceAttributes service is called to get config details for Tenant Id: {0} and Device Id: {1} at {2}.",LogHandler.Layer.FrameGrabber,tenantId,deviceId,DateTime.UtcNow.ToLongTimeString());
-                #endif
-                /* Change SSL checks so that all checks pass */
-                ServicePointManager.ServerCertificateValidationCallback=new RemoteCertificateValidationCallback(delegate {
+        static FrameGrabberHelper()
+        {
+            try
+            {
+                if (MaxThreadOnPool > 0)
+                    ThreadPool.SetMaxThreads(MaxThreadOnPool, MaxThreadOnPool); /* Limits the maximum number of active threads on thread pool */
+               
+                DateTime apiCallST = DateTime.UtcNow;
+#if DEBUG
+                LogHandler.LogDebug("The GetDeviceAttributes service is called to get config details for Tenant Id: {0} and Device Id: {1} at {2}.", LogHandler.Layer.FrameGrabber, tenantId, deviceId, DateTime.UtcNow.ToLongTimeString());
+#endif
+               
+                ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(delegate {
                     return true;
                 });
-                /* var uri=String.Format($"{Config.AppSettings.ConfigWebApi}Configuration/GetDeviceAttributes?tid={tenantId}&did={deviceId}");
-                var apiResponse=ServiceCaller.ApiCaller(null,uri,"GET"); */
-                DeviceDetails response=ConfigHelper.SetDeviceDetails(tenantId.ToString(),deviceId,CacheConstants.FrameGrabberCode);
-                if(response==null)
+                
+                DeviceDetails response = ConfigHelper.SetDeviceDetails(tenantId.ToString(), deviceId, CacheConstants.FrameGrabberCode);
+                if (response == null)
                     throw new FaceMaskDetectionCriticalException("Failed to get device configuration from services. Response is null.");
-                #if DEBUG
-                LogHandler.LogDebug("The GetDeviceAttributes service is executed successfully to get config details for Tenant Id: {0} and Device Id: {1} at {2}.",LogHandler.Layer.FrameGrabber,tenantId,deviceId,DateTime.UtcNow.ToLongTimeString());
+#if DEBUG
+                LogHandler.LogDebug("The GetDeviceAttributes service is executed successfully to get config details for Tenant Id: {0} and Device Id: {1} at {2}.", LogHandler.Layer.FrameGrabber, tenantId, deviceId, DateTime.UtcNow.ToLongTimeString());
 #endif
-                deviceDetails = response;
-                configTime=DateTime.UtcNow.Subtract(apiCallST).TotalSeconds;
-                configTime=DateTime.UtcNow.Subtract(apiCallST).TotalSeconds;
-                if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                    userName=System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+                configTime = DateTime.UtcNow.Subtract(apiCallST).TotalSeconds;
+                configTime = DateTime.UtcNow.Subtract(apiCallST).TotalSeconds;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    userName = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
                 }
-                else {
-                    userName=" ";
+                else
+                {
+                    userName = " ";
                 }
-                lotSize=response.FrameToPredict;
-                cameraURL=response.CameraURl;
-                modelName=response.ModelName;
-                queueName=response.QueueName;
-                storageBaseUrl=response.StorageBaseUrl;
-                videoFeedType=response.VideoFeedType;
-                offlineVideoBaseDirectory=response.OfflineVideoDirectory;
-                pcdBaseDirectory=response.PcdDirectory;
-                archiveLocation=response.ArchiveDirectory;
-                archiveEnabled=response.ArchiveEnabled;
-                confidenceThreshold=response.ConfidenceThreshold;
-                overlapThreshold=response.OverlapThreshold;
-                lotsEnabled=response.EnableLots;
-                FramesToPredictPerSecond=response.FTPPerSeconds;
-                uniquePersonTrackingEnabled=response.UniquePersonTrackingEnabled;
-                UPmodelName=response.UPModelName;
-                uniquePersonOverlapThreshold=response.UniquePersonOverlapThreshold;
-                videoStreamingOption=response.VideoStreamingOption;
-                displayAllFrames=response.DisplayAllFrames;
-                videoForamtsAllowed=response.VideoFormatsAllowed;
-                cleanUpStreamingFolder=response.CleanUpStreamingFolder;
-                streamingPath=response.StreamingPath;
-                maxSequenceNumber=response.MaxSequenceNumber;
-                enforceFrameSequencing=response.EnforceFrameSequencing;
-                offlinePromptDirectory=response.PromptInputDirectory;
-                promptenabled=response.EnablePrompt;
-                maskImageInput=response.MaskImageInput;
-                maskImageDirectory=response.MaskImageDirectory;
-                replaceImageInput=response.ReplaceImageInput;
-                replaceImageDirectory=response.ReplaceImageDirectory;
-                blobForGenerativeAI=response.BlobforGenerativeAI;
-                GENAI=response.GENAI;
+                lotSize = response.FrameToPredict;
+                cameraURL = response.CameraURl;
+                modelName = response.ModelName;
+                storageBaseUrl = response.StorageBaseUrl;
+                videoFeedType = response.VideoFeedType;
+                offlineVideoBaseDirectory = response.OfflineVideoDirectory;
+                millibraryname = response.MILLibraryName;
+                pcdBaseDirectory = response.PcdDirectory;
+                archiveLocation = response.ArchiveDirectory;
+                archiveEnabled = response.ArchiveEnabled;
+                confidenceThreshold = response.ConfidenceThreshold;
+                overlapThreshold = response.OverlapThreshold;
+                lotsEnabled = response.EnableLots;
+                FramesToPredictPerSecond = response.FTPPerSeconds;
+                uniquePersonTrackingEnabled = response.UniquePersonTrackingEnabled;
+                UPmodelName = response.UPModelName;
+                uniquePersonOverlapThreshold = response.UniquePersonOverlapThreshold;
+                videoStreamingOption = response.VideoStreamingOption;
+                displayAllFrames = response.DisplayAllFrames;
+                videoFormatsAllowed = response.VideoFormatsAllowed;
+                cleanUpStreamingFolder = response.CleanUpStreamingFolder;
+                streamingPath = response.StreamingPath;
+                maxSequenceNumber = response.MaxSequenceNumber;
+                enforceFrameSequencing = response.EnforceFrameSequencing;
+                offlinePromptDirectory = response.PromptInputDirectory;
+                maskImageDirectory = response.MaskImageDirectory;
+                replaceImageDirectory = response.ReplaceImageDirectory;
+                enableDebugImage = response.ImageDebugEnabled;
+                FrameCompressPercent = Convert.ToInt32(response.ReduceFrameQualityTo);
+                MaxFailureCount = response.MaxFailCount;
+                IntervalWaitTime = response.OfflineProcessInterval;
                 int.TryParse(response.PreviousFrameCount, out int previousframecount);
-                bool.TryParse(ConfigurationManager.AppSettings["StopAfterMaxFailure"],out StopAfterMaxFail);
-                /* LogHandler.CollectPerformanceMetric(ApplicationConstants.FGPerfMonCategories.FrameGrabber,ApplicationConstants.FGPerfMonCounters.FramesToPredictPerSec,
-                instanceName,FramesToPredictPerSecond,true,false); */
+                bool.TryParse(ConfigurationManager.AppSettings["StopAfterMaxFailure"], out StopAfterMaxFail);
+                
             }
-            catch(Exception ex) {
+            catch (Exception ex)
+            {
                 #region Exception handling
                 LogHandler.LogError("FrameGrabber threw an exception for Tenant: {0}, Device: {1}. Exception Message: {2}, Trace: {3}",
-                LogHandler.Layer.FrameGrabber,tenantId,deviceId,ex.Message,ex.StackTrace);
-                /* LogHandler.CollectPerformanceMetric(ApplicationConstants.FGPerfMonCategories.FrameGrabber,ApplicationConstants.FGPerfMonCounters.ErrorCount,
-                instanceName,0,false,false); */
-                bool failureLogged=false;
-                try {
-                    Exception tempEx=new Exception();
-                    bool rethrow=ExceptionHandler.HandleException(ex,ApplicationConstants.WORKER_EXCEPTION_HANDLING_POLICY,out tempEx);
-                    failureLogged=true;
-                    if(rethrow) {
+                LogHandler.Layer.FrameGrabber, tenantId, deviceId, ex.Message, ex.StackTrace);
+               
+                bool failureLogged = false;
+                try
+                {
+                    Exception tempEx = new Exception();
+                    bool rethrow = ExceptionHandler.HandleException(ex, ApplicationConstants.WORKER_EXCEPTION_HANDLING_POLICY, out tempEx);
+                    failureLogged = true;
+                    if (rethrow)
+                    {
                         throw tempEx;
                     }
-                    else {
-                        UpdateFeedDetails(MasterId,DateTime.UtcNow.Ticks);
+                    else
+                    {
+                        UpdateFeedDetails(MasterId, DateTime.UtcNow.Ticks);
                         Environment.Exit(0);
                     }
                 }
-                catch(Exception innerEx) {
-                    LogHandler.LogError(String.Format(ErrorMessages.Exception_Failed,"Main","FrameGrabber"),
-                    LogHandler.Layer.Business,null);
-                    /* LogHandler.CollectPerformanceMetric(ApplicationConstants.FGPerfMonCategories.FrameGrabber,ApplicationConstants.FGPerfMonCounters.ErrorCount,
-                    instanceName,0,false,false); */
-                    if(!failureLogged) {
-                        LogHandler.LogDebug(String.Format("Exception occured while handling an exception. Error Message: {0}",innerEx.Message),LogHandler.Layer.Business,null);
+                catch (Exception innerEx)
+                {
+                    LogHandler.LogError(String.Format(ErrorMessages.Exception_Failed, "Main", "FrameGrabber"),
+                    LogHandler.Layer.Business, null);
+                   
+                    if (!failureLogged)
+                    {
+                        LogHandler.LogDebug(String.Format("Exception occured while handling an exception. Error Message: {0}", innerEx.Message), LogHandler.Layer.Business, null);
                     }
-                    UpdateFeedDetails(MasterId,DateTime.UtcNow.Ticks);
+                    UpdateFeedDetails(MasterId, DateTime.UtcNow.Ticks);
                     Environment.Exit(0);
                 }
                 #endregion
             }
         }
-
 
         public static bool IsDeviceInitiated(string fileName)
         {
@@ -273,7 +265,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         {
             while (true)
             {
-                if (appSettings.DBEnabled)
+                if (deviceDetails.DBEnabled)
                 {
                     var uri = String.Format($"{Config.AppSettings.ConfigWebApi}Configuration/GetClientStatus?tid={tid}&did={deviceId}");
                     var apiResponse = ServiceCaller.ServiceCall(null, uri, "GET");
@@ -287,7 +279,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
         public static IEnumerable<string> GetOfflineFileLocations(string baseDiretory)
         {
-            string[] exts = appSettings.VideoFormatsToUse.ToArray();
+            string[] exts = videoFormatsAllowed.Split(',').ToArray();
             if (Directory.Exists(baseDiretory))
             {
                 var fileNames = Directory.EnumerateFiles(baseDiretory, "*.*")
@@ -298,33 +290,17 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             {
                 
                 LogHandler.LogError($"Could not find the base directory <{baseDiretory}> for offline video files..", LogHandler.Layer.FrameGrabber, null);
-                
+               
                 return null;
             }
         }
 
-        public static void GetPromptsFromFile()
-        {
-            string promptInputfile = "";
-            if (promptenabled.ToLower() == "yes")
-            {
-                if (Directory.Exists(offlinePromptDirectory))
-                {
-                    promptInputfile = Directory.GetFiles(offlinePromptDirectory).FirstOrDefault();
-                    if(File.Exists(promptInputfile))
-                    {
-                        promptData = File.ReadAllText(promptInputfile);
-                        File.Delete(promptInputfile);
-                    }
-                }
-            }
-        }
 
         public static int GenerateMaterId()
         {
             bool secondHalfYear = false;
             DateTime datetime = DateTime.UtcNow;
-            
+           
             int month = datetime.Month;
             if (month > 6)
             {
@@ -370,7 +346,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     };
 
                     
-                    if (appSettings.DBEnabled)
+                    if (deviceDetails.DBEnabled)
                     {
                         
                         var uri = String.Format($"{Config.AppSettings.ConfigWebApi}configuration/InsertFeedDetails");
@@ -393,7 +369,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 {
                     LogHandler.LogError("Exception occured while inserting data into feed processor master table for file: {0}, Device ID :{1}, Tenant ID :{2}. Exception message :{3}",
                         LogHandler.Layer.FrameGrabber, videoSourceURL, deviceId, tenantId, ex.Message);
-                    
+                   
                 }
 #if DEBUG
             }
@@ -407,7 +383,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         public static SE.Message.FeedProcessorMasterMsg GetFeedMasterWithVideoName(string videoName)
         {
             SE.Message.FeedProcessorMasterMsg response = null;
-            if (appSettings.DBEnabled)
+            if (deviceDetails.DBEnabled)
             {
                 
                 string uri = String.Format($"{Config.AppSettings.ConfigWebApi}configuration/GetFeedProcessorMasterFromVideoName?videoName={videoName}");
@@ -422,11 +398,23 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
         }
 
+        public static SE.Message.FeedProcessorMasterMsg GetFeedMasterWithDeviceId(string deviceId)
+        {
+            SE.Message.FeedProcessorMasterMsg response = null;
+            if (deviceDetails.DBEnabled)
+            {
+                string uri = String.Format($"{Config.AppSettings.ConfigWebApi}configuration/GetFeedProcessorMasterWithDeviceId?deviceId={deviceId}");
+
+                var apiResponse = ServiceCaller.ServiceCall(null, uri, "GET");
+                response = JsonConvert.DeserializeObject<SE.Message.FeedProcessorMasterMsg>(apiResponse);
+            }
+            return response;
+        }
+
         public static SE.Message.FeedProcessorMasterMsg GetFeedProcessorMasterWithMasterId(int feedMasterId)
         {
-            
             var uri = String.Format($"{Config.AppSettings.ConfigWebApi}configuration/GetFeedDetails?masterId={feedMasterId}");
-            
+
             var apiResponse = ServiceCaller.ServiceCall(null, uri, "GET");
             var response = JsonConvert.DeserializeObject<SE.Message.FeedProcessorMasterMsg>(apiResponse);
             return response;
@@ -438,7 +426,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             SE.Message.FeedRequestReqMsg retObj = new SE.Message.FeedRequestReqMsg();
             
             var uri = String.Format($"{Config.AppSettings.ConfigWebApi}configuration/GetFeedRequestWithMasterId?masterId={masterId}");
-            
+
             var apiResponse = ServiceCaller.ServiceCall(null, uri, "GET");
             var inpObj = JsonConvert.DeserializeObject<SE.Message.FeedRequestReqMsg>(apiResponse);
 
@@ -469,9 +457,42 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         {
             SE.Message.FeedRequestReqMsg retObj = new SE.Message.FeedRequestReqMsg();
             var uri = String.Format($"{Config.AppSettings.ConfigWebApi}configuration/GetFeedRequestWithRequestId?requestId={requestId}");
-            
+
             var apiResponse = ServiceCaller.ServiceCall(null, uri, "GET");
             var inpObj = JsonConvert.DeserializeObject<SE.Message.FeedRequestReqMsg>(apiResponse);
+           
+            if (inpObj != null)
+            {
+                retObj.CreatedBy = inpObj.CreatedBy;
+                retObj.CreatedDate = inpObj.CreatedDate;
+                retObj.FeedProcessorMasterId = inpObj.FeedProcessorMasterId;
+                retObj.LastFrameGrabbedTime = inpObj.LastFrameGrabbedTime;
+                retObj.LastFrameId = inpObj.LastFrameId;
+                retObj.LastFrameProcessedTime = inpObj.LastFrameProcessedTime;
+                retObj.ModifiedBy = inpObj.ModifiedBy;
+                retObj.ModifiedDate = inpObj.ModifiedDate;
+                retObj.RequestId = inpObj.RequestId;
+                retObj.ResourceId = inpObj.ResourceId;
+                retObj.Status = inpObj.Status;
+                retObj.TenantId = inpObj.TenantId;
+                retObj.VideoName = inpObj.VideoName;
+                retObj.StartFrameProcessedTime = inpObj.StartFrameProcessedTime;
+                retObj.Model = inpObj.Model;
+            }
+
+            return retObj;
+
+        }
+
+        public static SE.Message.FeedRequestReqMsg GetFeedRequestWithDeviceId(string deviceId)
+        {
+            SE.Message.FeedRequestReqMsg retObj = new SE.Message.FeedRequestReqMsg();
+            
+            var uri = String.Format($"{Config.AppSettings.ConfigWebApi}configuration/GetFeedRequestWithDeviceId?requestId={deviceId}");
+
+            var apiResponse = ServiceCaller.ServiceCall(null, uri, "GET");
+            var inpObj = JsonConvert.DeserializeObject<SE.Message.FeedRequestReqMsg>(apiResponse);
+            
             if (inpObj != null)
             {
                 retObj.CreatedBy = inpObj.CreatedBy;
@@ -511,6 +532,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     var req = JsonConvert.SerializeObject(feedRequestReqMsg);
                     var apiResponse = ServiceCaller.ServiceCall(req, uri, "PUT");
                     var response = JsonConvert.DeserializeObject<SE.Message.UpdateFeedRequestResMsg>(apiResponse);
+                    
                     if (response != null)
                         return response.Status;
                 }
@@ -518,7 +540,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 {
                     LogHandler.LogError("Exception occured in method UpdateFeedRequestDetails while Updating data into feed processor master table for Master ID: {0}, Device ID :{1}, Tenant ID :{2}. Exception message :{3}",
                         LogHandler.Layer.FrameGrabber, feedRequestReqMsg.FeedProcessorMasterId, deviceId, tenantId, ex.Message);
-                   
+                    
                 }
 #if DEBUG
             }
@@ -554,7 +576,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 {
                     LogHandler.LogError("Exception occured in method UpdateMediaMetaData while Updating data into MediaMetaData table for Master ID: {0}, Device ID :{1}, Tenant ID :{2}. Exception message :{3}",
                         LogHandler.Layer.FrameGrabber, mediaMetaDataMsgReq.MediaMetadataDetails.FeedProcessorMasterId, deviceId, tenantId, ex.Message);
-                    
+                  
                 }
 #if DEBUG
             }
@@ -576,12 +598,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 #endif
                 try
                 {
-                    
+                   
                     var uri = String.Format($"{Config.AppSettings.ConfigWebApi}configuration/InsertMediaMetaData");
                     var req = JsonConvert.SerializeObject(mediaMetaDataMsgReq);
                     var apiResponse = ServiceCaller.ServiceCall(req, uri, "POST");
                     var response = JsonConvert.DeserializeObject<SE.Message.Media_MetaData_Msg_Res>(apiResponse);
-                    
+                 
                     if (response != null)
                         return response.MediaId;
                 }
@@ -625,14 +647,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     {
                         FeedMaster = data
                     };
-                    if (appSettings.DBEnabled)
+                    if (deviceDetails.DBEnabled)
                     {
                         
                         var uri = String.Format($"{Config.AppSettings.ConfigWebApi}configuration/UpdateFeedDetails");
                         var req = JsonConvert.SerializeObject(reqMsg);
                         var apiResponse = ServiceCaller.ServiceCall(req, uri, "PUT");
                         var response = JsonConvert.DeserializeObject<SE.Message.UpdateFeedDetailsResMsg>(apiResponse);
-                        
+                    
                         if (response != null)
                             return response.Status;
                     }
@@ -641,7 +663,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 {
                     LogHandler.LogError("Exception occured in method UpdateFeedDetails while Updating data into feed processor master table for Master ID: {0}, Device ID :{1}, Tenant ID :{2}. Exception message :{3}",
                         LogHandler.Layer.FrameGrabber, masterId, deviceId, tenantId, ex.Message);
-                   
+                    
                 }
 #if DEBUG
             }
@@ -669,11 +691,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     var req = JsonConvert.SerializeObject(reqMsg);
                     var apiResponse = ServiceCaller.ServiceCall(req, uri, "PUT");
                     var response = JsonConvert.DeserializeObject<SE.Message.UpdateFeedDetailsResMsg>(apiResponse);
-                    
+                   
                     if (response != null)
                         return response.Status;
 
-                    
                 }
                 catch (Exception ex)
                 {
@@ -690,10 +711,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             return false;
         }
 
-       
         
         public static void ProcessLotAsync(List<Image<Bgr, Byte>> lotFramesList, List<string> grabberTimeList, string fileName, int sequenceNumber, int frameNumber)
         {
+            
             List<byte[]> imageArr = new List<byte[]>();
             List<string> grabberTimeArr = new List<string>(grabberTimeList);
             for (int i = 0; i < lotFramesList.Count; i++)
@@ -722,17 +743,17 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
                     using (LogHandler.TraceOperations("ProcessLotAsync:FrameGrabberHelper", LogHandler.Layer.FrameGrabber, Guid.NewGuid(), null))
                     {
+                        
 #endif
 
                         using (MemoryStream zipFile = new MemoryStream())
                         {
-                            
+                           
                             ZipLotImagesNewAsync(imageArr, fileName, zipFile, grabberTimeArr);
 
                             if (zipFile?.Length > 0)
                             {
                                 bool status = false;
-                                
                                 if (UploadLotToBlob(zipFile, lotName))
                                 {
                                     
@@ -743,7 +764,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                                         PushToQueues(pcdBytes, fileName, task, null, sequenceNumber, frameNumber, DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt"), "Grabber", DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt"), "", "", "", ""); /* Added last three parameters as static as per new iva request: Yoges Govindaraj */
                                     }
                                     sw.Stop();
-                                   
+                                    
 
                                 }
                                 else
@@ -759,7 +780,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                             else
                                 LogHandler.LogDebug("The ZipLotImagesNewAsync Method returned NULL for Lot :{0}.", LogHandler.Layer.FrameGrabber, DateTime.UtcNow.ToLongTimeString(), lotName);
 
-                            
+                         
 
                         }
 
@@ -768,13 +789,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 #endif
                     LogHandler.LogDebug("The ProcessLotAsync Method Finished Executing at {0} for Lot :{1}.", LogHandler.Layer.FrameGrabber, DateTime.UtcNow.ToLongTimeString(), lotName);
                     LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_End, "ProcessLotAsync", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
-                    
+                  
                 }
                 catch (Exception ex)
                 {
                     LogHandler.LogError("Exception occured in ProcessLotAsync fileName: {0}. Exception message :{1}",
                         LogHandler.Layer.FrameGrabber, fileName, ex.Message);
-                   
+                    
                     if (imageArr != null)
                     {
                         imageArr.Clear();
@@ -811,7 +832,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 #if DEBUG
             LogHandler.LogDebug("Executing method {0}.  size of grabberTimeArr : {1}", LogHandler.Layer.FrameGrabber, "ProcessAllFileAsync", grabberTimeArr.Count);
 #endif
-           
+            
             try
             {
                 DateTime st = DateTime.UtcNow;
@@ -838,10 +859,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
                    
 
-                    var taskList=taskRouter.GetTaskRouteDetails(tenantId.ToString(),deviceId,TaskRouteConstants.FrameGrabberCode)[TaskRouteConstants.FrameGrabberCode];
-                    foreach(var task in taskList) {
-                        byte[] pcdBytes=Array.Empty<byte>();
-                        PushToQueues(pcdBytes,fileName,task,null,sequenceNumber,frameNumber,DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt"),"Grabber",DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt"),"","","",""); /* Added last three parameters as static as per new iva request: Yoges Govindaraj */
+                    var taskList = taskRouter.GetTaskRouteDetails(tenantId.ToString(), deviceId, FrameGrabber._taskCode)[FrameGrabber._taskCode];
+                    foreach (var task in taskList)
+                    {
+                        byte[] pcdBytes = Array.Empty<byte>();
+                        PushToQueues(pcdBytes, fileName, task, null, sequenceNumber, frameNumber, DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt"), "Grabber", DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt"), "", "", "", ""); /* Added last three parameters as static as per new iva request: Yoges Govindaraj */
                     }
 #if DEBUG
                 }
@@ -854,10 +876,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 lotFramesArr = null;
                 grabberTimeArr = null;
             }
-            
+       
         }
 
-        
+      
         public static Stream ZipLotImagesNewAsync(List<byte[]> lotFramesArr, string fileName, MemoryStream returnStream, List<string> grabberTimeList)
         {
 #if DEBUG
@@ -876,11 +898,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
                         for (int i = 0; i < lotFramesArr.Count; i++)
                         {
-                           
+                            
                             byte[] file = lotFramesArr[i];
                             if (file != null)
                             {
-                                
+                               
                                 if (file != null && file.Length > 0)
                                 {
                                     string fName = grabberTimeList[i] + ApplicationConstants.FileExtensions.jpg;
@@ -909,7 +931,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     else
                     {
                         LogHandler.LogError("The ZipLotImagesNewAsync Method Failed for Lot :{0}.", LogHandler.Layer.FrameGrabber, fileName);
-                        
+                       
                     }
 
 #endif
@@ -917,13 +939,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 }
                 catch (Exception ex)
                 {
-                    
+                   
                     lotFramesArr.Clear();
                     lotFramesArr = null;
                     returnStream = null;
 
                     LogHandler.LogError("Exception occured while zipping the frames", LogHandler.Layer.FrameGrabber, null);
-                   
+                  
                     if (BlobStoreFailureCount > MaxFailureCount)
                     {
                         
@@ -947,7 +969,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             return returnStream;
         }
 
-        
+       
         public static bool UploadLotToBlob(Stream file, string fileName)
         {
             bool status = true;
@@ -996,7 +1018,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
                         }
                         LogHandler.LogError("Failed to Upload zipped data into Blob Storage for Lot {0}", LogHandler.Layer.FrameGrabber, fileName);
-                        
+                       
                         Interlocked.Increment(ref BlobStoreFailureCount);
                         status = false;
                     }
@@ -1022,22 +1044,24 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
        
 
 
-        
-        public static bool PushToQueues(byte[] pcdBytes,string frameId,string moduleCode,List<string> grabberTimeList,int sequenceNumber,int frameNumber,string Starttime,string Source,string Endtime,string Ffp,string Ltsize,string Lfp,string videoFileName) {
-        
+        public static bool PushToQueues(byte[] pcdBytes, string frameId, string moduleCode, List<string> grabberTimeList, int sequenceNumber, int frameNumber, string Starttime, string Source, string Endtime, string Ffp, string Ltsize, string Lfp, string videoFileName)
+        {
+
             bool status = true;
-            
+           
             Endtime = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
 
 #if DEBUG
             DateTime st = DateTime.UtcNow; 
             LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "PushToQueues", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
             LogHandler.LogDebug("The PushToQueues Method started Executing for Frame :{0} at {1}.", LogHandler.Layer.FrameGrabber, frameId, DateTime.UtcNow.ToLongTimeString());
-            
-            using(LogHandler.TraceOperations("PushToQueues:FrameGrabberHelper",LogHandler.Layer.FrameGrabber,Guid.NewGuid(),null)) {
-                #endif
-                if(frameId=="") {
-                    frameId=DateTime.UtcNow.Ticks.ToString();
+
+            using (LogHandler.TraceOperations("PushToQueues:FrameGrabberHelper", LogHandler.Layer.FrameGrabber, Guid.NewGuid(), null))
+            {
+#endif
+                if (frameId == "")
+                {
+                    frameId = DateTime.UtcNow.Ticks.ToString();
                 }
                 DE.Queue.FrameGrabberMetaData queueEntity = new DE.Queue.FrameGrabberMetaData()
                 {
@@ -1055,40 +1079,35 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     Stime = Starttime,
                     Src = Source,
                     Etime = Endtime,
-                    Msk_img = msk_img,  
+                    Msk_img = msk_img, 
                     Rep_img = rep_img,  
-                    Prompt = promptData,
                     Ffp = Ffp,
                     Ltsize = Ltsize,
                     Lfp = Lfp,
                     videoFileName = videoFileName,
-                    Pcd = pcdBytes
+                    Pcd = pcdBytes,
+                    Hp = deviceDetails.HyperParameters
 
                 };
-                if (TaskRouteConstants.FrameProcessorCode == moduleCode)
+                
+                if (!clientStatus)
                 {
-                    if (queueEntity.TE[TaskRouteConstants.FrameProcessorCode].Contains(TaskRouteConstants.FrameRendererCode))
-                    {
-                        if (!clientStatus)
-                        {
-                            framesNotSendForRendering.Add(sequenceNumber, frameId);
-                            queueEntity.TE[TaskRouteConstants.FrameProcessorCode].Remove(TaskRouteConstants.FrameRendererCode);
-                        }
-                    }
+                    framesNotSendForRendering.Add(sequenceNumber, frameId);
+                    
                 }
+               
 
                 if (TaskRouteConstants.UniquePersonCode == moduleCode)
                 {
                     queueEntity.Mod = UPmodelName;
                 }
-               
                 
                 string response = taskRouter.SendMessageToQueue(tenantId.ToString(), deviceId, moduleCode, queueEntity);
                 if (string.IsNullOrEmpty(response))
                 {
                     if (PushMessageFailureCount > MaxFailureCount)
                     {
-                        
+                       
                         if (StopAfterMaxFail)
                         {
                             UpdateFeedDetails(MasterId, DateTime.UtcNow.Ticks);
@@ -1097,10 +1116,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                         throw new FaceMaskDetectionCriticalException(String.Format("Failed to Send Message into Queue. Reached Maximum Failure Count {0}", MaxFailureCount));
                     }
                     LogHandler.LogError("Failed to Send Message into PushToFQueues.", LogHandler.Layer.FrameGrabber, null);
-                   
+                    
                     Interlocked.Increment(ref PushMessageFailureCount);
                     status = false;
-                   
+                    
                 }
 #if DEBUG
                 else
@@ -1108,14 +1127,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             }
 
             LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_End, "PushToQueues", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
-            pushQTime += DateTime.UtcNow.Subtract(st).TotalMilliseconds; 
-            
+            pushQTime += DateTime.UtcNow.Subtract(st).TotalMilliseconds;
             LogHandler.LogDebug($"Pushing to Queue for FrameId:{frameId} took {DateTime.UtcNow.Subtract(st).TotalMilliseconds} milliseconds", LogHandler.Layer.FrameGrabber, null);
 #endif
             return status;
         }
 
-       
+        
         public static bool UploadToBlob(Stream file, string fileName)
         {
             bool status = true;
@@ -1124,7 +1142,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 DateTime st = DateTime.UtcNow;
                 Stopwatch sw = Stopwatch.StartNew();
                 file.Position = 0;
-               
+                
 #if DEBUG
 
                 LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "UploadToBlob", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
@@ -1160,9 +1178,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     {
                         Interlocked.Increment(ref totalImgCount);
                         sw.Stop();
-
-
-
+                        
 #if DEBUG
                         LogHandler.LogDebug("The Image is uploaded to Blob Successfully. Frame ID: {0} ", LogHandler.Layer.FrameGrabber, fileName);
 
@@ -1197,7 +1213,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             }
             catch (Exception ex)
             {
-                
+              
                 status = false;
                 Interlocked.Increment(ref BlobStoreFailureCount);
                 LogHandler.LogError("Exception thrown while uploading Frame {0}. Exception Message: {1}", LogHandler.Layer.FrameGrabber, fileName, ex.Message);
@@ -1232,7 +1248,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 #endif
                 
             }
-            
+           
 #if DEBUG
             LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_End, "PostVideoProcess", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
 #endif
@@ -1251,7 +1267,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
                 
                 EncoderParameter qualityParam = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
-                
+             
                 ImageCodecInfo jpegCodec = GetEncoderInfo("image/jpeg");
                 EncoderParameters encoderParams = new EncoderParameters(1);
                 encoderParams.Param[0] = qualityParam;
@@ -1270,7 +1286,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         
         private static ImageCodecInfo GetEncoderInfo(string mimeType)
         {
-             
+            
             ImageCodecInfo[] codecs = ImageCodecInfo.GetImageEncoders();
 
             
@@ -1281,12 +1297,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             return null;
         }
 
-        
-        public static void ProcessImageAsync(Image<Bgr, Byte> frame, string fileName, int sequenceNumber, int frameNumber, string Stime, string Source,string Ffp,string Ltsize,string Lfp,string videoFileName)
+        public static void ProcessImageAsync(Image<Bgr, Byte> frame, string fileName, int sequenceNumber, int frameNumber, string Stime, string Source, string Ffp, string Ltsize, string Lfp, string videoFileName)//Added Additional properties for new iva request
         {
-            
-                
-
             
 
             using (LogHandler.TraceOperations("FrameGrabberHealper:ProcessImageAsync", LogHandler.Layer.Business, Guid.NewGuid(), null))
@@ -1330,23 +1342,23 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                                 if (!(FrameGrabberHelper.displayAllFrames && TaskRouteDS.IsMemoryDoc() && FrameGrabberHelper.lotSizeTemp > 1))
                                 {
 
-                                    var taskList=taskRouter.GetTaskRouteDetails(tenantId.ToString(),deviceId,TaskRouteConstants.FrameGrabberCode)[TaskRouteConstants.FrameGrabberCode];
-                                    foreach(var task in taskList) {
-                                        byte[] pcdBytes=Array.Empty<byte>();
-                                        PushToQueues(pcdBytes,fileName,task,null,sequenceNumber,frameNumber,Stime,"Grabber",Etime,Ffp,Ltsize,Lfp,videoFileName); /* Added last three parameters as static as per new iva request: Yoges Govindaraj */
+                                    var taskList = taskRouter.GetTaskRouteDetails(tenantId.ToString(), deviceId, FrameGrabber._taskCode)[FrameGrabber._taskCode];
+                                    foreach (var task in taskList)
+                                    {
+                                        byte[] pcdBytes = Array.Empty<byte>();
+                                        PushToQueues(pcdBytes, fileName, task, null, sequenceNumber, frameNumber, Stime, "Grabber", Etime, Ffp, Ltsize, Lfp, videoFileName); /* Added last three parameters as static as per new iva request: Yoges Govindaraj */
                                     }
                                 }
                                 DateTime et = DateTime.UtcNow;
                                 string ElapseTimePerFG = et.Subtract(st).TotalSeconds.ToString();
                                 sw.Stop();
-                                
                                 status = true;
-                                                           
+                                                       
                             }
                             else
                                 status = false;
                             img.Dispose();
-                           
+                          
                             file = null;
 
                         }
@@ -1354,21 +1366,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
 #if DEBUG
                         LogHandler.LogInfo("The ProcessMethod:ProcessImageAsync. ClassName :FrameGrabber. FrameIdFGB :{0}. TimeElapsed :{1} ", LogHandler.Layer.FrameGrabber, fileName, sw.Elapsed);
-                        
-                        
 #endif
-                        
+                      
                     }
                 }
                 catch (Exception ex)
                 {
                     file = null;
-                     LogHandler.LogError("The ProcessImageAsync Method threw an Exception for file :{0}. Exception message : {1} ", LogHandler.Layer.FrameGrabber, fileName, ex.Message);
-                    
+                    LogHandler.LogError("The ProcessImageAsync Method threw an Exception for file :{0}. Exception message : {1} ", LogHandler.Layer.FrameGrabber, fileName, ex.Message);
                 }
                 finally
                 {
-                    
+                   
                 }
             }
         }
@@ -1385,7 +1394,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "UploadImages", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
                     LogHandler.LogDebug("The UploadImages Method started Executing for file :{0} ", LogHandler.Layer.FrameGrabber, fileName);
 
-                    
 #endif
                     bool status = false;
                     using (MemoryStream img = new MemoryStream())
@@ -1405,7 +1413,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                         file = null;
                     }
 #if DEBUG
-                    
                     LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_End, "UploadImages", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
 #endif
                 }
@@ -1417,6 +1424,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             }));
         }
 
+        
         public static FeedProcessorMasterDetails GetInCompletedFramGrabberDetails(int tenantId, string deviceId)
         {
             FeedProcessorMasterDetails feedProcessorDetails = null;
@@ -1428,13 +1436,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 #endif
                 try
                 {
-                    if (appSettings.DBEnabled)
+                    if (deviceDetails.DBEnabled)
                     {
-                        
                         var uri = String.Format($"{Config.AppSettings.ConfigWebApi}configuration/GetInCompleteFramGrabberDetails?tid{tenantId}&did={deviceId}");
-                        
+
                         var apiResponse = ServiceCaller.ServiceCall(null, uri, "GET");
-                    var response = JsonConvert.DeserializeObject<SE.Message.FeedMasterResMsg>(apiResponse);
+                        var response = JsonConvert.DeserializeObject<SE.Message.FeedMasterResMsg>(apiResponse);
 
                         
                         feedProcessorDetails = MapFeedProcessorMasterSEtoBE(response);
@@ -1484,7 +1491,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
         public static void sendEventMessage(string eventType, int totalFrameCount, int frameNumberSendForPredict, int totalMessageSend)
         {
-
+            LogHandler.LogDebug($"Sending Event message of event type {eventType} for the master id: {MasterId.ToString()}", LogHandler.Layer.FrameGrabber);
             DE.Queue.MaintenanceMetaData queueEntity = new DE.Queue.MaintenanceMetaData();
             queueEntity.Did = deviceId;
             queueEntity.Tid = tenantId.ToString();
@@ -1500,10 +1507,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             frameInformation.TotalMessageSendForPrediction = totalMessageSend.ToString();
             frameInformation.FeedId = MasterId.ToString();
             frameInformation.FramesNotSendForRendering = framesNotSendForRendering;
+            frameInformation.Model = modelName;
             queueEntity.Data = JsonConvert.SerializeObject(frameInformation);
-            
+
             var taskList = taskRouter.GetTaskRouteDetails(FrameGrabberHelper.tenantId.ToString(),
-                FrameGrabberHelper.deviceId, TaskRouteConstants.FrameGrabberCode)[TaskRouteConstants.FrameGrabberCode];
+                FrameGrabberHelper.deviceId, FrameGrabber._taskCode)[FrameGrabber._taskCode];
 
             foreach (string moduleCode in taskList)
             {
@@ -1513,7 +1521,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
         public static IEnumerable<string> GetImageFileLocations(string baseDiretory)
         {
-            string[] exts = appSettings.ImageFormatsToUse.ToArray();
+            string[] exts = deviceDetails.ImageFormatsToUse.Split(',').ToArray();
             if (Directory.Exists(baseDiretory))
             {
                 var fileNames = Directory.EnumerateFiles(baseDiretory, "*.*")
@@ -1522,20 +1530,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             }
             else
             {
-                
                 LogHandler.LogError($"Could not find the base directory <{baseDiretory}> for offline video files..", LogHandler.Layer.FrameGrabber, null);
-                
                 
                 return null;
             }
         }
 
-        public static void ImageAsync(Image<Bgr, Byte> frame, string fileName, int sequenceNumber, int frameNumber, string Stime, string Source, string Ffp, string Ltsize, string Lfp,string videoFileName)
+        public static void ImageAsync(Image<Bgr, Byte> frame, string fileName, int sequenceNumber, int frameNumber, string Stime, string Source, string Ffp, string Ltsize, string Lfp, string videoFileName)//Added Additional properties for new iva request
         {
-           
-
-
-           
+            
 
             using (LogHandler.TraceOperations("FrameGrabberHealper:ProcessImageAsync", LogHandler.Layer.Business, Guid.NewGuid(), null))
             {
@@ -1561,7 +1564,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                         bool status = false;
                         using (MemoryStream img = new MemoryStream())
                         {
-                            
+                           
                             if (FrameCompressPercent == 0 || FrameCompressPercent == 100)
                             {
                                 img.Write(file, 0, file.Length);
@@ -1569,17 +1572,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                             else
                             {
                                 CompressImage(file, img, FrameCompressPercent).CopyTo(img);
-        }
+                            }
 
                             if (UploadToBlob(img, fileName + ApplicationConstants.FileExtensions.jpg))
                             {
                                 bool memdoc = TaskRouteDS.IsMemoryDoc();
                                
 
-                                    var taskList=taskRouter.GetTaskRouteDetails(tenantId.ToString(),deviceId,TaskRouteConstants.FrameGrabberCode)[TaskRouteConstants.FrameGrabberCode];
-                                    foreach(var task in taskList) {
-                                        byte[] pcdBytes=Array.Empty<byte>();
-                                        PushToQueues(pcdBytes,fileName,task,null,sequenceNumber,frameNumber,Stime,"Grabber",Etime,Ffp,Ltsize,Lfp,videoFileName); /* Added last three parameters as static as per new iva request: Yoges Govindaraj */
+                                var taskList = taskRouter.GetTaskRouteDetails(tenantId.ToString(), deviceId, FrameGrabber._taskCode)[FrameGrabber._taskCode];
+                                foreach (var task in taskList)
+                                {
+                                    byte[] pcdBytes = Array.Empty<byte>();
+                                    PushToQueues(pcdBytes, fileName, task, null, sequenceNumber, frameNumber, Stime, "Grabber", Etime, Ffp, Ltsize, Lfp, videoFileName); /* Added last three parameters as static as per new iva request: Yoges Govindaraj */
                                 }
                              
                                 DateTime et = DateTime.UtcNow;
@@ -1587,12 +1591,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                                 sw.Stop();
                                 
                                 status = true;
-                                                        
-        }
+                                                       
+                            }
                             else
                                 status = false;
                             img.Dispose();
-                            
+                          
                             file = null;
 
                         }
@@ -1600,8 +1604,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
 #if DEBUG
                         LogHandler.LogInfo("The ProcessMethod:ProcessImageAsync. ClassName :FrameGrabber. FrameIdFGB :{0}. TimeElapsed :{1} ", LogHandler.Layer.FrameGrabber, fileName, sw.Elapsed);
-                        
-                        
 #endif
                         
                     }
@@ -1610,7 +1612,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 {
                     file = null;
                     LogHandler.LogError("The ProcessImageAsync Method threw an Exception for file :{0}. Exception message : {1} ", LogHandler.Layer.FrameGrabber, fileName, ex.Message);
-                    
                 }
                 finally
                 {
@@ -1618,158 +1619,96 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 }
             }
         }
-        public static IEnumerable<string> GetPcdFileLocations(string baseDiretory)
-        {
-            if (Directory.Exists(baseDiretory))
-            {
-                var fileNames = Directory.EnumerateFiles(baseDiretory, "*.*");
-                return fileNames;
-            }
-            else
-            {
-                LogHandler.LogError($"Could not find the base directory - {baseDiretory} for offline pcd files.", LogHandler.Layer.FrameGrabber, null);
-                return null;
-            }
-        }
-        
 
-        public static void GetMaskInputImages(string isEnabled, string directory)
-        {
-            if (isEnabled.ToLower() == "yes")
-            {
-                if (Directory.Exists(directory))
-                {
-                    string[] images = Directory.GetFiles(directory);
-                    string imagesUploaded = "";
-                    if (blobForGenerativeAI.ToLower() == "yes")
-                    {
-                        string fileName = DateTime.Now.Ticks.ToString();
-                        List<byte[]> imageArr = new List<byte[]>();
-                        List<string> grabberTimeArr = new List<string>();
-                        foreach (string image in images)
-                        {
-                            grabberTimeArr.Add(DateTime.Now.Ticks.ToString());
-                            byte[] imageData = File.ReadAllBytes(image);
-                            imageArr.Add(imageData);
-                            File.Delete(image);
-                        }
-                        if(imageArr.Count > 0)
-                        {
-                            using (MemoryStream zipFile = new MemoryStream())
-                            {
-                                ZipLotImagesNewAsync(imageArr, fileName, zipFile, grabberTimeArr);
-                                if (zipFile?.Length > 0)
-                                    if (UploadLotToBlob(zipFile, fileName + ApplicationConstants.FileExtensions.zip))
-                                    {
-                                        msk_img.Add(fileName + ApplicationConstants.FileExtensions.zip);
-                                        
-                                    }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        foreach (string image in images)
-                        {
-                            msk_img.Add(Convert.ToBase64String(File.ReadAllBytes(image)));
-                            File.Delete(image);
-                        }
-                    }
-                    
-                }
-            }
-           
-        }
+       
 
-        public static void ProcessPcdAsync(string pcdSource, string fileName, int sequenceNumber, int frameNumber, string Stime, string Source, string Ffp, string Ltsize, string Lfp, string videoFileName)
+        public static void GetMaskInputImages(string directory)
         {
-#if DEBUG
-            LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "ProcessPcdAsync", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
-            LogHandler.LogDebug("The ProcessPcdAsync method started executing for file: {0}", LogHandler.Layer.FrameGrabber, fileName);
-#endif
-            using (LogHandler.TraceOperations("FrameGrabberHelper:ProcessPcdAsync", LogHandler.Layer.Business, Guid.NewGuid(), null))
+            if (Directory.Exists(directory))
             {
-                byte[] pcdBytes = null;
-                try
+                string[] images = Directory.GetFiles(directory);
+                bool isMemoryDoc = TaskRouteDS.IsMemoryDoc();
+                if (!isMemoryDoc)
                 {
-                    if (File.Exists(pcdSource))
+                    string fileName = DateTime.Now.Ticks.ToString();
+                    List<byte[]> imageArr = new List<byte[]>();
+                    List<string> grabberTimeArr = new List<string>();
+                    foreach (string image in images)
                     {
-                        DateTime starttime = DateTime.UtcNow;
-                        Stopwatch stopwatch = Stopwatch.StartNew();
-                        pcdBytes = File.ReadAllBytes(pcdSource);
-                        string Etime;
-                        Etime = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
-                        var taskList = taskRouter.GetTaskRouteDetails(tenantId.ToString(), deviceId, TaskRouteConstants.FrameGrabberCode)[TaskRouteConstants.FrameGrabberCode];
-                        foreach (var task in taskList)
+                        grabberTimeArr.Add(DateTime.Now.Ticks.ToString());
+                        byte[] imageData = File.ReadAllBytes(image);
+                        imageArr.Add(imageData);
+                        File.Delete(image);
+                    }
+                    if (imageArr.Count > 0)
+                    {
+                        using (MemoryStream zipFile = new MemoryStream())
                         {
-                            PushToQueues(pcdBytes, fileName, task, null, sequenceNumber, frameNumber, Stime, Source, Etime, Ffp, Ltsize, Lfp, videoFileName);
+                            ZipLotImagesNewAsync(imageArr, fileName, zipFile, grabberTimeArr);
+                            if (zipFile?.Length > 0)
+                                if (UploadLotToBlob(zipFile, fileName + ApplicationConstants.FileExtensions.zip))
+                                {
+                                    msk_img.Add(fileName + ApplicationConstants.FileExtensions.zip);
+                                    
+                                }
                         }
-                        DateTime endtime = DateTime.UtcNow;
-                        string ElapseTimePerFG = endtime.Subtract(starttime).TotalSeconds.ToString();
-                        stopwatch.Stop();
-                        pcdBytes = null;
-#if DEBUG
-                        LogHandler.LogInfo("The ProcessMethod:ProcessPcdAsync, ClassName:FrameGrabber, FrameIdFGB: {0}, TimeElapsed: {1}",
-                        LogHandler.Layer.FrameGrabber, fileName, stopwatch.Elapsed);
-                        LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_End, "ProcessPcdAsync", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
-#endif
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    pcdBytes = null;
-                    LogHandler.LogError("The ProcessPcdAsync method threw an exception for file: {0}. Exception message: {1}",
-                    LogHandler.Layer.FrameGrabber, fileName, ex.Message);
+                    foreach (string image in images)
+                    {
+                        msk_img.Add(Convert.ToBase64String(File.ReadAllBytes(image)));
+                        File.Delete(image);
+                    }
                 }
+                
             }
         }
 
-        public static void GetReplaceInputImages(string isEnabled, string directory)
+        public static void GetReplaceInputImages(string directory)
         {
-            if (isEnabled.ToLower() == "yes")
+            if (Directory.Exists(directory))
             {
-                if (Directory.Exists(directory))
+                string[] images = Directory.GetFiles(directory);
+                string imagesUploaded = "";
+                bool isMemoryDoc = TaskRouteDS.IsMemoryDoc();
+                if (!isMemoryDoc)
                 {
-                    string[] images = Directory.GetFiles(directory);
-                    string imagesUploaded = "";
-                    if (blobForGenerativeAI.ToLower() == "yes")
+                    string fileName = DateTime.Now.Ticks.ToString();
+                    List<byte[]> imageArr = new List<byte[]>();
+                    List<string> grabberTimeArr = new List<string>();
+                    foreach (string image in images)
                     {
-                        string fileName = DateTime.Now.Ticks.ToString();
-                        List<byte[]> imageArr = new List<byte[]>();
-                        List<string> grabberTimeArr = new List<string>();
-                        foreach (string image in images)
+                        grabberTimeArr.Add(DateTime.Now.Ticks.ToString());
+                        byte[] imageData = File.ReadAllBytes(image);
+                        imageArr.Add(imageData);
+                        File.Delete(image);
+                    }
+                    if (imageArr.Count > 0)
+                    {
+                        using (MemoryStream zipFile = new MemoryStream())
                         {
-                            grabberTimeArr.Add(DateTime.Now.Ticks.ToString());
-                            byte[] imageData = File.ReadAllBytes(image);
-                            imageArr.Add(imageData);
-                            File.Delete(image);
-                        }
-                        if (imageArr.Count > 0)
-                        {
-                            using (MemoryStream zipFile = new MemoryStream())
-                            {
-                                ZipLotImagesNewAsync(imageArr, fileName, zipFile, grabberTimeArr);
-                                if (zipFile?.Length > 0)
-                                    if (UploadLotToBlob(zipFile, fileName + ApplicationConstants.FileExtensions.zip))
-                                    {
-                                        rep_img.Add(fileName + ApplicationConstants.FileExtensions.zip);
-                                        
-                                    }
-                            }
+                            ZipLotImagesNewAsync(imageArr, fileName, zipFile, grabberTimeArr);
+                            if (zipFile?.Length > 0)
+                                if (UploadLotToBlob(zipFile, fileName + ApplicationConstants.FileExtensions.zip))
+                                {
+                                    rep_img.Add(fileName + ApplicationConstants.FileExtensions.zip);
+                                    
+                                }
                         }
                     }
-                    else
-                    {
-                        foreach (string image in images)
-                        {
-                            rep_img.Add(Convert.ToBase64String(File.ReadAllBytes(image)));
-                            File.Delete(image);
-                        }
-                    }
-                   
                 }
+                else
+                {
+                    foreach (string image in images)
+                    {
+                        rep_img.Add(Convert.ToBase64String(File.ReadAllBytes(image)));
+                        File.Delete(image);
+                    }
+                }
+                
             }
-           
         }
 
     }

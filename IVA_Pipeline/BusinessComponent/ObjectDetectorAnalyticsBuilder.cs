@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using System;
@@ -15,13 +14,15 @@ using Newtonsoft.Json;
 using System.Linq;
 using System.Globalization;
 using System.Configuration;
+using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 {
     public class ObjectDetectorAnalyticsBuilder
     {
         private static AppSettings appSettings = Config.AppSettings;
-        string predictionType = appSettings.PredictionType;
+        public static DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.ObjectDetectorAnalytics);
+        string predictionType=deviceDetails.PredictionType;
         public List<ObjectDetectorAnalyticsRes> GetLocationBasedCount(ObjectDetectorAnalytics inpObj)
         {
             double maskCount = 0;

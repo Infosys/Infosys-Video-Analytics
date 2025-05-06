@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
@@ -25,8 +24,19 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
 
         ObjectCache cache = MemoryCache.Default;
         CacheItemPolicy policy = new CacheItemPolicy();
+        public static TaskRouteMetadata _taskRouteMetaData;
+        public static TaskRouteMetadata TaskRouteMetaData {
+            get
+            {
+                if (_taskRouteMetaData == null)
+                {
+                    _taskRouteMetaData = new TaskRoute().GetTaskRouteConfig(Config.AppSettings.TenantID.ToString(), Config.AppSettings.DeviceID);
+                }
+                return _taskRouteMetaData;
+            }
+        }
 
-      
+        
         public Boolean AllowTaskRouting(string tenantId, string deviceId, List<string> moduleList)
         {
             Boolean res = false;
@@ -43,6 +53,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
             return res;
         }
 
+        
         public Dictionary<string, List<string>> GetTaskRouteDetails(string tenantId, string deviceId, string module)
         {
             TaskRouteMetadata taskRouteMetadata = GetTaskRouteConfig(tenantId, deviceId);
@@ -61,7 +72,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
             return null;
         }
 
-    
+       
         public string SendMessageToQueue<T>(string tenantId, string deviceId, string module, T message)
         {
             TaskRouteDS taskRouteDS = new TaskRouteDS();
@@ -73,7 +84,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                 LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "SendMessageToQueue", "TaskRouterHelper"), LogHandler.Layer.Business, null);
 #endif
                 TaskRouteMetadata taskRouteMetadata = GetTaskRouteConfig(tenantId, deviceId);
-                
+               
                 JObject transportRegionCodes = taskRouteMetadata.TransportRegionCodes;
                 var transportRegion = transportRegionCodes?.SelectToken(module);
                 if (transportRegion != null)
@@ -82,10 +93,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                 }
                 else
                 {
-                  
+                    
                     throw new TaskRouteNotFoundException(String.Format("Transport Region config is not found for {0}", module));
                 }
-               
+                
 
 
 #if DEBUG
@@ -99,7 +110,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
         {
             TaskRouteDS taskRouteDS = new TaskRouteDS();
             string msgResponse = "";
-          
+           
 
 #if DEBUG
             using (LogHandler.TraceOperations("TaskRouterHelper:SendMessageToQueue", LogHandler.Layer.Business, Guid.NewGuid(), null))
@@ -108,7 +119,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
 #endif
                 if (task != null)
                 {
-                    
+                  
 
                     JObject transportRegionCodes = taskRouteMetadata.TransportRegionCodes;
                     var transportRegion = transportRegionCodes?.SelectToken(task);
@@ -118,7 +129,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                     }
                     else
                     {
-                       
+                        
                         throw new TaskRouteNotFoundException(String.Format("Transport Region config is not found for {0}", task));
                     }
 
@@ -135,7 +146,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
 
        
 
-     
         public TaskRouteMetadata GetTaskRouteConfig(string tenantId, string deviceId)
         {
             TaskRouteMetadata taskRouteMetadata;
@@ -153,11 +163,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                     string taskRoutesString = deviceDetails.TasksRoute;
                     if (deviceDetails.TasksRoute == null)
                     {
-                       
+
                     }
                     if (deviceDetails.TransportRegionCodes == null)
                     {
-                      
+                        
                     }
                     taskRouteMetadata.TasksRoute = JObject.Parse(deviceDetails.TasksRoute);
                     taskRouteMetadata.TransportRegionCodes = JObject.Parse(deviceDetails.TransportRegionCodes);
@@ -169,6 +179,19 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
             }
 #endif
             return taskRouteMetadata;
+        }
+
+        public static string GetTaskCode(string taskCode)
+        {
+            Dictionary<string, string> taskRoute = JsonConvert.DeserializeObject<Dictionary<string, string>>(JsonConvert.SerializeObject(TaskRouteMetaData.TransportRegionCodes));
+            foreach(string key in taskRoute.Keys)
+            {
+                if(taskRoute.GetValueOrDefault(key) == taskCode)
+                {
+                    return key;
+                }
+            }
+            return "";
         }
 
     }

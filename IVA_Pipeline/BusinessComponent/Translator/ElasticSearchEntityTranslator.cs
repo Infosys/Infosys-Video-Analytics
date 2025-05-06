@@ -1,5 +1,5 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
@@ -38,7 +38,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.Translator
                     frameElasticSearch.Mtp = message.Mtp;
                     if (message.Fs != null)
                     {
-                        int length = message.Fs.Length;
+                        int length = message.Fs.Count;
                         DE.Predictions[] BEPredArr = new DE.Predictions[length];
                         int i = 0;
                         foreach (QE.Predictions DEPred in message.Fs)
@@ -91,7 +91,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.Translator
             }
         }
 
-        public DE.FrameElasticSearchMetadata DataCollectorTranslatorRenderer(QE.FrameRendererMetadata message, string Raw_base64_image, string Rendered_base64_image) 
+        public DE.FrameElasticSearchMetadata DataCollectorTranslatorRenderer(QE.FrameRendererMetadata message, string Raw_base64_image, string Rendered_base64_image) //DataCollector Part when elasticsearch execute alone
         {
             List<DE.Mtp> MtpData = new List<DE.Mtp>()
                 {
@@ -115,7 +115,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.Translator
                     frameElasticSearch.Status = message.Status;
                     frameElasticSearch.FrameNumber = message.FrameNumber;
                     frameElasticSearch.FileName = message.videoFileName;
-                    frameElasticSearch.Mtp = MtpData;
+                    frameElasticSearch.Mtp = MtpData;//message.Mtp;
                     frameElasticSearch.Raw_base64_image = Raw_base64_image;
                     frameElasticSearch.Rendered_base64_image = Rendered_base64_image;
                     if (message.Fs != null)

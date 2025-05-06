@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections;
 using System.Collections.Specialized;
@@ -13,6 +12,7 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Policy;
 using System.Threading.Tasks;
+
 using Infosys.Lif.LegacyCommon;
 using Infosys.Lif.LegacyIntegratorService;
 
@@ -131,11 +131,9 @@ namespace Infosys.Lif
                     }
                 }
 
-               
                 if (targetURLDetails == null)
                     throw new LegacyException("IIS_Doc Adapter- Metadata details are not provided.");
 
-              
                 bool check = targetURLDetails.AllKeys.Contains("UriScheme")
                                 && !string.IsNullOrWhiteSpace(targetURLDetails["UriScheme"]);
                 if (!check)
@@ -156,7 +154,6 @@ namespace Infosys.Lif
                 if (!check)
                     throw new LegacyException("IIS_Doc Adapter- 'file_name' missing in metadata.");
 
-               
                 IISDocDetails docDetails = ValidateTransportName(transportSection, regionToBeUsed.TransportName);
 
                 HandleStream(docDetails, DocAccessType.Receive);
@@ -207,7 +204,6 @@ namespace Infosys.Lif
                     REGION, TRANSPORT_SECTION, TARGETURLDETAILS));
             }
 
-           
             bool check = targetURLDetails.AllKeys.Contains("UriScheme")
                         && !string.IsNullOrWhiteSpace(targetURLDetails["UriScheme"]);
             if (!check)
@@ -227,21 +223,20 @@ namespace Infosys.Lif
             if (!check)
                 throw new LegacyException("IIS_Doc Adapter- 'company_id' missing in metadata.");
 
-            
+
             IISDocDetails docDetails = ValidateTransportName(transport, region.TransportName);
 
             if (docDetails == null)
                 throw new LegacyException(
                     string.Format("IIS_Doc Adapter- Could not find transport by name: {0}", region.TransportName));
 
-           
             var response = HandleStream(docDetails, DocAccessType.Delete, targetURLDetails);
 
 
 
             LifLogHandler.LogDebug("Response for delete: {0}", LifLogHandler.Layer.IntegrationLayer, response);
 
-           
+
             return string.IsNullOrWhiteSpace(response);
 
         }
@@ -286,7 +281,6 @@ namespace Infosys.Lif
                     response = response + ". Inner Error Message- " + ex.InnerException.Message;
                 }
 
-               
                 LifLogHandler.LogError("IIS_Doc Adapter- HandleStream- exception raised, reason- {0}",
                     LifLogHandler.Layer.IntegrationLayer, ex);
                 ReceiveEventArgs args = new ReceiveEventArgs();
@@ -303,13 +297,14 @@ namespace Infosys.Lif
         }
 
 
-        
+       
         private string DeleteDocument(IISDocDetails docDetails, NameValueCollection targetDetails)
         {
-       
+          
             if (string.IsNullOrWhiteSpace(targetDetails["url_suffix"]))
                 throw new Exception("url_suffix value missing in parameters.");
 
+            
             var uri = new UriBuilder();
             switch (targetURLDetails["UriScheme"].ToLower())
             {
@@ -327,15 +322,13 @@ namespace Infosys.Lif
             uri.Path = Path.Combine(docDetails.DocumentsVirtualDirectoryFromRoot, targetDetails["url_suffix"]);
 
             WebRequest request = HttpWebRequest.Create(uri.Uri);
-            
+ 
             request.UseDefaultCredentials = true;
-            
-
             
             request.PreAuthenticate = true;
             request.Method = "DELETE";
 
-           
+
             foreach (var key in targetDetails.AllKeys)
             {
                 LifLogHandler.LogDebug("IIS_Doc Adapter- Adding Key: {0}\tValue: {1}",
@@ -344,7 +337,7 @@ namespace Infosys.Lif
                 request.Headers.Add(key, targetDetails[key]);
             }
 
-           
+          
             LifLogHandler.LogDebug("IIS_Doc Adapter- HandleStream- trying to delete container...",
                 LifLogHandler.Layer.IntegrationLayer);
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
@@ -365,13 +358,13 @@ namespace Infosys.Lif
             }
         }
 
-        
        
+
        
 
         private string ReceiveDocument(IISDocDetails docDetails, string response)
         {
-            
+           
             LifLogHandler.LogDebug(
                 "IIS_Doc Adapter- ReceiveDocument- formating web request for RECEIVE operation...",
                 LifLogHandler.Layer.IntegrationLayer);
@@ -432,7 +425,7 @@ namespace Infosys.Lif
 
                 var uri = BuildUri(docDetails);
 
-               
+                
                 LifLogHandler.LogDebug("IIS_Doc Adapter- HandleStream- trying to upload the file stream...",
                     LifLogHandler.Layer.IntegrationLayer);
 
@@ -537,10 +530,10 @@ namespace Infosys.Lif
             {
                 LifLogHandler.LogDebug("IIS_Doc Adapter- Adding Key: {0}\tValue: {1}", LifLogHandler.Layer.IntegrationLayer,
                     key, targetURLDetails[key]);
-                
+               
                 if (string.IsNullOrWhiteSpace(targetURLDetails[key]))
                     continue;
-               
+                
                 string value = EncodeStringToBase64(targetURLDetails[key]);
                 request.Headers.Add(key, value);
             }
@@ -557,7 +550,7 @@ namespace Infosys.Lif
             return value;
         }
 
-        
+      
         private IISDocDetails ValidateTransportName(IISDoc transportSection,
             string transportName)
         {
@@ -565,7 +558,7 @@ namespace Infosys.Lif
                 LifLogHandler.Layer.IntegrationLayer);
             IISDocDetails blobDetails = null;
             bool isTransportNameExists = false;
-          
+            
             for (int count = 0; count < transportSection.IISDocDetails.Count; count++)
             {
                 blobDetails = transportSection.IISDocDetails[count] as IISDocDetails;
@@ -575,7 +568,7 @@ namespace Infosys.Lif
                     break;
                 }
             }
-            
+           
             if (!isTransportNameExists)
             {
                 throw new LegacyException("IIS_Doc Adapter- " + transportName + " is not defined in MSMQDetails section");

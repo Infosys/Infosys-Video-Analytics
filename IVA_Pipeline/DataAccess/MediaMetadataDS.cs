@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.IDataAccess;
 using System;
@@ -82,9 +81,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess
         public MediaMetadatum UpdateFeedMasterId(int feedMasterId, string requestId)
         {
             MediaMetadatum resMetaDataentity = dbCon.MediaMetadata.Single(c => c.RequestId == requestId);
-           
-
-
            
             if (resMetaDataentity != null)
             {

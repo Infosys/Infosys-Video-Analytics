@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using DE = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.VideoAnalytics;
@@ -810,7 +809,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 }
                 else
                 {
-                    
+                   
                     LogHandler.LogError("Configuration Value of {0} is Missing for Tenant ID: {1}, Device ID :{2}", LogHandler.Layer.Business, obj.AttributeName, obj.TenantId, obj.ResourceId);
 
                     FaceMaskDetectionInvalidConfigException exception = new FaceMaskDetectionInvalidConfigException(String.Format("Configuration Value of {0} is Missing for Tenant ID: {0}, Device ID :{1}", obj.AttributeName, obj.TenantId, obj.ResourceId));
@@ -866,7 +865,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     FeedUri = inpObj.FeedURI, 
                     ProcessingStartTimeTicks = inpObj.ProcessingStartTimeTicks, 
                     CreatedBy = inpObj.CreatedBy, 
-                    CreatedDate = inpObj.CreatedDate, 
+                    CreatedDate = inpObj.CreatedDate,
                     TenantId = inpObj.TenantId, 
                     Status = inpObj.Status, 
                     MachineName = inpObj.MachineName 

@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
@@ -67,7 +66,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPChannelComm
 
         protected virtual void ConnectionLooper()
         {
-            while (this.TcpClientTasks.Count < this.MaxConcurrentListeners) 
+            while (this.TcpClientTasks.Count < this.MaxConcurrentListeners) //Maximum number of concurrent listeners
             {
                 var AwaitTask = Task.Run(async () =>
                 {
@@ -76,7 +75,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPChannelComm
                 });
                 this.TcpClientTasks.Add(AwaitTask);
             }
-            int RemoveAtIndex = Task.WaitAny(this.TcpClientTasks.ToArray(), this.AwaitTimeoutInMS); 
+            int RemoveAtIndex = Task.WaitAny(this.TcpClientTasks.ToArray(), this.AwaitTimeoutInMS); //Synchronously Waits up to 500ms for any Task completion
             if (RemoveAtIndex > 0) 
                 this.TcpClientTasks.RemoveAt(RemoveAtIndex);
         }

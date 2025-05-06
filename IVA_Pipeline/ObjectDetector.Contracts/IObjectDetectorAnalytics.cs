@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,34 +25,34 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
             string locations,
           
             string startTime,
-            
+           
             string endTime, int timeInterval, bool uniquePersonCount);
 
-       
+        
         ObjectDetectorAnalyticsResMsg GetDeviceBasedCount(int tenantId,
-          
+           
             string deviceId,
           
             string startTime,
-            
+           
             string endTime, int timeInterval, bool uniquePersonCount);
 
         
         ObjectDetectorAnalyticsResMsg GetLocationBasedComplianceScore(int tenantId,
            
             string locations,
-          
-            string startTime,
-            
-            string endTime, int timeInterval, bool uniquePersonCount);
-
-       
-        ObjectDetectorAnalyticsResMsg GetLocationBasedCountTrend(int tenantId,
-         
-            string locations,
            
             string startTime,
-         
+           
+            string endTime, int timeInterval, bool uniquePersonCount);
+
+        
+        ObjectDetectorAnalyticsResMsg GetLocationBasedCountTrend(int tenantId,
+          
+            string locations,
+            
+            string startTime,
+            
             string endTime,
             int timeInterval, bool uniquePersonCount);
 
@@ -61,9 +60,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         ObjectDetectorAnalyticsResMsg GetLocationBasedComplianceScoreTrend(int tenantId,
            
             string locations,
-           
-            string startTime,
             
+            string startTime,
+           
             string endTime,
             int timeInterval, bool uniquePersonCount);
 

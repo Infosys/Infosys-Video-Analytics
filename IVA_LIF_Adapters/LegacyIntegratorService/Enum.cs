@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 /****************************************************************
  * This file is a part of the Legacy Integration Framework.
  * This file contains enum definition.
@@ -15,12 +14,12 @@ using System.Text;
 
 namespace Infosys.Lif.LegacyIntegratorService
 {
-
+	
 	public enum CommunicationType
 	{
-		 
+		//Synchronous 
 		Sync,
-		
+		//Asynchronous
 		Async
 	}
 
@@ -36,6 +35,7 @@ namespace Infosys.Lif.LegacyIntegratorService
 	
 	public enum MessagePersistence
 	{
+	
 		Persistent,
 		
 		NonPersistent,

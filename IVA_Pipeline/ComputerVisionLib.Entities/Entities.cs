@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +24,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         public List<Activity> Activities { get; set; }
         [XmlAttribute]
         public string CreatedBy { get; set; }
-            
+              
         [XmlAttribute]
         public string MachineName { get; set; }
         [XmlAttribute]
@@ -103,7 +102,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         public string ApplicationType { get; set; }
         [XmlAttribute]
         public string ApplicationExe { get; set; }
-     
+        
         [XmlElement]
         public List<NameValueAtribute> TargetApplicationAttributes { get; set; }
     }
@@ -201,7 +200,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 if (processNActivityMapping.ContainsKey(processId))
                 {
                     parentId = processNActivityMapping[processId].ToString();
-                   
+                    
                     processNActivityMapping[processId] = id;
                 }
                 else

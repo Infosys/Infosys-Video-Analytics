@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +29,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         [DataMember]
         public string Did { get; set; } 
         [DataMember]
-        public string Fid { get; set; } 
+        public string Fid { get; set; }
         [DataMember]
         public string Tid { get; set; } 
 
@@ -72,6 +71,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
 
         [DataMember]
         public List<string> Img_url { get; set; }
+
+        [DataMember]
+        public List<List<string>> Prompt { get; set; }
+
+        [DataMember]
+        public string Hp { get; set; }
 
         #endregion
 
@@ -121,7 +126,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         [DataMember]
         public string X { get; set; } 
         [DataMember]
-        public string Y { get; set; }
+        public string Y { get; set; } 
         [DataMember]
         public string H { get; set; } 
         [DataMember]
@@ -143,7 +148,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
 
         #region New changes for IVA request/response structure
         [DataMember]
-        public string Lb { get; set; }
+        public string Lb { get; set; } 
 
         [DataMember]
         public string Uid { get; set; }
@@ -161,8 +166,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         public List<List<float>> Tpc { get; set; }
         [DataMember]
         public List<List<float>> Bpc { get; set; }
+        [DataMember]
+        public string TaskType { get; set; }
 
-        
+       
         #endregion
     }
     [DataContract]
@@ -200,17 +207,92 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         [DataMember]
         public string Did { get; set; } 
         [DataMember]
-        public string Fid { get; set; }
+        public string Fid { get; set; } 
         [DataMember]
         public string Rc { get; set; } 
         [DataMember]
         public string Rm { get; set; } 
         [DataMember]
-        public string Class { get; set; }
+        public string Class { get; set; } 
         
 
     }
 
+    [DataContract]
+    public class ObjectDetectorAPIResMsgExp
+    {
+        
+        [DataMember]
+        public int Rc { get; set; } 
+        [DataMember]
+        public string Rm { get; set; }
+
+        /**/
+        #region New changes for IVA request/response structure 
+
+        [DataMember]
+        public string Did { get; set; } 
+        [DataMember]
+        public List<string> Fid { get; set; } 
+        [DataMember]
+        public string Tid { get; set; } 
+
+        [DataMember]
+        public string Ts { get; set; }
+
+        [DataMember]
+        public string Ts_ntp { get; set; }
+
+        [DataMember]
+        public string Msg_ver { get; set; }
+
+        [DataMember]
+        public string Inf_ver { get; set; }
+
+        [DataMember]
+        public string Ad { get; set; }
+
+        
+
+        [DataMember]
+        public List<PersonDetails> Fs { get; set; }
+
+        [DataMember]
+        public List<Mtp> Mtp { get; set; }
+
+        [DataMember]
+        public string Ffp { get; set; } 
+        [DataMember]
+        public string Ltsize { get; set; } 
+        [DataMember]
+        public string Lfp { get; set; }
+
+        [DataMember]
+        public string I_fn { get; set; }
+
+        [DataMember]
+        public List<string> Obase_64 { get; set; }
+
+        [DataMember]
+        public List<string> Img_url { get; set; }
+
+        [DataMember]
+        
+        public List<Dictionary<string, Dictionary<string, string>>> Explainer_Metadata { get; set; }
+
+        [DataMember]
+        public List<string> ImageUrls { get; set; }
+        [DataMember]
+        public string ExplainerToRun { get; set; }
+        [DataMember]
+        public string ModelName { get; set; }
+        [DataMember]
+        public string ExpVersion { get; set; }
+        #endregion
+        [DataMember]
+        public string Hp { get; set; }
+
+    }
 
 
 }

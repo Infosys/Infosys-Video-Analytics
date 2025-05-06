@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.IO;
 using Microsoft.Extensions.Configuration;
@@ -15,10 +14,10 @@ namespace Infosys.Lif.LegacyCommon
 
     public class LifLogHandler
     {
-        
+      
         static Logger logger;
 
-        
+       
         static LifLogHandler()
         {
             var config = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json", optional: true, reloadOnChange: true).Build();
@@ -33,7 +32,7 @@ namespace Infosys.Lif.LegacyCommon
         }
 
         
-    
+        
 
         public static void LogDebug(string message, Layer applicationLayer, params object[] messageArguments)
         {
@@ -46,14 +45,14 @@ namespace Infosys.Lif.LegacyCommon
         }
 
         
-       
+        
 
         public static void LogError(string message, Layer applicationLayer, params object[] messageArguments)
         {
             try
             {
                 logger.Error(message, messageArguments);
-                
+               
             }
             catch (Exception) { }
         }
@@ -62,7 +61,8 @@ namespace Infosys.Lif.LegacyCommon
             try
             {
                 logger.Info(message, messageArguments);
-               
+                
+
             }
             catch (Exception) { }
         }

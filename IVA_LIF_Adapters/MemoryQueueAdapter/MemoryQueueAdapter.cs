@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 using Infosys.Lif.LegacyCommon;
 using Infosys.Lif.LegacyIntegratorService;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +20,7 @@ using System.Threading.Tasks;
 namespace Infosys.Lif
 {
     public class MemoryQueueAdapter : IAdapter
-    
+
     {
 
 
@@ -59,7 +58,8 @@ namespace Infosys.Lif
             var liSettingPath = appconfig.GetSection("LISettings").GetSection("Path").Value;
             var config = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile(liSettingPath).Build();
             config.Bind(LI_CONFIGURATION, liSettings);
-            
+
+           
             MemoryQueue queueConfiguration = liSettings.MemoryQueue;
             if (queueConfiguration != null)
             {
@@ -76,7 +76,7 @@ namespace Infosys.Lif
 
                             }
                         }
-                        
+
                     }
                     if (!string.IsNullOrEmpty(details.SecondaryQueues))
                     {
@@ -90,7 +90,7 @@ namespace Infosys.Lif
                                 {
                                     queueDetails.Add(secondaryQueueName, new ConcurrentQueue<MemoryQueueMessage>());
                                 }
-                            }                            
+                            }
                         }
                     }
                 }
@@ -107,8 +107,8 @@ namespace Infosys.Lif
             string messageId = messageDetails["MessageIdentifier"].ToString();
             LifLogHandler.LogDebug("MemoryQueue Adapter- Delete called for message with Id {0}",
                    LifLogHandler.Layer.IntegrationLayer, messageId);
-           
-                messagesToDelete.TryAdd(messageId, MESSAGE_TO_BE_DELETED);
+            
+            messagesToDelete.TryAdd(messageId, MESSAGE_TO_BE_DELETED);
             
             return response;
         }
@@ -121,7 +121,7 @@ namespace Infosys.Lif
             Region regionToBeUsed = null;
             string response = string.Empty;
             try
-            {                
+            {
                 foreach (DictionaryEntry items in adapterDetails)
                 {
                     if (items.Key.ToString() == REGION)
@@ -134,7 +134,6 @@ namespace Infosys.Lif
                     }
                 }
 
-                
                 MemoryQueueDetails memoryQueueDetails = ValidateTransportName(transportSection, regionToBeUsed.TransportName);
                 string queueName = memoryQueueDetails.QueueName;
                 ConcurrentQueue<MemoryQueueMessage> queue = getQueueDetails(queueName);
@@ -142,9 +141,9 @@ namespace Infosys.Lif
                 {
                     if (memoryQueueDetails.QueueReadingType == MSMQReadType.Receive.ToString())
                     {
-                        Thread receiveOphandler = new Thread((ThreadStart)delegate { HandleMessage(MemoryQueueOperationType.Receive, memoryQueueDetails, null, queue); });
+                        Thread receiveOphandler = new Thread((ThreadStart)async delegate { await HandleMessage(MemoryQueueOperationType.Receive, memoryQueueDetails, null, queue); });
                         receiveOphandler.Start();
-                    }                        
+                    }
                 }
                 else
                 {
@@ -161,7 +160,7 @@ namespace Infosys.Lif
             {
                 throw exception;
             }
-            
+
         }
 
         public string Send(ListDictionary adapterDetails, string message)
@@ -195,13 +194,13 @@ namespace Infosys.Lif
                 if (queue != null && message !=null)
                 {
                     MemoryQueueMessage queueMessage = ConstructMessage(message, label);
-                    response = HandleMessage(MemoryQueueOperationType.Send, memoryQueueDetails, queueMessage, queue);
+                    response = HandleMessage(MemoryQueueOperationType.Send, memoryQueueDetails, queueMessage, queue).Result;
                 } else
                 {
                     LifLogHandler.LogError("MemoryQueue Adapter- Send FAILED, because inMemoryQueue does not exit for {0}",
-                   LifLogHandler.Layer.IntegrationLayer, queueName);                   
+                   LifLogHandler.Layer.IntegrationLayer, queueName);
                 }
-                
+
             }
             catch (LegacyException exception)
             {
@@ -221,10 +220,10 @@ namespace Infosys.Lif
             message.Body = msg;
             message.Id = Guid.NewGuid().ToString();
             message.Label = label;
-           return message;
+            return message;
         }
 
-     
+      
 
         private ConcurrentQueue<MemoryQueueMessage> getQueueDetails(string queueName)
         {
@@ -235,15 +234,17 @@ namespace Infosys.Lif
             }else
             {
                 throw new LegacyException(queueName + " Either Queue is not defined in MemoryQueueDetails section or not created in Memory");
-            }            
+            }
             return queue;
 
         }
 
+     
         private MemoryQueueDetails ValidateTransportName(MemoryQueue transportSection, string transportName)
         {
             MemoryQueueDetails memoryQueueDetails = null;
             bool isTransportNameExists = false;
+           
             for (int count = 0; count < transportSection.MemoryQueueDetails.Count; count++)
             {
                 memoryQueueDetails = transportSection.MemoryQueueDetails[count] as MemoryQueueDetails;
@@ -253,6 +254,7 @@ namespace Infosys.Lif
                     break;
                 }
             }
+        
             if (!isTransportNameExists)
             {
                 throw new LegacyException(transportName + " is not defined in MemoryQueueDetails section");
@@ -260,17 +262,18 @@ namespace Infosys.Lif
             return memoryQueueDetails;
         }
 
-      
+       
         private ReceiveEventArgs ConstructResponse(string msg,string newMessageId)
         {
             ReceiveEventArgs args = new ReceiveEventArgs();
             args.ResponseDetails = new ListDictionary();
             if (msg != null)
-            {                
+            {
                 args.ResponseDetails.Add("MessageBody", msg);
             }
             args.ResponseDetails.Add("MessageIdentifier", newMessageId);
             args.ResponseDetails.Add("Status", response);
+           
             if (response == SUCCESSFUL_PEEK_MESSAGE || response == SUCCESSFUL_RECEIVE_MESSAGE)
                 args.ResponseDetails.Add("StatusCode", SUCCESSFUL_STATUS_CODE);
             else
@@ -278,7 +281,7 @@ namespace Infosys.Lif
             return args;
         }
 
-        private string HandleMessage(MemoryQueueOperationType operation, MemoryQueueDetails memoryQueueDetails, MemoryQueueMessage message,
+        private async Task<string> HandleMessage(MemoryQueueOperationType operation, MemoryQueueDetails memoryQueueDetails, MemoryQueueMessage message,
             ConcurrentQueue<MemoryQueueMessage> queue)
         {
             LifLogHandler.LogDebug("MemoryQueue Adapter- Handle Message called for operation of type- " + operation.ToString(), LifLogHandler.Layer.IntegrationLayer);
@@ -288,13 +291,15 @@ namespace Infosys.Lif
                 switch (operation)
                 {
                     case MemoryQueueOperationType.Send:
+                         
                         Enum.TryParse<MSMQSendPattern>(memoryQueueDetails.SendPattern,true, out MSMQSendPattern sendPattern);
+                      
                         switch (sendPattern)
                         {
                             case MSMQSendPattern.None:
-                                LifLogHandler.LogDebug("MemoryQueue Adapter (transport- {0})- Send pattern configured- None", 
+                                LifLogHandler.LogDebug("MemoryQueue Adapter (transport- {0})- Send pattern configured- None",
                                     LifLogHandler.Layer.IntegrationLayer, memoryQueueDetails.TransportName);
-                                queue.Enqueue(message);                               
+                                queue.Enqueue(message);
                                 response = SUCCESSFUL_SENT_MESSAGE;
                                 break;
                             case MSMQSendPattern.RoundRobin:
@@ -304,13 +309,13 @@ namespace Infosys.Lif
                                 response = SUCCESSFUL_SENT_MESSAGE;
                                 break;
                             case MSMQSendPattern.QueueLoad:
-                                LifLogHandler.LogDebug("MemoryQueue Adapter (QueueLoad, transport- {0})- Send pattern configured- QueueLoad", 
+                                LifLogHandler.LogDebug("MemoryQueue Adapter (QueueLoad, transport- {0})- Send pattern configured- QueueLoad",
                                     LifLogHandler.Layer.IntegrationLayer, memoryQueueDetails.TransportName);
                                 queue.Enqueue(message);
                                 response = SUCCESSFUL_SENT_MESSAGE;
                                 break;
                             case MSMQSendPattern.BroadCast:
-                                LifLogHandler.LogDebug("MemoryQueue Adapter (transport- {0})- Send pattern configured- BroadCast", 
+                                LifLogHandler.LogDebug("MemoryQueue Adapter (transport- {0})- Send pattern configured- BroadCast",
                                     LifLogHandler.Layer.IntegrationLayer, memoryQueueDetails.TransportName);
                                 queue.Enqueue(message);
                                 BroadCastMessageToSecondaryQueues(memoryQueueDetails, message);
@@ -333,19 +338,26 @@ namespace Infosys.Lif
                                 string queueName = memoryQueueDetails.QueueName;
                                 while (true)
                                 {
-                                    MemoryQueueMessage messageDetails = null;
-                                    bool hasMessage = queue.TryDequeue(out messageDetails);                                    
-                                    if (hasMessage && messageDetails != null)
+
+                                    if (queue.Count == 0)
                                     {
-                                        response = SUCCESSFUL_RECEIVE_MESSAGE;
-                                        ReceiveMessageForAsync(messageDetails, memoryQueueDetails, queue);
+                                        Thread.Sleep(memoryQueueDetails.PollingRestDuration);
+                                        continue;
                                     }
+
+                                   
+                                    await Parallel.ForEachAsync(queue, new ParallelOptions { MaxDegreeOfParallelism = memoryQueueDetails.ParallelProcessingLimit }, async (msg, _) =>
+                                    {
+                                        await Task.Run(() => ProcessReceivedMessage(null, memoryQueueDetails, queue));
+                                    });
+
+                                  
                                     if (!memoryQueueDetails.ContinueToReceive)
                                         break;
                                     Thread.Sleep(memoryQueueDetails.PollingRestDuration);
 
                                 }
-                                
+                               
                             }
                             catch (Exception ex)
                             {
@@ -362,13 +374,13 @@ namespace Infosys.Lif
                             string queueName = memoryQueueDetails.QueueName;
                             while (true)
                             {
-                                    MemoryQueueMessage messageDetails = null;                               
-                                    bool hasMessage = queue.TryDequeue(out messageDetails);                                    
-                                    if (hasMessage && messageDetails != null)
-                                    {
-                                        response = SUCCESSFUL_RECEIVE_MESSAGE;
-                                        ProcessReceivedMessage(messageDetails, memoryQueueDetails, queue);
-                                    }
+                                MemoryQueueMessage messageDetails = null;
+                                bool hasMessage = queue.TryDequeue(out messageDetails);
+                                if (hasMessage && messageDetails != null)
+                                {
+                                    response = SUCCESSFUL_RECEIVE_MESSAGE;
+                                    ProcessReceivedMessage(messageDetails, memoryQueueDetails, queue);
+                                }
 
                                 if (!memoryQueueDetails.ContinueToReceive)
                                     break;
@@ -403,10 +415,17 @@ namespace Infosys.Lif
             return response;
         }
 
-     
+      
         private void ProcessReceivedMessage(MemoryQueueMessage queueMessage, MemoryQueueDetails memoryQueueDetails, ConcurrentQueue<MemoryQueueMessage> queue)
         {
             bool isMessageToBeResend = false;
+            if(queueMessage == null)
+            {
+                if (!queue.TryDequeue(out queueMessage))
+                {
+                    return;
+                }
+            }
             string queueName = memoryQueueDetails.QueueName;
             try
             {
@@ -426,44 +445,49 @@ namespace Infosys.Lif
 
             }
 
+            
+
+            if (messagesToDelete.ContainsKey(queueMessage.Id))
+            {
+                LifLogHandler.LogDebug("MemoryQueue Adapter ProcessReceivedMessage- Message remvoed from messagesToDelete" +
+                    " QueueName {0},Message Id {1}",
+                    LifLogHandler.Layer.IntegrationLayer, queueName, queueMessage.Id);
+                string deletedMessage = string.Empty;
+                    messagesToDelete.TryRemove(queueMessage.Id,out deletedMessage);
+               
+            }
+            else
+            {
+                LifLogHandler.LogDebug("MemoryQueue Adapter ProcessReceivedMessage- Message not exist in messagesToDelete" +
+                    " QueueName {0},Message Id {1}",
+                    LifLogHandler.Layer.IntegrationLayer, queueName, queueMessage.Id);
+            
+                isMessageToBeResend = true;
+            }
            
 
-                if (messagesToDelete.ContainsKey(queueMessage.Id))
-                {
-                    LifLogHandler.LogDebug("MemoryQueue Adapter ProcessReceivedMessage- Message remvoed from messagesToDelete" +
-                        " QueueName {0},Message Id {1}",
-                        LifLogHandler.Layer.IntegrationLayer, queueName, queueMessage.Id);
-                    string deletedMessage = string.Empty;
-                    messagesToDelete.TryRemove(queueMessage.Id,out deletedMessage);
-                }
-                else
-                {
-                    LifLogHandler.LogDebug("MemoryQueue Adapter ProcessReceivedMessage- Message not exist in messagesToDelete" +
-                        " QueueName {0},Message Id {1}",
-                        LifLogHandler.Layer.IntegrationLayer, queueName, queueMessage.Id);
-                    isMessageToBeResend = true;
-                }
-
             if (isMessageToBeResend && memoryQueueDetails.MessageProcessingMaxCount > 0)
-            {              
+            {
                 LifLogHandler.LogDebug("MemoryQueue Adapter ProcessReceivedMessage- Resending the message, QueueName {0},Message Id {1}",
                     LifLogHandler.Layer.IntegrationLayer, queueName, queueMessage.Id);
+              
                 HandleMessageReappearance(queueMessage, memoryQueueDetails, queue);
             }
 
         }
 
        
-        private void ReceiveMessageForAsync(MemoryQueueMessage message, MemoryQueueDetails memoryQueueDetails, 
+        private void ReceiveMessageForAsync(MemoryQueueMessage message, MemoryQueueDetails memoryQueueDetails,
             ConcurrentQueue<MemoryQueueMessage> queue)
         {
+           
             Task.Factory.StartNew(() => {
                 ProcessReceivedMessage(message, memoryQueueDetails, queue);
-            });            
-           
+            });
+
         }
 
-        
+         
         private void HandleMessageReappearance(MemoryQueueMessage queueMessage, MemoryQueueDetails memoryQueueDetails, ConcurrentQueue<MemoryQueueMessage> queue)
         {
             LifLogHandler.LogDebug("MemoryQueue Adapter- HandleMessageReappearance is called", LifLogHandler.Layer.IntegrationLayer);
@@ -477,21 +501,21 @@ namespace Infosys.Lif
                     LifLogHandler.LogDebug("MemoryQueue Adapter- HandleMessageReappearance and dequeueCount {0}",
                           LifLogHandler.Layer.IntegrationLayer, dequeueCount);
                     dequeueCount++;
-                      
-                   if (dequeueCount >= memoryQueueDetails.MessageProcessingMaxCount)
+                        
+                    if (dequeueCount >= memoryQueueDetails.MessageProcessingMaxCount)
                     {
                         LifLogHandler.LogDebug("MemoryQueue Adapter- HandleMessageReappearance - the maximum dequeue count has reached, " +
                             "so the message will be moved to the poison/dead-letter queue", LifLogHandler.Layer.IntegrationLayer);
-                       
+                   
                     } else
                     {
                         string messageLabel = labelParts[0] + "$" + (dequeueCount).ToString();
                         MemoryQueueMessage newMesaage = ConstructMessage(queueMessage.Body, messageLabel);
-                       
+                     
                         queue.Enqueue(newMesaage);
                     }
 
-                    
+
                 }
             }
             catch (Exception ex)
@@ -505,10 +529,10 @@ namespace Infosys.Lif
 
         }
 
-       
+        
         private void BroadCastMessageToSecondaryQueues(MemoryQueueDetails memoryQueueDetails, MemoryQueueMessage message)
         {
-            LifLogHandler.LogDebug("MemoryQueue Adapter -  Broadcast the message to secondary queues ", LifLogHandler.Layer.IntegrationLayer);            
+            LifLogHandler.LogDebug("MemoryQueue Adapter -  Broadcast the message to secondary queues ", LifLogHandler.Layer.IntegrationLayer);
             try
             {
                 if (!string.IsNullOrEmpty(memoryQueueDetails.SecondaryQueues))

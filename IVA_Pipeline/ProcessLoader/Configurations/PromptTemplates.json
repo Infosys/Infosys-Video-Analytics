@@ -1,0 +1,21 @@
+[
+  {
+    "ModelName": "infer",
+    "ModelTemplate": "{\"instances\": [{\"input_text\": PROMPT,\"num_images\": 5}]}"
+    //Add TemplateId
+  },
+  {
+    "ModelName": "grounding_dino",
+    "ModelTemplate": ""
+    //"ModelTemplate": "{OBJECT}\n.append."
+  },
+  {
+    "ModelName": "classify_anything",
+    "ModelTemplate": "[OBJECT]"
+    //"ModelTemplate": "{OBJECT}\n.append."
+  },
+  {
+    "ModelName": "ImageGeneration",
+    "ModelTemplate": "PROMPT"
+  }
+]

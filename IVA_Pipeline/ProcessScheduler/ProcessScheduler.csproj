@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Infosys.Ainauto.ProcessScheduler</AssemblyName>
     <RootNamespace>Infosys.Solutions.Ainauto.Infrastructure.ProcessScheduler</RootNamespace>
   </PropertyGroup>
@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\ProcessScheduler.Framework\ProcessScheduler.Framework.csproj" />
+    <ProjectReference Include="..\TaskRoute\TaskRoute.csproj" />
   </ItemGroup>
 
 </Project>

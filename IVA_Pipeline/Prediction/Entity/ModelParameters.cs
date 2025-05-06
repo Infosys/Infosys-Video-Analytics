@@ -1,13 +1,14 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
-﻿using System;
+﻿using Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text.Json;
 
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
@@ -64,19 +65,33 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         public string AWSAccessKey { get; set; }
         public string AWSSecretKey { get; set; }
         public string AWSSessionToken { get; set; }
-        public List<List<string>> Prompt { get; set; }
+        public string Prompt { get; set; }
         public List<string> Msk_img { get; set; }
         public List<string> Rep_img { get; set; }
+        public List<PersonDetails> Fs { get; set; }
+        public string ExplainerURL { get; set; }
+        public string Hp { get; set; }
       
 
         #region ICloneable Members
         public object Clone() {
             using(MemoryStream stream=new MemoryStream()) {
-                if(this.GetType().IsSerializable) {
+                if(this.GetType().IsSerializable) {           
+                    /* //BinaryFormatter is obsolete in .net 8
                     BinaryFormatter formatter=new BinaryFormatter();
                     formatter.Serialize(stream,this);
                     stream.Position=0;
                     return formatter.Deserialize(stream);
+                    */
+
+                    // Serialize to JSON and write to the memory stream
+                    JsonSerializer.Serialize(stream, this, this.GetType());
+
+                    // Reset stream position to read from the beginning
+                    stream.Position = 0;
+
+                    // Deserialize the object from the memory stream
+                    return JsonSerializer.Deserialize(stream, this.GetType());
                 }
                 return null;
             }

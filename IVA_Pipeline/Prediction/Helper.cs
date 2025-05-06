@@ -1,9 +1,13 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
+﻿/*
+ *© 2019 Infosys Limited, Bangalore, India. All Rights Reserved. Infosys believes the information in this document is accurate as of its publication date; such information is subject to change without notice. Infosys acknowledges the proprietary rights of other companies to the trademarks, product names and such other intellectual property rights mentioned in this document. Except as expressly permitted, neither this document nor any part of it may be reproduced, stored in a retrieval system, or transmitted in any form or by any means, electronic, mechanical, printing, photocopying, recording or otherwise, without the prior permission of Infosys Limited and/or any named intellectual property rights holders under this document.   
+ * 
+ * © 2019 INFOSYS LIMITED. CONFIDENTIAL AND PROPRIETARY 
+ */
 
 using System;
 using System.Collections.Generic;
@@ -21,8 +25,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 {
     public class Helper
     {
+
         public static List<BoundingBox> RemoveDuplicateRegions(List<BoundingBox> boundingBoxes, float overlapThreshold)
         {
+
+
+
 
             List<BoundingBox> boundingBoxesA = new List<BoundingBox>();
 
@@ -39,6 +47,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 {
                     if (boundingBoxesA[i].Cs != boundingBoxesA[j].Cs)
                     {
+
                         RectangleF rectangleA = new RectangleF((boundingBoxesA[i]).Dm.X, (boundingBoxesA[i]).Dm.Y, (boundingBoxesA[i]).Dm.H, (boundingBoxesA[i]).Dm.W);
                         RectangleF rectangleB = new RectangleF((boundingBoxesA[j]).Dm.X, (boundingBoxesA[j]).Dm.Y, (boundingBoxesA[j]).Dm.H, (boundingBoxesA[j]).Dm.W);
 
@@ -64,10 +73,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             }
 
 
+
             return boundingBoxesA;
 
 
+
         }
+
+
         public static ObjectDetectorAPIResMsg RemoveDuplicateRegionsAPI(ObjectDetectorAPIResMsg ObjectDetectResMsg, float overlapThreshold)
         {
 
@@ -78,8 +91,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             {
 #endif
 
-                if(ObjectDetectResMsg.Fs.Count != 0 || ObjectDetectResMsg.Fs != null)
+                if (ObjectDetectResMsg.Fs.Count != 0 || ObjectDetectResMsg.Fs != null)
                 {
+                    foreach (var fs in ObjectDetectResMsg.Fs)
+                    {
+                        if (string.IsNullOrEmpty(fs.Lb))
+                        {
+                            fs.Lb = "";
+                        }
+                    }
                     List<PersonDetails> boundingBoxes = ObjectDetectResMsg.Fs;
                     List<PersonDetails> boundingBoxesA = new List<PersonDetails>();
 
@@ -121,11 +141,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                                 }
                             }
                         }
-                        
+
                     }
                     ObjectDetectResMsg.Fs = boundingBoxesA;
                 }
-                
+
 #if DEBUG
                 LogHandler.LogUsage(String.Format("API RemoveDuplicateRegions finished execution at : {0}", DateTime.UtcNow.ToLongTimeString()), null);
 #endif
@@ -135,8 +155,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 #endif
         }
 
+
         public static float IntersectionOverUnion(RectangleF rectangleA, RectangleF rectangleB)
         {
+
 
 
             var areaA = rectangleA.Width * rectangleA.Height;
@@ -159,62 +181,73 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             var iou = intersectionArea / (areaA + areaB - intersectionArea);
 
 
+
             return iou;
 
         }
 
-        public static dynamic FaceMaskApi(dynamic reqMsg, string URL,string methodType)
+        public static dynamic FaceMaskApi(dynamic reqMsg, string URL, string methodType)
         {
-            using (var client = new WebClient()) 
+            using (var client = new WebClient())
             {
-                client.Headers.Add("Content-Type:application/json"); 
+                client.Headers.Add("Content-Type:application/json");
                 client.Headers.Add("Accept:application/json");
                 string result;
-                if(methodType.ToUpper()!="GET")
-                     result = client.UploadString(URL, methodType, JsonConvert.SerializeObject(reqMsg));
+                if (methodType.ToUpper() != "GET")
+                    result = client.UploadString(URL, methodType, JsonConvert.SerializeObject(reqMsg));
                 else
-                     result = client.DownloadString(URL); 
+                    result = client.DownloadString(URL);
 
                 var metadata = System.Text.Json.JsonSerializer.Deserialize<dynamic>(result);
 
-               
+
                 return metadata;
             }
         }
 
-        public static dynamic GetMaskPrediction_API(dynamic reqMsg,string URL)
+        public static dynamic GetMaskPrediction_API(dynamic reqMsg, string URL)
         {
             string predictionstring = "";
+
 
             var jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(reqMsg);
 
 
+
+
             WebRequest request = WebRequest.Create(URL);
-           
+
             request.Method = "POST";
 
+        
             string postData = jsonString;
             byte[] byteArray = Encoding.UTF8.GetBytes(postData);
 
-            request.ContentType = "application/json";
-       
-            request.ContentLength = byteArray.Length;
 
+            request.ContentType = "application/json";
+
+            request.ContentLength = byteArray.Length; 
+
+            
             Stream dataStream = request.GetRequestStream();
-        
+
             dataStream.Write(byteArray, 0, byteArray.Length);
-          
+
             dataStream.Close();
+
 
             WebResponse response = request.GetResponse();
 
+
             using (dataStream = response.GetResponseStream())
             {
+
                 StreamReader reader = new StreamReader(dataStream);
-         
+
                 predictionstring = reader.ReadToEnd();
 
             }
+
 
             response.Close();
             var metadata = System.Text.Json.JsonSerializer.Deserialize<dynamic>(predictionstring);
@@ -224,13 +257,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
         public async void MaskPrediction_API(dynamic reqMsg, string URL)
         {
-            Uri requestUri = new Uri(URL);          
+            Uri requestUri = new Uri(URL);
             string json = "";
             json = Newtonsoft.Json.JsonConvert.SerializeObject(reqMsg);
             var objClient = new HttpClient();
             System.Net.Http.HttpResponseMessage respon = await objClient.PostAsync(requestUri, new StringContent(json, System.Text.Encoding.UTF8, "application/json"));
             string responJsonText = await respon.Content.ReadAsStringAsync();
         }
+    
 
 
     }

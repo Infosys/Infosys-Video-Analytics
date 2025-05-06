@@ -1,15 +1,16 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
+using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute;
+using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCommunication
 {
@@ -20,7 +21,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCom
         protected readonly string Host;
         protected readonly int Port;
         public TcpClient ClientConnect;
-        string dataStreamTimeOut = Config.AppSettings.DataStreamTimeOut;
+        public static AppSettings appSettings=Config.AppSettings;
+        public static DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.ClientTCPConnect);
+        string dataStreamTimeOut=deviceDetails.DataStreamTimeOut;
 
         private volatile bool _ExitSignal;
         public bool ExitSignal
@@ -74,7 +77,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCom
                     return;
                 }
 
-                if (!Client.Connected)
+                if (!Client.Connected) 
                     return;
 
                 using (var netstreamClient = Client.GetStream())

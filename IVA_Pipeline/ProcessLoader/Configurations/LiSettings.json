@@ -1,11 +1,14 @@
 ﻿{
   "LISettings": {
+    
     "HostRegion": {
       "Region": [
         {
           "Name": "FrameProcessor",
+          //use the transport medium and name from the below mentioned transport types
           "TransportMedium": "MemoryQueue",
           "TransportName": "frameprocessorchannel",
+          //Communication Type can be "Sync" or "Async" for synchronous and asynchronous respectively
           "CommunicationType": "Sync"
         },
         {
@@ -24,6 +27,12 @@
           "Name": "FrameRenderer",
           "TransportMedium": "MemoryQueue",
           "TransportName": "framerendererchannel",
+          "CommunicationType": "Sync"
+        },
+        {
+          "Name": "FrameViewer",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "frameviewerchannel",
           "CommunicationType": "Sync"
         },
         {
@@ -53,7 +62,7 @@
         {
           "Name": "PromptInjector",
           "TransportMedium": "MemoryQueue",
-          "TransportName": "promptinjectorchannel",   
+          "TransportName": "promptinjectorchannel",
           "CommunicationType": "Sync"
         },
         {
@@ -61,11 +70,35 @@
           "TransportMedium": "MemoryQueue",
           "TransportName": "prompthandlerchannel",
           "CommunicationType": "Sync"
+        },
+        {
+          "Name": "IVAAzureVault",
+          "TransportMedium": "AzureVault",
+          "TransportName": "IVAAzureVault",
+          "CommunicationType": "Sync"
+        },
+        {
+          "Name": "FrameExplainer",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "frameexplainerchannel",
+          "CommunicationType": "Sync"
+        },
+        {
+          "Name": "FrameExplainerDataCollector",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "frameexplainercollectorchannel",
+          "CommunicationType": "Sync"
+        },
+        {
+          "Name": "ExplainerModelPredictor",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "frameexplainermodelchannel",
+          "CommunicationType": "Sync"
         }
       ]
     },
     "IISDoc": {
-      "DllPath": "references\\Infosys.Lif.IIS_DocAdapter.dll", //provide the exact path of references folder 
+      "DllPath": "D:\\IVA\\GIT\\IVA-3.5-working\\IVA\\IVA_Pipeline\\references\\Infosys.Lif.IIS_DocAdapter.dll",
       "TypeName": "Infosys.Lif.IIS_DocAdapter",
       "IISDocDetails": [
         {
@@ -76,15 +109,16 @@
       ]
     },
     "Kafka": {
-      "DllPath": "references\\Infosys.Lif.KafkaAdapter.dll",   //provide the exact path of references folder 
+      "DllPath": "D:\\IVA\\GIT\\IVA-3.5-working\\IVA\\IVA_Pipeline\\references\\Infosys.Lif.KafkaAdapter.dll",
       "TypeName": "Infosys.Lif.KafkaAdapter",
       "KafkaDetails": [
         {
-          "TransportName": "promptinjectorchannel",
+          "TransportName": "frameexplainerchannel",
           "BootstrapServer": "localhost:9092",
-          "TopicName": "promptinjector",
-          "GroupId": "consumer_group_0",
+          "TopicName": "explainernode",
+          "GroupId": "consumer_group_1",
           "SecurityProtocol": "PLAINTEXT",
+
           "AutoOffsetReset": "Earliest",
           "ProducerMode": "sync",
           "ConsumerMode": "sync",
@@ -96,183 +130,635 @@
           "EnableAutoOffsetStore": false,
           "ReplicationFactor": 1,
           "NumPartitions": 1
+        },
+        {
+          "TransportName": "frameexplainercollectorchannel",
+          "BootstrapServer": "localhost:9092",
+          "TopicName": "explainability",
+
+          "GroupId": "232",
+          "SecurityProtocol": "PLAINTEXT",
+
+          "AutoOffsetReset": "Earliest",
+          "ProducerMode": "sync",
+          "ConsumerMode": "sync",
+          "PollingRestDurationMs": 10,
+          "MessageSendMaxRetries": 3,
+          "RetryBackoffMs": 1000,
+          "EnableIdempotence": true,
+          "EnableAutoCommit": false,
+          "EnableAutoOffsetStore": false,
+          "ReplicationFactor": 1,
+          "NumPartitions": 1
+        },
+        {
+          "TransportName": "frameexplainermodelchannel",
+          "BootstrapServer": "localhost:9092",
+          "TopicName": "messages",
+          "GroupId": "consumer_group_2",
+          "SecurityProtocol": "PLAINTEXT",
+
+          "AutoOffsetReset": "Earliest",
+          "ProducerMode": "sync",
+          "ConsumerMode": "sync",
+          "PollingRestDurationMs": 10,
+          "MessageSendMaxRetries": 3,
+          "RetryBackoffMs": 1000,
+          // Set to true if you don't want to reorder messages on retry
+          "EnableIdempotence": true,
+          //     Automatically and periodically commit offsets in the background. Note: setting
+          //     this to false does not prevent the consumer from fetching previously committed
+          //     start offsets.
+          "EnableAutoCommit": false,
+          //     Automatically store offset of last message provided to application. The offset
+          //     store is an in-memory store of the next offset to (auto-)commit for each partition.
+          "EnableAutoOffsetStore": false,
+          //Create topic
+          //     The replication factor for the new topic or -1 (the default)
+          "ReplicationFactor": 1,
+          //The number of partitions for the new topic or -1 (the default)
+          "NumPartitions": 1
+        },
+        {
+          "TransportName": "promptinjectorchannel",
+          //The Server where the Kafka is installed
+          "BootstrapServer": "localhost:9092",
+          //Name of topic to which messages will be sent
+          "TopicName": "promptinjector",
+          //The Id for the Consumer group
+          "GroupId": "consumer_group_0",
+          "SecurityProtocol": "PLAINTEXT",
+          "SaslMechanism": "PLAIN",
+          "AutoOffsetReset": "Earliest",
+          "ProducerMode": "sync",
+          "ConsumerMode": "sync",
+          //The time gap (ms) between each polling
+          "PollingRestDurationMs": 10,
+          // Number of times to retry before giving up
+          "MessageSendMaxRetries": 3,
+          // Duration to retry before next attempt
+          "RetryBackoffMs": 1000,
+          // Set to true if you don't want to reorder messages on retry
+          "EnableIdempotence": true,
+          //     Automatically and periodically commit offsets in the background. Note: setting
+          //     this to false does not prevent the consumer from fetching previously committed
+          //     start offsets.
+          "EnableAutoCommit": false,
+          //     Automatically store offset of last message provided to application. The offset
+          //     store is an in-memory store of the next offset to (auto-)commit for each partition.
+          "EnableAutoOffsetStore": false,
+          //Create topic
+          //     The replication factor for the new topic or -1 (the default)
+          "ReplicationFactor": 1,
+          //The number of partitions for the new topic or -1 (the default)
+          "NumPartitions": 1
+        },
+        {
+          "TransportName": "frameprocessorchannel",
+          //The Server where the Kafka is installed
+          "BootstrapServer": "localhost:9092",
+          //"BootstrapServer": "localhost:9092",
+          //Name of topic to which messages will be sent
+          "TopicName": "frameprocessor",
+          //The Id for the Consumer group
+          "GroupId": "consumer_group_0",
+          "SecurityProtocol": "PLAINTEXT",
+          //"SaslMechanism": "PLAIN",
+
+          "AutoOffsetReset": "Earliest",
+          "ProducerMode": "sync",
+          "ConsumerMode": "sync",
+          //The time gap (ms) between each polling
+          "PollingRestDurationMs": 10,
+          // Number of times to retry before giving up
+          "MessageSendMaxRetries": 3,
+          // Duration to retry before next attempt
+          "RetryBackoffMs": 1000,
+          // Set to true if you don't want to reorder messages on retry
+          "EnableIdempotence": true,
+          //     Automatically and periodically commit offsets in the background. Note: setting
+          //     this to false does not prevent the consumer from fetching previously committed
+          //     start offsets.
+          "EnableAutoCommit": false,
+          //     Automatically store offset of last message provided to application. The offset
+          //     store is an in-memory store of the next offset to (auto-)commit for each partition.
+          "EnableAutoOffsetStore": false,
+          //Create topic
+          //     The replication factor for the new topic or -1 (the default)
+          "ReplicationFactor": 1,
+          //The number of partitions for the new topic or -1 (the default)
+          "NumPartitions": 1
+        },
+        {
+          "TransportName": "framecollectorchannel",
+          //The Server where the Kafka is installed
+          "BootstrapServer": "localhost:9092",
+          //"BootstrapServer": "localhost:9092",
+          //Name of topic to which messages will be sent
+          "TopicName": "framecollector",
+          //The Id for the Consumer group
+          "GroupId": "consumer_group_2",
+          "SecurityProtocol": "PLAINTEXT",
+          //"SaslMechanism": "PLAIN",
+
+          "AutoOffsetReset": "Earliest",
+          "ProducerMode": "sync",
+          "ConsumerMode": "sync",
+          //The time gap (ms) between each polling
+          "PollingRestDurationMs": 10,
+          // Number of times to retry before giving up
+          "MessageSendMaxRetries": 3,
+          // Duration to retry before next attempt
+          "RetryBackoffMs": 1000,
+          // Set to true if you don't want to reorder messages on retry
+          "EnableIdempotence": true,
+          //     Automatically and periodically commit offsets in the background. Note: setting
+          //     this to false does not prevent the consumer from fetching previously committed
+          //     start offsets.
+          "EnableAutoCommit": false,
+          //     Automatically store offset of last message provided to application. The offset
+          //     store is an in-memory store of the next offset to (auto-)commit for each partition.
+          "EnableAutoOffsetStore": false,
+          //Create topic
+          //     The replication factor for the new topic or -1 (the default)
+          "ReplicationFactor": 1,
+          //The number of partitions for the new topic or -1 (the default)
+          "NumPartitions": 1
         }
       ]
     },
     "MemoryQueue": {
-      "DllPath": "references\\Infosys.Lif.MemoryQueueAdapter.dll", //provide the exact path of references
+      "DllPath": "D:\\IVA\\GIT\\IVA-3.5-working\\IVA\\IVA_Pipeline\\references\\Infosys.Lif.MemoryQueueAdapter.dll",
       "MemoryQueueDetails": [
         {
           "TransportName": "frameprocessorchannel",
+          //The main processing Queue
           "QueueName": "frameprocessor",
+          //The label on the message, can be used to categorize
           "MessageLabel": "frame",
+          //QueueReadingType can be Receive or Peek
+          //Implemented for Receive
           "QueueReadingType": "Receive",
+          //QueueReadingMode can be Sync or Async
           "QueueReadingMode": "Sync",
+          //The Maximum number of trial for processing a message before being pushed to poison queue
           "MessageProcessingMaxCount": 5,
+          //Boolean to depict if the message is to be deleted immediately after Receive call i.e. no need for explicit Delete call. False- the message will be made invisible for duration same as MessaseInvisibilityTimeout
+          //Not Implemented
           "ReadAndDelete": true,
+          //Not Implemented
           "MessaseInvisibilityTimeout": 20000,
+          //The duration (ms) for which the framework will try to look for message (if not received any) in the queue in each trial
+          //Not Implemented
           "QueueReadTimeout": 1000,
+          //The time gap (ms) between each polling
           "PollingRestDuration": 5,
+          //To tell if the receive operation once started to be continued indefinitely
           "ContinueToReceive": true,
+          //The sending pattren to be opted, options are RoundRobin, QueueLoad, BroadCast and None. Default is 'None'
+          //Only implemented for Broadcast and None
           "SendPattern": "None",
+          //The secondary queues to be used for scaling-out queues along with the primary queue specified in 'QueueName'. If there are more than one Secondary queues, delimit the queue names by ';', e.g. mypvtqueue2;mypvtqueue3
           "SecondaryQueues": "",
+          //The maximum number of messages allowed per queue, to be used during QueueLoad send pattern. If SendPattern is not 'None', the default value is 10
           "QueueLoadLimit": 0,
+          //The duration (second) for which the framework will wait for a transaction, if no transaction in the queue it will reinitate the queue in Sync receive process
+          //Not Implemented
           "TransactionWaitTimeInMins": 4
         },
         {
           "TransportName": "promptinjectorchannel",
+          //The main processing Queue
           "QueueName": "promptinjector",
+          //The label on the message, can be used to categorize
           "MessageLabel": "frame",
+          //QueueReadingType can be Receive or Peek
+          //Implemented for Receive
           "QueueReadingType": "Receive",
+          //QueueReadingMode can be Sync or Async
           "QueueReadingMode": "Sync",
+          //The Maximum number of trial for processing a message before being pushed to poison queue
           "MessageProcessingMaxCount": 5,
+          //Boolean to depict if the message is to be deleted immediately after Receive call i.e. no need for explicit Delete call. False- the message will be made invisible for duration same as MessaseInvisibilityTimeout
+          //Not Implemented
           "ReadAndDelete": true,
+          //Not Implemented
           "MessaseInvisibilityTimeout": 20000,
+          //The duration (ms) for which the framework will try to look for message (if not received any) in the queue in each trial
+          //Not Implemented
           "QueueReadTimeout": 1000,
+          //The time gap (ms) between each polling
           "PollingRestDuration": 5,
+          //To tell if the receive operation once started to be continued indefinitely
           "ContinueToReceive": true,
+          //The sending pattren to be opted, options are RoundRobin, QueueLoad, BroadCast and None. Default is 'None'
+          //Only implemented for Broadcast and None
           "SendPattern": "None",
-          "\\": null,
+          //The secondary queues to be used for scaling-out queues along with the primary queue specified in 'QueueName'. If there are more than one Secondary queues, delimit the queue names by ';', e.g. mypvtqueue2;mypvtqueue3
           "SecondaryQueues": "",
+          //The maximum number of messages allowed per queue, to be used during QueueLoad send pattern. If SendPattern is not 'None', the default value is 10
           "QueueLoadLimit": 0,
+          //The duration (second) for which the framework will wait for a transaction, if no transaction in the queue it will reinitate the queue in Sync receive process
+          //Not Implemented
           "TransactionWaitTimeInMins": 4
         },
         {
           "TransportName": "frameanalyticschannel",
+          //The main processing Queue
           "QueueName": "frameanalytics",
+          //The label on the message, can be used to categorize
           "MessageLabel": "frame",
+          //QueueReadingType can be Receive or Peek
+          //Implemented for Receive
           "QueueReadingType": "Receive",
+          //QueueReadingMode can be Sync or Async
           "QueueReadingMode": "Sync",
+          //The Maximum number of trial for processing a message before being pushed to poison queue
           "MessageProcessingMaxCount": 5,
+          //Boolean to depict if the message is to be deleted immediately after Receive call i.e. no need for explicit Delete call. False- the message will be made invisible for duration same as MessaseInvisibilityTimeout
+          //Not Implemented
           "ReadAndDelete": true,
+          //Not Implemented
           "MessaseInvisibilityTimeout": 20000,
+          //The duration (ms) for which the framework will try to look for message (if not received any) in the queue in each trial
+          //Not Implemented
           "QueueReadTimeout": 1000,
+          //The time gap (ms) between each polling
           "PollingRestDuration": 100,
+          //To tell if the receive operation once started to be continued indefinitely
           "ContinueToReceive": true,
+          //The sending pattren to be opted, options are RoundRobin, QueueLoad, BroadCast and None. Default is 'None'
+          //Only implemented for Broadcast and None
           "SendPattern": "None",
+          //The secondary queues to be used for scaling-out queues along with the primary queue specified in 'QueueName'. If there are more than one Secondary queues, delimit the queue names by ';', e.g. mypvtqueue2;mypvtqueue3
           "SecondaryQueues": "",
+          //The maximum number of messages allowed per queue, to be used during QueueLoad send pattern. If SendPattern is not 'None', the default value is 10
           "QueueLoadLimit": 0,
+          //The duration (second) for which the framework will wait for a transaction, if no transaction in the queue it will reinitate the queue in Sync receive process
+          //Not Implemented
           "TransactionWaitTimeInMins": 4
         },
         {
           "TransportName": "framepreloaderchannel",
+          //The main processing Queue
           "QueueName": "framepreloader",
+          //The label on the message, can be used to categorize
           "MessageLabel": "frame",
+          //QueueReadingType can be Receive or Peek
+          //Implemented for Receive
           "QueueReadingType": "Receive",
+          //QueueReadingMode can be Sync or Async
           "QueueReadingMode": "Sync",
+          //The Maximum number of trial for processing a message before being pushed to poison queue
           "MessageProcessingMaxCount": 5,
+          //Boolean to depict if the message is to be deleted immediately after Receive call i.e. no need for explicit Delete call. False- the message will be made invisible for duration same as MessaseInvisibilityTimeout
+          //Not Implemented
           "ReadAndDelete": true,
+          //Not Implemented
           "MessaseInvisibilityTimeout": 20000,
+          //The duration (ms) for which the framework will try to look for message (if not received any) in the queue in each trial
+          //Not Implemented
           "QueueReadTimeout": 1000,
+          //The time gap (ms) between each polling
           "PollingRestDuration": 100,
+          //To tell if the receive operation once started to be continued indefinitely
           "ContinueToReceive": true,
+          //The sending pattren to be opted, options are RoundRobin, QueueLoad, BroadCast and None. Default is 'None'
+          //Only implemented for Broadcast and None
           "SendPattern": "None",
+          //The secondary queues to be used for scaling-out queues along with the primary queue specified in 'QueueName'. If there are more than one Secondary queues, delimit the queue names by ';', e.g. mypvtqueue2;mypvtqueue3
           "SecondaryQueues": "",
+          //The maximum number of messages allowed per queue, to be used during QueueLoad send pattern. If SendPattern is not 'None', the default value is 10
           "QueueLoadLimit": 0,
+          //The duration (second) for which the framework will wait for a transaction, if no transaction in the queue it will reinitate the queue in Sync receive process
+          //Not Implemented
           "TransactionWaitTimeInMins": 4
         },
         {
           "TransportName": "uniquepersontrackingchannel",
+          //The main processing Queue
           "QueueName": "uniquepersontracking",
+          //The label on the message, can be used to categorize
           "MessageLabel": "frame",
+          //QueueReadingType can be Receive or Peek
+          //Implemented for Receive
           "QueueReadingType": "Receive",
+          //QueueReadingMode can be Sync or Async
           "QueueReadingMode": "Sync",
+          //The Maximum number of trial for processing a message before being pushed to poison queue
           "MessageProcessingMaxCount": 5,
+          //Boolean to depict if the message is to be deleted immediately after Receive call i.e. no need for explicit Delete call. False- the message will be made invisible for duration same as MessaseInvisibilityTimeout
+          //Not Implemented
           "ReadAndDelete": true,
+          //Not Implemented
           "MessaseInvisibilityTimeout": 20000,
+          //The duration (ms) for which the framework will try to look for message (if not received any) in the queue in each trial
+          //Not Implemented
           "QueueReadTimeout": 1000,
+          //The time gap (ms) between each polling
           "PollingRestDuration": 100,
+          //To tell if the receive operation once started to be continued indefinitely
           "ContinueToReceive": true,
+          //The sending pattren to be opted, options are RoundRobin, QueueLoad, BroadCast and None. Default is 'None'
+          //Only implemented for Broadcast and None
           "SendPattern": "None",
+          //The secondary queues to be used for scaling-out queues along with the primary queue specified in 'QueueName'. If there are more than one Secondary queues, delimit the queue names by ';', e.g. mypvtqueue2;mypvtqueue3
           "SecondaryQueues": "",
+          //The maximum number of messages allowed per queue, to be used during QueueLoad send pattern. If SendPattern is not 'None', the default value is 10
           "QueueLoadLimit": 0,
+          //The duration (second) for which the framework will wait for a transaction, if no transaction in the queue it will reinitate the queue in Sync receive process
+          //Not Implemented
           "TransactionWaitTimeInMins": 4
         },
         {
           "TransportName": "framerendererchannel",
+          //The main processing Queue
           "QueueName": "framerenderer",
+          //The label on the message, can be used to categorize
           "MessageLabel": "frame",
+          //QueueReadingType can be Receive or Peek
+          //Implemented for Receive
           "QueueReadingType": "Receive",
+          //QueueReadingMode can be Sync or Async
           "QueueReadingMode": "Sync",
+          //The Maximum number of trial for processing a message before being pushed to poison queue
           "MessageProcessingMaxCount": 5,
+          //Boolean to depict if the message is to be deleted immediately after Receive call i.e. no need for explicit Delete call. False- the message will be made invisible for duration same as MessaseInvisibilityTimeout
+          //Not Implemented
           "ReadAndDelete": true,
+          //Not Implemented
           "MessaseInvisibilityTimeout": 20000,
+          //The duration (ms) for which the framework will try to look for message (if not received any) in the queue in each trial
+          //Not Implemented
           "QueueReadTimeout": 1000,
+          //The time gap (ms) between each polling
           "PollingRestDuration": 100,
+          //To tell if the receive operation once started to be continued indefinitely
           "ContinueToReceive": true,
+          //The sending pattren to be opted, options are RoundRobin, QueueLoad, BroadCast and None. Default is 'None'
+          //Only implemented for Broadcast and None
           "SendPattern": "None",
+          //The secondary queues to be used for scaling-out queues along with the primary queue specified in 'QueueName'. If there are more than one Secondary queues, delimit the queue names by ';', e.g. mypvtqueue2;mypvtqueue3
           "SecondaryQueues": "",
+          //The maximum number of messages allowed per queue, to be used during QueueLoad send pattern. If SendPattern is not 'None', the default value is 10
           "QueueLoadLimit": 0,
+          //The duration (second) for which the framework will wait for a transaction, if no transaction in the queue it will reinitate the queue in Sync receive process
+          //Not Implemented
+          "TransactionWaitTimeInMins": 4
+        },
+        {
+          "TransportName": "frameviewerchannel",
+          //The main processing Queue
+          "QueueName": "frameviewer",
+          //The label on the message, can be used to categorize
+          "MessageLabel": "frame",
+          //QueueReadingType can be Receive or Peek
+          //Implemented for Receive
+          "QueueReadingType": "Receive",
+          //QueueReadingMode can be Sync or Async
+          "QueueReadingMode": "Sync",
+          //The Maximum number of trial for processing a message before being pushed to poison queue
+          "MessageProcessingMaxCount": 5,
+          //Boolean to depict if the message is to be deleted immediately after Receive call i.e. no need for explicit Delete call. False- the message will be made invisible for duration same as MessaseInvisibilityTimeout
+          //Not Implemented
+          "ReadAndDelete": true,
+          //Not Implemented
+          "MessaseInvisibilityTimeout": 20000,
+          //The duration (ms) for which the framework will try to look for message (if not received any) in the queue in each trial
+          //Not Implemented
+          "QueueReadTimeout": 1000,
+          //The time gap (ms) between each polling
+          "PollingRestDuration": 5,
+          //To tell if the receive operation once started to be continued indefinitely
+          "ContinueToReceive": true,
+          //The sending pattren to be opted, options are RoundRobin, QueueLoad, BroadCast and None. Default is 'None'
+          //Only implemented for Broadcast and None
+          "SendPattern": "None",
+          //The secondary queues to be used for scaling-out queues along with the primary queue specified in 'QueueName'. If there are more than one Secondary queues, delimit the queue names by ';', e.g. mypvtqueue2;mypvtqueue3
+          "SecondaryQueues": "",
+          //The maximum number of messages allowed per queue, to be used during QueueLoad send pattern. If SendPattern is not 'None', the default value is 10
+          "QueueLoadLimit": 0,
+          //The duration (second) for which the framework will wait for a transaction, if no transaction in the queue it will reinitate the queue in Sync receive process
+          //Not Implemented
           "TransactionWaitTimeInMins": 4
         },
         {
           "TransportName": "frameelasticsearchchannel",
+          //The main processing Queue
           "QueueName": "frameelasticsearch",
+          //The label on the message, can be used to categorize
           "MessageLabel": "frame",
+          //QueueReadingType can be Receive or Peek
+          //Implemented for Receive
           "QueueReadingType": "Receive",
+          //QueueReadingMode can be Sync or Async
           "QueueReadingMode": "Sync",
+          //The Maximum number of trial for processing a message before being pushed to poison queue
           "MessageProcessingMaxCount": 5,
+          //Boolean to depict if the message is to be deleted immediately after Receive call i.e. no need for explicit Delete call. False- the message will be made invisible for duration same as MessaseInvisibilityTimeout
+          //Not Implemented
           "ReadAndDelete": true,
+          //Not Implemented
           "MessaseInvisibilityTimeout": 20000,
+          //The duration (ms) for which the framework will try to look for message (if not received any) in the queue in each trial
+          //Not Implemented
           "QueueReadTimeout": 1000,
+          //The time gap (ms) between each polling
           "PollingRestDuration": 100,
+          //To tell if the receive operation once started to be continued indefinitely
           "ContinueToReceive": true,
+          //The sending pattren to be opted, options are RoundRobin, QueueLoad, BroadCast and None. Default is 'None'
+          //Only implemented for Broadcast and None
           "SendPattern": "None",
+          //The secondary queues to be used for scaling-out queues along with the primary queue specified in 'QueueName'. If there are more than one Secondary queues, delimit the queue names by ';', e.g. mypvtqueue2;mypvtqueue3
           "SecondaryQueues": "",
+          //The maximum number of messages allowed per queue, to be used during QueueLoad send pattern. If SendPattern is not 'None', the default value is 10
           "QueueLoadLimit": 0,
+          //The duration (second) for which the framework will wait for a transaction, if no transaction in the queue it will reinitate the queue in Sync receive process
+          //Not Implemented
           "TransactionWaitTimeInMins": 4
         },
         {
           "TransportName": "framecollectorchannel",
+          //The main processing Queue
           "QueueName": "framecollector",
+          //The label on the message, can be used to categorize
           "MessageLabel": "frame",
+          //QueueReadingType can be Receive or Peek
+          //Implemented for Receive
           "QueueReadingType": "Receive",
+          //QueueReadingMode can be Sync or Async
           "QueueReadingMode": "Sync",
+          //The Maximum number of trial for processing a message before being pushed to poison queue
           "MessageProcessingMaxCount": 5,
+          //Boolean to depict if the message is to be deleted immediately after Receive call i.e. no need for explicit Delete call. False- the message will be made invisible for duration same as MessaseInvisibilityTimeout
+          //Not Implemented
           "ReadAndDelete": true,
+          //Not Implemented
           "MessaseInvisibilityTimeout": 20000,
+          //The duration (ms) for which the framework will try to look for message (if not received any) in the queue in each trial
+          //Not Implemented
           "QueueReadTimeout": 1000,
+          //The time gap (ms) between each polling
           "PollingRestDuration": 100,
+          //To tell if the receive operation once started to be continued indefinitely
           "ContinueToReceive": true,
+          //The sending pattren to be opted, options are RoundRobin, QueueLoad, BroadCast and None. Default is 'None'
+          //Only implemented for Broadcast and None
           "SendPattern": "None",
+          //The secondary queues to be used for scaling-out queues along with the primary queue specified in 'QueueName'. If there are more than one Secondary queues, delimit the queue names by ';', e.g. mypvtqueue2;mypvtqueue3
           "SecondaryQueues": "",
+          //The maximum number of messages allowed per queue, to be used during QueueLoad send pattern. If SendPattern is not 'None', the default value is 10
           "QueueLoadLimit": 0,
+          //The duration (second) for which the framework will wait for a transaction, if no transaction in the queue it will reinitate the queue in Sync receive process
+          //Not Implemented
           "TransactionWaitTimeInMins": 4
         },
         {
           "TransportName": "prompthandlerchannel",
+          //The main processing Queue
           "QueueName": "prompthandler",
+          //The label on the message, can be used to categorize
           "MessageLabel": "frame",
+          //QueueReadingType can be Receive or Peek
+          //Implemented for Receive
           "QueueReadingType": "Receive",
+          //QueueReadingMode can be Sync or Async
           "QueueReadingMode": "Sync",
+          //The Maximum number of trial for processing a message before being pushed to poison queue
           "MessageProcessingMaxCount": 5,
+          //Boolean to depict if the message is to be deleted immediately after Receive call i.e. no need for explicit Delete call. False- the message will be made invisible for duration same as MessaseInvisibilityTimeout
+          //Not Implemented
           "ReadAndDelete": true,
+          //Not Implemented
           "MessaseInvisibilityTimeout": 20000,
+          //The duration (ms) for which the framework will try to look for message (if not received any) in the queue in each trial
+          //Not Implemented
           "QueueReadTimeout": 1000,
+          //The time gap (ms) between each polling
           "PollingRestDuration": 100,
+          //To tell if the receive operation once started to be continued indefinitely
           "ContinueToReceive": true,
+          //The sending pattren to be opted, options are RoundRobin, QueueLoad, BroadCast and None. Default is 'None'
+          //Only implemented for Broadcast and None
           "SendPattern": "None",
+          //The secondary queues to be used for scaling-out queues along with the primary queue specified in 'QueueName'. If there are more than one Secondary queues, delimit the queue names by ';', e.g. mypvtqueue2;mypvtqueue3
           "SecondaryQueues": "",
+          //The maximum number of messages allowed per queue, to be used during QueueLoad send pattern. If SendPattern is not 'None', the default value is 10
           "QueueLoadLimit": 0,
+          //The duration (second) for which the framework will wait for a transaction, if no transaction in the queue it will reinitate the queue in Sync receive process
+          //Not Implemented
+          "TransactionWaitTimeInMins": 4
+        },
+        {
+          "TransportName": "frameexplainerchannel",
+          //The main processing Queue
+          "QueueName": "frameexplainer",
+          //The label on the message, can be used to categorize
+          "MessageLabel": "frame",
+          //QueueReadingType can be Receive or Peek
+          //Implemented for Receive
+          "QueueReadingType": "Receive",
+          //QueueReadingMode can be Sync or Sync
+          "QueueReadingMode": "Sync",
+          //The Maximum number of trial for processing a message before being pushed to poison queue
+          "MessageProcessingMaxCount": 5,
+          //Boolean to depict if the message is to be deleted immediately after Receive call i.e. no need for explicit Delete call. False- the message will be made invisible for duration same as MessaseInvisibilityTimeout
+          //Not Implemented
+          "ReadAndDelete": true,
+          //Not Implemented
+          "MessaseInvisibilityTimeout": 20000,
+          //The duration (ms) for which the framework will try to look for message (if not received any) in the queue in each trial
+          //Not Implemented
+          "QueueReadTimeout": 1000,
+          //The time gap (ms) between each polling
+          "PollingRestDuration": 100,
+          //To tell if the receive operation once started to be continued indefinitely
+          "ContinueToReceive": true,
+          //The sending pattren to be opted, options are RoundRobin, QueueLoad, BroadCast and None. Default is 'None'
+          //Only implemented for Broadcast and None
+          "SendPattern": "None",
+          //The secondary queues to be used for scaling-out queues along with the primary queue specified in 'QueueName'. If there are more than one Secondary queues, delimit the queue names by ';', e.g. mypvtqueue2;mypvtqueue3
+          "SecondaryQueues": "",
+          //The maximum number of messages allowed per queue, to be used during QueueLoad send pattern. If SendPattern is not 'None', the default value is 10
+          "QueueLoadLimit": 0,
+          //The duration (second) for which the framework will wait for a transaction, if no transaction in the queue it will reinitate the queue in Sync receive process
+          //Not Implemented
+          "TransactionWaitTimeInMins": 4
+        },
+        {
+          "TransportName": "frameexplainercollectorchannel",
+          //The main processing Queue
+          "QueueName": "frameexplainercollector",
+          //The label on the message, can be used to categorize
+          "MessageLabel": "frame",
+          //QueueReadingType can be Receive or Peek
+          //Implemented for Receive
+          "QueueReadingType": "Receive",
+          //QueueReadingMode can be Sync or Sync
+          "QueueReadingMode": "Sync",
+          //The Maximum number of trial for processing a message before being pushed to poison queue
+          "MessageProcessingMaxCount": 5,
+          //Boolean to depict if the message is to be deleted immediately after Receive call i.e. no need for explicit Delete call. False- the message will be made invisible for duration same as MessaseInvisibilityTimeout
+          //Not Implemented
+          "ReadAndDelete": true,
+          //Not Implemented
+          "MessaseInvisibilityTimeout": 20000,
+          //The duration (ms) for which the framework will try to look for message (if not received any) in the queue in each trial
+          //Not Implemented
+          "QueueReadTimeout": 1000,
+          //The time gap (ms) between each polling
+          "PollingRestDuration": 100,
+          //To tell if the receive operation once started to be continued indefinitely
+          "ContinueToReceive": true,
+          //The sending pattren to be opted, options are RoundRobin, QueueLoad, BroadCast and None. Default is 'None'
+          //Only implemented for Broadcast and None
+          "SendPattern": "None",
+          //The secondary queues to be used for scaling-out queues along with the primary queue specified in 'QueueName'. If there are more than one Secondary queues, delimit the queue names by ';', e.g. mypvtqueue2;mypvtqueue3
+          "SecondaryQueues": "",
+          //The maximum number of messages allowed per queue, to be used during QueueLoad send pattern. If SendPattern is not 'None', the default value is 10
+          "QueueLoadLimit": 0,
+          //The duration (second) for which the framework will wait for a transaction, if no transaction in the queue it will reinitate the queue in Sync receive process
+          //Not Implemented
           "TransactionWaitTimeInMins": 4
         }
       ],
-      "TypeName": "Infosys.Lif.MemoryQueueAdapter"   //provide the entire path of references folder 
+      "TypeName": "Infosys.Lif.MemoryQueueAdapter"
     },
     "MemoryDoc": {
-      "DllPath": "references\\Infosys.Lif.MemoryDocAdapter.dll",
+      "DllPath": "D:\\IVA\\GIT\\IVA-3.5-working\\IVA\\IVA_Pipeline\\references\\Infosys.Lif.MemoryDocAdapter.dll",
       "TypeName": "Infosys.Lif.MemoryDocAdapter",
       "MemoryDocDetails": [
         {
           "TransportName": "framestore",
+          //The size of the block in KB to be transferred at a time. Default is 1 KB
+          // Not implemented
           "DataBlockSizeInKB": 250,
+          //The virtual directory (VD) where the docs will be uploaded. It has to be after the root VD. i.e. if the upload VD is to be http://locahost/documents/<then the file name>, then the value sould be "documents"
           "DocumentsVirtualDirectoryFromRoot": "Documents",
+          //Memory Cache Sliding Expiration duration InMins
           "MemoryCacheSlidingExpirationInMins": 60
         }
 
       ]
+    },
+    "AzureVault": {
+      "DllPath": "D:\\IVA\\GIT\\IVA-3.5-working\\IVA\\IVA_Pipeline\\references\\AzureVaultAdapter.dll",
+      "TypeName": "Infosys.Lif.AzureVaultAdapter",
+      "AzureVaultDetails": [
+        {
+          "TransportName": "IVAAzureVault",
+          "VaultName": "keyvaultiva",
+          "VaultUrl": "https://keyvaultiva1.vault.azure.net/",
+          "Delay": 2,
+          "MaxDelay": 16,
+          "MaxRetries": 3,
+          "CertificatePath": "",
+          "TenantId": "",
+          "ClientId": ""
+        }
+      ]
     }
-
   }
 
 }

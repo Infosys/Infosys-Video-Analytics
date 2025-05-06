@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Infosys.Ainauto.VideoAnalytics.DataEntity</AssemblyName>
     <RootNamespace>Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity</RootNamespace>
   </PropertyGroup>

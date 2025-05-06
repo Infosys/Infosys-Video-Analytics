@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 /* 
  * © 2012-2013 Infosys Limited, Bangalore, India. All Rights Reserved.
  * Version: 1.0 b
@@ -48,7 +47,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessSchedul
             string id,
             int robotId, int runInstanceId, int robotTaskMapId)
             {
-           
+            
             this.drives = drives;
             this.mode = mode;
             this.entityName = entityName;
@@ -59,23 +58,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessSchedul
             this.robotTaskMapId = robotTaskMapId;
             
             LogHandler.LogDebug("Mask Detector  Windows Service {0} Process Started", LogHandler.Layer.Infrastructure, id);
-            var appSettings = Config.AppSettings;
-            string FRCounterInstanceToBeReset = appSettings.CounterInstanceToBeReset.ToString();
-         
-            String[] instanceToBeResetList = FRCounterInstanceToBeReset.Split(',');
-            foreach(var instance in instanceToBeResetList) {
-             
-
-            }
-        
+            
+            
             initiate();
             Initialize(null);
-            
+          
             switch (mode)
             {
                 case ModeType.Queue:
 
-                   
+                    
                     adapterManager.ResponseReceived +=
                         new AdapterManager.AdapterReceiveHandler(adapterManager_ResponseReceived);
 
@@ -87,7 +79,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessSchedul
                         }
                         catch (LegacyException integrationException)
                         {
-                         
+                           
                             LogHandler.LogError(integrationException.Message,
                                 LogHandler.Layer.Business);
                              LogHandler.LogError("Mask Detector Message {0} failed to be processed and exception {1}, stack trace", 
@@ -96,7 +88,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessSchedul
                         }
                         catch (Exception ex)
                         {
-                          
+                            
                             
                             LogHandler.LogError("Mask Detector Message {0} failed to be processed and General Exception {1}, stack trace",
                                 LogHandler.Layer.Infrastructure, id, ex.Message, ex.StackTrace);
@@ -110,7 +102,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessSchedul
 
                     LogHandler.LogDebug("Mask Detector Windows Service {0} Process started for Table. Call Process logic.", LogHandler.Layer.Infrastructure, id);
 
-                    if (id == "FrameGrabber")
+                    if (id == "FrameGrabber" || id == "PromptHandlerProcess" || id=="PcdHandler")
                     {
                         TableDetails jobdetails = new TableDetails();
                         jobdetails.JobName = id;
@@ -155,7 +147,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessSchedul
                                 LogHandler.LogError("Exception occured and Message {0} failed to be processed and exception {1}", LogHandler.Layer.Infrastructure, id, ex.Message);
                             }
                         }
-                        
+                       
                         Thread.Sleep(30000);
                     }
                     break;
@@ -179,17 +171,22 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessSchedul
                     LogHandler.LogWarning("Empty Message was received", LogHandler.Layer.Infrastructure, messageId);
                     return;
                 }
+
                 {
-                   
+                    
                     T qMessage = Utility.DeserializeFromJSON<T>(message);
+                    
                     if (qMessage == null)
                     {
                         LogHandler.LogWarning(
                             "Message {0} deserialized was invalid (null)", LogHandler.Layer.Infrastructure, messageId);
                         return;
                     }
+                    
+
                     Dump(qMessage);
                     LogHandler.LogDebug("Message {0} dumped", LogHandler.Layer.Infrastructure, messageId);
+                    
                     MaintenanceMetaData maintenanceMetaData = Utility.DeserializeFromJSON<MaintenanceMetaData>(message);
                     string messageType = maintenanceMetaData?.MessageType;
                     switch (messageType)
@@ -220,20 +217,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessSchedul
                             if (Process(qMessage, robotId, runInstanceId, robotTaskMapId))
                             {
                                 LogHandler.LogDebug("Message {0} processed succesfully", LogHandler.Layer.Infrastructure, messageId);
-                                
+
                                 adapterManager.Delete(messageId);
                                 LogHandler.LogDebug("Message {0} deleted succesfully", LogHandler.Layer.Infrastructure, messageId);
                             }
                             else
                             {
                                 LogHandler.LogError("Message {0} failed to be processed", LogHandler.Layer.Infrastructure, messageId);
-                               
+                                
                             }
                             break;
                     }
-                 
-
-                   
+                    
                         
                 }
             }
@@ -250,7 +245,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessSchedul
                     }
                     else
                     {
-                      
+                       
                         adapterManager.Delete(messageId);
                         LogHandler.LogDebug("Message {0} deleted succesfully", LogHandler.Layer.Infrastructure, messageId);
                     }
@@ -258,7 +253,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessSchedul
                 }
                 catch (Exception)
                 {
-                    
+                   
                     LogHandler.LogDebug("Message {0} failed to be processed", LogHandler.Layer.Infrastructure, messageId);
                     LogHandler.LogError("Message {0} failed to be processed", LogHandler.Layer.Infrastructure, messageId);
                 }
@@ -266,13 +261,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessSchedul
         }
 
 
+        
         public abstract void Dump(T message);
 
 
         
         public abstract bool Process(T message , int robotId, int runInstanceId, int robotTaskMapId );
 
-        
+       
         public virtual void initiate()
         {
 

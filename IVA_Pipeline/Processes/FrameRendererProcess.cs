@@ -1,12 +1,10 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using ICSharpCode.SharpZipLib.Core;
 using ICSharpCode.SharpZipLib.Zip;
-
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessScheduler.Framework;
@@ -14,10 +12,8 @@ using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCommunication;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Document;
-
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -31,31 +27,24 @@ using System.Runtime.Caching;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
 using static Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common.ApplicationConstants;
-
 using Helper = Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.Helper;
 using QueueEntity = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
 using SC = Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ServiceClientLibrary;
 using SE = Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts;
-
 using Emgu.CV;
 using Emgu.CV.Structure;
 using Emgu.CV.CvEnum;
-using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.VideoAnalytics;
-using Nest;
-using Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.PythonLoader;
-using System.Drawing.Imaging;
- 
+using System.Drawing.Imaging; 
 using FGH = Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent;
-using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess.Document;
+using Infosys.Solutions.Ainauto.VideoAnalytics.Renderer;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 {
     public class FrameRendererProcess : ProcessHandlerBase<QueueEntity.FrameRendererMetadata>
     {
-         
+        
         #region Attribute
         static Dictionary<string, LocalDataStoreSlot> tlsSlots = new Dictionary<string, LocalDataStoreSlot>();
         ClientConnectHost clientConnect;
@@ -75,8 +64,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         bool enablePing;
         string frameId;
         int penThickness;
-        string maskPenColor;
-        string noMaskPenColor;
         int retryCount = 5;
         int waitingTime = 10;
         int labelFontSize;
@@ -90,20 +77,17 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         Stopwatch processStopWatch = new Stopwatch();
         string counterInstanceName = "";
         string boxColor;
-        string predictionClassType;
         string predictionModel;
-       
+        
         private Dictionary<string, Queue> frameQueueDetails = new Dictionary<string, Queue>();
         Queue frameQueue = new Queue();
         bool canInitiateTransferFrame = true;
         private readonly object clientLock = new object();
         int frameRendererWaitTimeForTransport = 100;
-      
-        bool isSharedResource = false;
+        
         private readonly object ffmpegLock = new object();
 
         int eofCount = 1;
-        
         private Dictionary<string, Dictionary<int, List<TransportFrameDetails>>> frameMessageDetails =
            new Dictionary<string, Dictionary<int, List<TransportFrameDetails>>>();
         private Dictionary<string, Queue> sequenceNumberQueueDetails = new Dictionary<string, Queue>();
@@ -121,7 +105,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         private Task previousTask = null;
         static string eofFilePath = null;
         static bool isDbEnabled = true;
-       
+        
         Queue messsageQueue = new Queue();
 
         static private Dictionary<int, QueueEntity.FrameRendererMetadata> messages = new Dictionary<int, QueueEntity.FrameRendererMetadata>();
@@ -137,13 +121,23 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         string RenderImageFilePath;
         int i = 0;
         Dictionary<int, string> colornames = new Dictionary<int, string>();
-        string backGroundColor;
+        string backgroundColor;
         int RendererRectanglePointX;
         int RendererRectanglePointY;
         int RendererLabelPointX;
         int RendererLabelPointY;
         int RendererRectangleHeight;
         string RendererPredictCartListBackgroundColor;
+        public string _taskCode;
+        public AppSettings appSettings;
+        public DeviceDetails deviceDetails;
+
+        public FrameRendererProcess() { }
+
+        public FrameRendererProcess(string processId) 
+        {
+            _taskCode = TaskRoute.GetTaskCode(processId);
+        }
 
         public override void Dump(QueueEntity.FrameRendererMetadata message)
         {
@@ -154,9 +148,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             if (message == null)
             {
                 ReadFromConfig();
+               
                 
-                
-                foreach (KnownColor kc in Enum.GetValues(typeof(KnownColor)))   
+                foreach (KnownColor kc in Enum.GetValues(typeof(KnownColor)))
                 {
                     Color known = Color.FromKnownColor(kc);
                     colornames.Add(i, known.Name);
@@ -228,30 +222,29 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         }
         private void ReadFromConfig()
         {
-            var appSettings = Config.AppSettings;
-            frameRendererWaitTimeForTransport = appSettings.FrameRenderer_WaitTimeForTransportms;
-         
-            isSharedResource = appSettings.FrameRender_IsSharedResource;
-            debugImageFilePath = appSettings.DebugImageFilePath;
-            isImageDebugEnabled = appSettings.ImageDebugEnabled;
-            enablePing = appSettings.EnablePing;
-            retryCount = appSettings.ClientConnectionRetryCount;
-            waitingTime = appSettings.ClientConnectionWaitingTime;
-            ffmpegExeFile = appSettings.FfmpegExeFile;
-            eofCount = appSettings.FrameRenderer_EOF_Count;
-            eofFilePath = appSettings.FrameRenderer_EOF_File_Path;
-            isDbEnabled = appSettings.DBEnabled;
-            isRenderImageEnabled = appSettings.RenderImageEnabled;
-            RenderImageFilePath = appSettings.RenderImageFilePath;
+            appSettings = Config.AppSettings;
+            deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,_taskCode);
+            frameRendererWaitTimeForTransport=deviceDetails.FrameRenderer_WaitTimeForTransportms;
+            
+            debugImageFilePath=deviceDetails.DebugImageFilePath;
+            isImageDebugEnabled=deviceDetails.ImageDebugEnabled;
+            enablePing=deviceDetails.EnablePing;
+            retryCount=deviceDetails.ClientConnectionRetryCount;
+            waitingTime=deviceDetails.ClientConnectionWaitingTime;
+            ffmpegExeFile=deviceDetails.FfmpegExeFile;
+            eofCount=deviceDetails.FrameRenderer_EOF_Count;
+            eofFilePath=deviceDetails.FrameRenderer_EOF_File_Path;
+            isDbEnabled=deviceDetails.DBEnabled;
+            isRenderImageEnabled=deviceDetails.RenderImageEnabled;
+            RenderImageFilePath=deviceDetails.RenderImageFilePath;
 
         }
 
         public override bool Process(QueueEntity.FrameRendererMetadata message,int robotId,int runInstanceId,int robotTaskMapId) {
             
             bool isCompleted=true;
-            DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(message.Tid,message.Did,CacheConstants.FrameRendererCode);
             int initialCollectionBufferingSize=deviceDetails.InitialCollectionBufferingSize;
-          
+           
             int framecount=0;
             int totalMessageCount=-1;
             try {
@@ -266,7 +259,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     else {
                         receivedFrameCountDetails.Add(feedKey,0);
                     }
-                    
+                   
                     if(totalFrameSendForPredictDetails.ContainsKey(feedKey)) {
                         totalMessageCount=totalFrameSendForPredictDetails[feedKey];
                     }
@@ -300,7 +293,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         throw ex;
                     }
                     else {
-                       
+                      
                         return true;
                     }
                 }
@@ -326,7 +319,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 {
                     fileData = File.ReadAllBytes(eofFilePath);
                     cache.Set(eof_cacheKey, fileData, policy);
-                 
+                   
 
 
 
@@ -337,7 +330,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             return fileData;
         }
          
-        
+        /* Method to process each message */
         public bool ProcessMessage(QueueEntity.FrameRendererMetadata frameRendererData) {
             transportStopWatch.Reset();
             lotStopWatch.Reset();
@@ -346,7 +339,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             processStopWatch.Start();
             string feedKey=GenerateFeedKey(frameRendererData.Tid,frameRendererData.Did,frameRendererData.FeedId);
             bool isClientActive=true;
-            DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(frameRendererData.Tid,frameRendererData.Did,CacheConstants.FrameRendererCode);
             bool deleteFramesFromBlob=deviceDetails.DeleteFramesFromBlob;
             bool isEnableLots=deviceDetails.EnableLots;
             String baseUrl=deviceDetails.BaseUrl;
@@ -364,8 +356,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 using(LogHandler.TraceOperations("FrameRenderer:ProcessMessage",LogHandler.Layer.Business,Guid.NewGuid(),null)) {
                     /* if(frameRendererData.Fid==ProcessingStatus.EndOfFile)
                         return true; */
-                    if(!frameRendererData.TE.ContainsKey(TaskRouteConstants.FrameRendererCode)) {
-                        LogHandler.LogError("Message is not processed in FrameRenderer for frameId={0}, tenantId={1}, deviceId={2}, module={3}, message={4}",LogHandler.Layer.Business,frameRendererData.Fid,frameRendererData.Tid,frameRendererData.Did,TaskRouteConstants.FrameProcessorCode,JsonConvert.SerializeObject(frameRendererData));
+                    if(!frameRendererData.TE.ContainsKey(_taskCode)) {
+                        LogHandler.LogError("Message is not processed in FrameRenderer for frameId={0}, tenantId={1}, deviceId={2}, module={3}, message={4}",LogHandler.Layer.Business,frameRendererData.Fid,frameRendererData.Tid,frameRendererData.Did,_taskCode,JsonConvert.SerializeObject(frameRendererData));
                         return true;
                     }
                     frameId=frameRendererData.Fid;
@@ -394,75 +386,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             ClientStatus.Add(feedKey,isClientActive);
                         }
                     }
-                    /* Added to input data type as image
-                    if(deviceDetails.VideoStreamingOption==ProcessingStatus.IMAGE) {
-                        predictedFrameStopWatch.Start();
-                        Translate from data entity to business entity
-                        FrameRendererEntityTranslator entityTranslator=new FrameRendererEntityTranslator();
-                        BE.FrameRendererData frameRendererData1=entityTranslator.FrameRendererTranslator(message);                     
-                        string previousFrameIdKey=frameRendererData.Did+"_previousFrameId";
-                        long currentFrameId=long.Parse(frameRendererData.Fid);
-                        long previousFrameId=0;
-                        if(cache[previousFrameIdKey]!=null) {
-                            previousFrameId=(long)cache[previousFrameIdKey];
-                        }
-                        if(EnforceFrameSequencing || currentFrameId>previousFrameId) {
-                            PostProcessFrame execute as seperate async thread to improve the throughput of FrameRendererProcess
-                            #if DEBUG
-                            LogHandler.LogDebug("FrameRendererProcess - Before calling to PostProcessFrame and Thread Id: {0}",
-                            LogHandler.Layer.Business,Thread.CurrentThread.ManagedThreadId);
-                            #endif
-                            Task.Run(()=> {
-                                try {
-                                    #if DEBUG
-                                    LogHandler.LogDebug("FrameRendererProcess - Calling to PostProcessFrame and Thread Id: {0} ",
-                                    LogHandler.Layer.Business,Thread.CurrentThread.ManagedThreadId);
-                                    #endif
-                                    PostProcessFrameImage(frameRendererData,deviceDetails);
-                                }
-                                catch(Exception ex) {
-                                    if(frameTransferCountDetails.ContainsKey(feedKey)) {
-                                        int count=frameTransferCountDetails[feedKey];
-                                        count++;
-                                        frameTransferCountDetails[feedKey]=count;
-                                    }
-                                    LogHandler.LogError("FrameRendererProcess failed message: {0}",LogHandler.Layer.Business,
-                                    JsonConvert.SerializeObject(frameRendererData));
-                                    LogHandler.LogError("Exception occured while calling PostProcessFrame of FrameRendererProcess error message: {0}, exception trace: {1} ",
-                                    LogHandler.Layer.Business,ex.Message,ex.StackTrace);
-                                    throw ex;
-                                }
-                            });
-                            LogHandler.LogInfo("Message got processed",LogHandler.Layer.Business);
-                            cache.Set(previousFrameIdKey,currentFrameId,policy);
-                            InitiateTransferFrame should call only one time at the begin of the method and keep execute as background thread
-                            #if DEBUG
-                            LogHandler.LogDebug("FrameRendererProcess - canInitiateTransferFrame value: {0} and Thread Id: {1}",
-                            LogHandler.Layer.Business,canInitiateTransferFrame,Thread.CurrentThread.ManagedThreadId);
-                            #endif
-                            if(canInitiateTransferFrame) {
-                                Task.Run(()=> {
-                                    InitiateTransferFrame();
-                                });
-                            }
-                            canInitiateTransferFrame=false;
-                        }
-                        else {
-                            if(frameTransferCountDetails.ContainsKey(feedKey)) {
-                                int count=frameTransferCountDetails[feedKey];
-                                count++;
-                                frameTransferCountDetails[feedKey]=count;
-                            }
-                            LogHandler.LogError("FrameRendererProcess - Frame with frameId: {0} is not processed as the current frame tick ({1}) is less than previous frame tick ({2})",LogHandler.Layer.Business,frameId,currentFrameId,previousFrameId);
-                        }
-                    } 
-                    Check client status */
+                    
                     if (deviceDetails.VideoStreamingOption==ProcessingStatus.FFMPEG || isClientActive) {
                         predictedFrameStopWatch.Start();
-                        /* Translate from data entity to business entity
-                        FrameRendererEntityTranslator entityTranslator=new FrameRendererEntityTranslator();
-                        BE.FrameRendererData frameRendererData1=entityTranslator.FrameRendererTranslator(message); */ 
-                        string previousFrameIdKey=frameRendererData.Did+"_previousFrameId";
+                         
+                        string previousFrameIdKey=frameRendererData.Did+"_previousFrameId"+"_"+CacheConstants.FrameRendererCode;
                         long currentFrameId=0;
                         if(frameRendererData.Fid!="") {
                             currentFrameId=long.Parse(frameRendererData.Fid);
@@ -473,7 +401,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         }
                         string outputImage=deviceDetails.OutputImage.ToLower();
                         if(EnforceFrameSequencing || currentFrameId>previousFrameId || outputImage=="yes") {
-                            /* PostProcessFrame execute as seperate async thread to improve the throughput of FrameRendererProcess */
+                            
                             #if DEBUG
                             LogHandler.LogDebug("FrameRendererProcess - Before calling to PostProcessFrame and Thread Id: {0}",
                             LogHandler.Layer.Business,Thread.CurrentThread.ManagedThreadId);
@@ -497,22 +425,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                     JsonConvert.SerializeObject(frameRendererData));
                                     LogHandler.LogError("Exception occured while calling PostProcessFrame of FrameRendererProcess error message: {0}, exception trace: {1}",
                                     LogHandler.Layer.Business,ex.Message,ex.StackTrace);
-                                    /* throw ex; */
+                                    
                                 }
                             });
-                            /* LogHandler.LogInfo("Message got processed",LogHandler.Layer.Business); */
+                            
                             cache.Set(previousFrameIdKey,currentFrameId,policy);
-                            /* InitiateTransferFrame should call only one time at the begin of the method and keep execute as background thread */
                             #if DEBUG
                             LogHandler.LogDebug("FrameRendererProcess - canInitiateTransferFrame value: {0} and ManagedThreadId: {1}",
                             LogHandler.Layer.Business,canInitiateTransferFrame,Thread.CurrentThread.ManagedThreadId);
                             #endif
-                            /* if(canInitiateTransferFrame) {
-                                Task.Run(()=> {
-                                    InitiateTransferFrame();
-                                });
-                            }
-                            canInitiateTransferFrame=false; */
+                            
                         }
                         else {
                             if(frameTransferCountDetails.ContainsKey(feedKey)) {
@@ -536,19 +458,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                 framesNotSendForClientViewer.Add(seqNumber,frameRendererData.Fid);
                             }
                         }
-                        /* bool deleteFramesFromBlob=deviceDetails.DeleteFramesFromBlob;
-                        bool isEnableLots=deviceDetails.EnableLots;
-                        String baseUrl=deviceDetails.BaseUrl;
-                        String fileExtenstion=String.Empty;
-                        if(isEnableLots) {
-                            fileExtenstion=ApplicationConstants.FileExtensions.zip;
-                        }
-                        else {
-                            fileExtenstion=ApplicationConstants.FileExtensions.jpg;
-                        }
-                        if(deleteFramesFromBlob) {
-                            Helper.DeleteBlob(frameRendererData.Did,frameRendererData.Fid,frameRendererData.Tid,baseUrl,fileExtenstion);
-                        } */
+                        
                         DeleteBlobForDisplayAllFrames(deviceDetails,frameRendererData);
                         blobDeleted=true;
                         throw new ClientInactiveException(String.Format("Client - {0} is inactive, no frames are processed",ipAddress));
@@ -573,7 +483,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 else {
                     LogHandler.LogError("Exception in FrameRendererProcess: {0} for frameId: {1} and deviceId: {2}. Exception trace: {3}",LogHandler.Layer.Business,exMP.Message,frameId,deviceId,exMP.StackTrace);
                 }
-                /* LogHandler.LogDebug(String.Format("Exception occured in ProcessData method of FrameRendererProcess class"),LogHandler.Layer.Business,null); */
                 bool failureLogged=false;
                 try {
                     Exception ex=new Exception();
@@ -583,19 +492,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         throw ex;
                     }
                     else {
-                        /* Set as a successful operation as the message was invalid since an equivalent presentation entity was
-                        not found in the database. This could be a rogue transaction.
-                        Returning a true since the message has been sent with invalid presentation id and has to be deleted
-                        to avoid further processingtiple */
+                        
                         return true;
                     }
                 }
                 catch (Exception ex) {
                     LogHandler.LogError(String.Format(ErrorMessages.Exception_Failed,"ProcessMessage","FrameRendererProcess"),
                     LogHandler.Layer.Business,null);
-                    /* Any messages which would have to indicate to the worker process that the transaction has failed
-                    and the message should be retried
-                    MetricProcessing request failed */
+                   
                     if(!failureLogged) {
                         LogHandler.LogError(String.Format("Exception occured while handling an exception in FrameRendererProcess in ProcessMessage method. Error message: {0}",ex.Message),LogHandler.Layer.Business,null);
                     }
@@ -753,7 +657,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         {
 
                             byte[] pingMsg = Encoding.ASCII.GetBytes("ping");
-                            
+                           
                             if (clientConnect.Send(pingMsg))
                             {
 
@@ -787,7 +691,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                     break;
                             }
                             clientConnect = null;
-                            
                             throw ex;
                         }
                         if (currentRetry <= retryCount)
@@ -803,7 +706,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         {
                             if (currentRetry > retryCount)
                             {
-                                
                                 updateClientStatus(deviceId, tenantId, FrameRendererKey.clientInactive);
                                 clientConnect.WaitClientThreadToStop();
                                 switch (allDevice)
@@ -816,7 +718,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                         break;
                                 }
                                 clientConnect = null;
-                                
                                 throw ex;
                             }
                             if (currentRetry <= retryCount)
@@ -835,7 +736,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                         staticClientConnection = clientConnect;
                                         break;
                                 }
-                                
 
 
                             }
@@ -917,13 +817,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                 LogHandler.LogDebug("FrameRendererProcess created new connection for {0}, ipaddress {1}, port {2}", LogHandler.Layer.Business, processId, ipaddress, port);
 #endif
                                 clientConnect = StartClient(ipaddress, port);
-                                
+                               
                                 cache.Set(clientConnectKey, clientConnect, policy);
 
 
                             }
                         }
-                        
+                     
                         break;
                 }
 #if DEBUG
@@ -950,7 +850,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     TenantId = tenantId
                 };
 
-               
+                
                 var uri = String.Format($"{Config.AppSettings.ConfigWebApi}Configuration/UpdateResourceAttribute");
                 var req = JsonConvert.SerializeObject(data);
                 string apiResponse = ServiceCaller.ServiceCall(req, uri, "PUT");
@@ -1055,10 +955,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         canTransferFrame = false;
                         break;
                     }
-                    
                     if (totalMessageCount > 0 && frameCount >= totalMessageCount)
                     {
-                        
                         isAllFrameReceivedForTransfer = true;
 
                     }
@@ -1070,7 +968,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     {
                         isClientActive = ClientStatus[feedKey];
                     }
-                    
                     if (deviceDetails.VideoStreamingOption == ProcessingStatus.CLIENT_VIEWER && !isClientActive)
                     {
                         cleanUpFrames(transferFrameMessage, deviceDetails);
@@ -1097,7 +994,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                   
                     if (transferFrameMessage != null)
                     {
-                        
                         foreach (int skippedSeqNumber in skippedSequenceNumbers)
                         {
                             if (sequenceNumberList.Contains(skippedSeqNumber))
@@ -1106,14 +1002,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             }
                             if (transferFrameMessage.ContainsKey(skippedSeqNumber))
                             {
-                                
                                 transferFrameMessage.Remove(skippedSeqNumber);
-                                
+
                             }
                         }
                         messageCount = transferFrameMessage.Count;
                     }
-                  
                     if (queueCount > 0 )                  
                     {
                         try
@@ -1125,10 +1019,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                           
                             currentRetry = 0;
                             count++;
-                            
 
 
-                            
+                           
                             if (deviceDetails.VideoStreamingOption == 2)
                             {
                                 if (seqNumberQueue.ToArray().Length > 0)
@@ -1152,19 +1045,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                 seqNumber = (int)seqNumberQueue.Dequeue();
                             }
 
-                          
+                       
                             sequenceNumberList.Add(seqNumber);
 
                             isFrameReceivedForTransfer = true;
-                            
                             if (seqNumber > currentMaxSeqNumber)
                             {
                                 currentMaxSeqNumber = seqNumber;
-                                
                             }
-                            
-
-                            
                             
 
                             
@@ -1194,7 +1082,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
                                         if (isNextSeqBeyondLastFrame)
                                         {
-                                            
                                             transferFrameMessage.Clear();
                                             seqNumberQueue.Clear();
                                             sequenceNumberList.Clear();
@@ -1210,9 +1097,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                                 List<TransportFrameDetails> frameDetails = transferFrameMessage[i];
                                                 if (frameDetails != null)
                                                 {
-                                                    
                                                     transferFrameMessage.Remove(i);
-                                                    
                                                     TransportFrame(frameDetails, totalFrameprocessed);
                                                     frameDetails = null;
                                                 }
@@ -1234,7 +1119,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     else if (messageCount > 0 && isAllFrameReceivedForTransfer)
                     {
                         currentRetry = 0;
-                        
                         switch (EnforceFrameSequencing)
                         {
                             case true:
@@ -1259,7 +1143,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
                                 if (isNextSeqBeyondLastFrame)
                                 {
-                                    
                                     transferFrameMessage.Clear();
                                     seqNumberQueue.Clear();
                                     sequenceNumberList.Clear();
@@ -1290,7 +1173,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 #endif
                         
 
-
                         if (lastFrameNumberSendForPredict > 0 && totalFrameCount > 0 && isFrameReceivedForTransfer && messageCount <= 0)
                         {
 
@@ -1298,8 +1180,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             Thread.Sleep(frameSequencingMessageStuckDuration);
                             currentRetry++;
 
-                            
-
+                           
                             if (frameSequencingMessageRetry <= currentRetry)
                             {
                                 break;
@@ -1308,12 +1189,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         else
                         {
                             
-
                             currentRetry = 0;
                             Thread.Sleep(frameSequencingMessageStuckDuration);
                         }
-                        
-
+                       
                     }
 
                 }
@@ -1323,10 +1202,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                  
                 }
             }
-            
             if (lastFrameTransferDetails.Count > 0)
             {
-            if (feedKey != null && !lastFrameTransferDetails[feedKey])
+                if (feedKey != null && !lastFrameTransferDetails[feedKey])
                 {
 
                     HandlingVideoCompletion(tid, deviceId, ffmpegArgument, feedId, ipAddress, port, videoStreamingOption);
@@ -1394,12 +1272,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     
                     break;
                 }
-                
                 if (lastFrameNumberSendForPredict > 0 && totalFrameCount > 0)
                 {
                     if (nextSeqNumber > lastFrameNumberSendForPredict || nextSeqNumber > totalFrameCount)
                     {
-                        
+                       
                         isNextSeqBeyondLastFrame = true;
                         break;
                     }
@@ -1411,9 +1288,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     {
                         try
                         {
-                            
                             transferFrameframeDetail.Remove(nextSeqNumber);
-                            
                             previousSeqNumber = resetpreviousSeqNumber(nextSeqNumber, maxSequenceNumber);
                             TransportFrame(frameDetail, totalFrameprocessed);
                             frameDetail = null;
@@ -1433,7 +1308,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 }
                 else
                 {
-                                        
                     Thread.Sleep(frameSequencingMessageStuckDuration);
                     currentRetry++;
                     if (frameSequencingMessageRetry <= currentRetry)
@@ -1477,23 +1351,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             for (int i = 1; i <= size; i++)
             {
 
-                
                 int nextSeqNumber = getNextSeqNumber(previousSeqNumber, frameToPredict, maxSequenceNumber);
-                
-
                 
                 if (nextSeqNumber > currentMaxSeqNumber)
                 {
-                    
                     break;
                 }
 
                 if (lastFrameNumberSendForPredict > 0 && totalFrameCount > 0)
                 {
-                    
                     if (nextSeqNumber > lastFrameNumberSendForPredict || nextSeqNumber > totalFrameCount)
                     {
-                        
+                       
                         isNextSeqBeyondLastFrame = true;
                         break;
                     }
@@ -1507,7 +1376,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         {
                             
                             transferFrameMessage.Remove(nextSeqNumber);
-                            
+                           
                             if (seqNumberList.Contains(nextSeqNumber))
                             {
                                 seqNumberList.Remove(nextSeqNumber);
@@ -1531,12 +1400,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 }
                 else
                 {
-                                        
                     Thread.Sleep(frameSequencingMessageStuckDuration);
                     currentRetry++;
                     if (frameSequencingMessageRetry <= currentRetry)
                     {
                         currentRetry = 0;
+                       
                         skippedSequenceNumbers.Add(nextSeqNumber);
                         previousSeqNumber = resetpreviousSeqNumber(nextSeqNumber, maxSequenceNumber);
                     }
@@ -1551,7 +1420,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         private void HandleEndOfFile(int feedId, string deviceId, int tId)
         {
-            
             string ffmpegCacheKey = string.Format(CacheConstants.CacheKeyFormat, CacheConstants.CacheKeyFormatForFfmpegIntialise, tId, deviceId, feedId);
             string eof_cacheKey = CacheConstants.FrameRendererEOF;
             Process proc;
@@ -1564,11 +1432,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
                 if (proc != null)
                 {
-                    
+                   
                     proc.Kill();
                     proc.WaitForExit();
                     proc.Dispose();
-                    
+                   
                     proc = null;
                 }
                 cache.Remove(ffmpegCacheKey);
@@ -1576,7 +1444,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
                 
                 Helper.UpdateCompletedFeedRequestDetails(feedId, ProcessingStatus.FrameRendererCompletedStatus);
-                
+               
 
             }
             DeviceDetails deviceDetails = ConfigHelper.SetDeviceDetails(tId.ToString(), deviceId, CacheConstants.FrameRendererCode);
@@ -1626,7 +1494,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 int totalMessageCount = -1;
                 string ipAddress = "";
                 int port = 0;
-                
                 foreach (TransportFrameDetails transportFrameDetails in transportFrameDetailsList)
                 {
                     if (transportFrameDetails != null)
@@ -1660,20 +1527,17 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         }
 
                         
-
                         if (lastFrameNumberSendForPredict > 0 && totalFrameCount > 0 && totalFrameprocessed > 0)
                         {
 
                             if (frameNumber >= lastFrameNumberSendForPredict || frameNumber >= totalFrameCount || frameNumber >= totalFrameprocessed)
                             {
 
-                                
                                 lastFrameTransferDetails[feedKey] = true;
                             }
 
                         }
 
-                        
                         switch (transportFrameDetails.VideoStreamingOption)
                         {
 
@@ -1687,7 +1551,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
                                 TransportFrame(transportFrameDetails.Data, transportFrameDetails.DeviceId, transportFrameDetails.TenantId,
                                 transportFrameDetails.IpAddress, transportFrameDetails.Port, transportFrameDetails.IsFirstFrame);
-                                
+                               
                                 break;
                         }
                         if(transportFrameDetails.Data !=null)
@@ -1695,13 +1559,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             Array.Clear(transportFrameDetails.Data, 0, transportFrameDetails.Data.Length);
                             transportFrameDetails.Data = null;
                         }
-                        
+                       
 
                         transportProcessStopWatch.Stop();
 
 
                     }
-                   
+                    
                 }
                 if (lastFrameTransferDetails.Count > 0)
                 {
@@ -1719,14 +1583,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
                 LogHandler.LogError(String.Format("Exception Occured while calling TransportFrame of FrameRendererProcess" +
                     " error message: {0}, exception trace {1} ", ex.Message, ex.StackTrace), LogHandler.Layer.Business, null);
-                
+             
             }
         }
 
 
         private void HandlingVideoCompletion(int tid, string deviceId, string ffmpegArgument, int feedId, string ipAddress, int port, int videoStreamingOption)
         {
-            
             TransportFrameDetails transportFrameDetails = new TransportFrameDetails();
             transportFrameDetails.TenantId = tid;
             transportFrameDetails.DeviceId = deviceId;
@@ -1738,7 +1601,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             transportFrameDetails.VideoStreamingOption = videoStreamingOption;
             if (transportFrameDetails.Data != null)
             {
-                
 
                 switch (transportFrameDetails.VideoStreamingOption)
                 {
@@ -1775,20 +1637,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
 
         
-        
-
-
-       
-
-        
-
-        
-
-        
-
-       
-
-        
         public void PostProcessFrame(QueueEntity.FrameRendererMetadata frameRendererData, DeviceDetails deviceDetails)
         {
 #if DEBUG
@@ -1807,23 +1655,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 List<byte[]> dataList = new List<byte[]>();
                 string deviceId = frameRendererData.Did;
                 string baseUrl = deviceDetails.BaseUrl;
-                predictionModel = deviceDetails.PredictionModel;
+                predictionModel = deviceDetails.PredictionModel.Contains(_taskCode) ? JsonConvert.DeserializeObject<Dictionary<string, string>>(deviceDetails.PredictionModel).GetValueOrDefault(_taskCode) : JsonConvert.DeserializeObject<Dictionary<string, string>>(deviceDetails.PredictionModel).GetValueOrDefault("default");
                 bool enableLot = deviceDetails.EnableLots;
                 string ipaddress = deviceDetails.IpAddress;
                 port = deviceDetails.Port;
                 penThickness = deviceDetails.PenThickness;
-                maskPenColor = deviceDetails.MaskPenColor;
-                noMaskPenColor = deviceDetails.NoMaskPenColor;
                 boxColor = deviceDetails.BoxColor;
                 int tenantId = Convert.ToInt32(frameRendererData.Tid);
                 labelFontSize = deviceDetails.LabelFontSize;
                 labelFontStyle = deviceDetails.LabelFontStyle;
                 labelHeight = deviceDetails.LabelHeight;
                 labelFontColor = deviceDetails.LabelFontColor;
-                predictionClassType = deviceDetails.PredictionClassType;
                 int videoStreamingOption = deviceDetails.VideoStreamingOption;
                 string ffmpegArguments = deviceDetails.FfmpegArguments;
-                backGroundColor=deviceDetails.BackGroundColor;
+                backgroundColor=deviceDetails.BackgroundColor;
                 RendererRectanglePointX = deviceDetails.RendererRectanglePointX;
                 RendererRectanglePointY = deviceDetails.RendererRectanglePointY;
                 RendererLabelPointX = deviceDetails.RendererLabelPointX;
@@ -1838,7 +1683,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 #endif
                 try
                 {
-                    ProcessPreLoadedImage(frameRendererData, baseUrl, predictionModel, deviceDetails);
+                    ProcessPreLoadedImage(frameRendererData, baseUrl, predictionModel);
 
                 }
                 catch (Exception ex)
@@ -1855,15 +1700,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         }
 
         
-        
-       
-
-       
-
         private Process IntialiseFfmpeg(string arguments, string tId, string deviceId, int feedId)
         {
-            
-            string intialiseFfmpegCacheKey = string.Format(CacheConstants.CacheKeyFormat, CacheConstants.CacheKeyFormatForFfmpegIntialise, tId, deviceId, feedId);
+            string intialiseFfmpegCacheKey=string.Format(CacheConstants.CacheKeyFormat+"_{4}",CacheConstants.CacheKeyFormatForFfmpegIntialise,tId,deviceId,feedId,CacheConstants.FrameRendererCode);
             Process proc;
             lock (ffmpegLock)
             {
@@ -1876,7 +1715,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     proc.StartInfo.FileName = ffmpegExeFile;
                     
                       proc.StartInfo.Arguments = arguments;
-              
+             
                     proc.StartInfo.UseShellExecute = false;
                     proc.StartInfo.RedirectStandardInput = true;
                     proc.StartInfo.RedirectStandardOutput = true;
@@ -1891,7 +1730,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             return proc;
         }
         
-        private void ProcessPreLoadedImage(QueueEntity.FrameRendererMetadata frameRendererData,string baseUrl,string modelName,DeviceDetails deviceDetails) {
+        private void ProcessPreLoadedImage(QueueEntity.FrameRendererMetadata frameRendererData,string baseUrl,string modelName) {
             try {
                 #if DEBUG
                 LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start,"ProcessPreLoadedImage","FrameRendererProcess"),LogHandler.Layer.Business,null);
@@ -1901,7 +1740,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     List<TransportFrameDetails> transportFrameDetailsList=new List<TransportFrameDetails>();
                     string cacheKey=frameRendererData.Tid+frameRendererData.Did+frameRendererData.Fid;
                     lotStopWatch.Start();
-                    int seqNumber=int.Parse(frameRendererData.SequenceNumber);
+                    int seqNumber = int.TryParse(frameRendererData.SequenceNumber, out seqNumber) == true ? seqNumber : 0;
                     string feedKey=GenerateFeedKey(frameRendererData.Tid,frameRendererData.Did,frameRendererData.FeedId);
                     Dictionary<string,Stream> frameDict=(Dictionary<string,Stream>)cache[cacheKey];
                     Dictionary<string,Stream> frameDict1=(Dictionary<string,Stream>)cache[cacheKey];
@@ -1964,15 +1803,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                             emguImage=matImage.ToImage<Bgr,byte>();
                                         }
                                         frameRendererData.Fid=key.Replace(".jpg","");
-                                        /* frameDetails=ProcessData(emguImage,frameRendererData,modelName,
-                                        deviceDetails.SharedBlobStorage,deviceDetails.KpSkeleton); */
-                                        frameDetails=ProcessData(emguImage,frameRendererData,modelName,
-                                        deviceDetails);
+                                        
+                                        frameDetails=ProcessData(emguImage,frameRendererData,modelName);
                                         if(deviceDetails.HeatMap.ToUpper()=="YES") {
                                             frameDict1=DownLoadFrames(frameRendererData,deviceDetails);
                                             using(Stream imageStream1=frameDict1[key]) {
                                                 if(imageStream1.Length>0) {
-                                                    /* Image<Bgr,byte> emguImage1; */
+                                                   
                                                     using(MemoryStream ms1=new MemoryStream()) {
                                                         imageStream1.CopyTo(ms1);
                                                         byte[] imageBytes=ms1.ToArray();
@@ -1981,7 +1818,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                                         CvInvoke.Imdecode(imageBytes,ImreadModes.Color,matImage1);
                                                         emguImage=matImage1.ToImage<Bgr,byte>();
                                                         frameDetails.Frame=emguImage.ToJpegData();
-                                                        /* emguImage1.Save(RenderImageFilePath+frameRendererData.Fid+ApplicationConstants.FileExtensions.jpg); */
                                                     }
                                                 }
                                             }
@@ -1993,7 +1829,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                         if(modelName.ToLower()=="templatematching") {
                                             Mat matImage2=new Mat();
                                             CvInvoke.Imdecode(frameDetails.Frame,ImreadModes.Color,matImage2);
-                                            /* matImage2.Save(@"C:\Users\riya.sharma03\Downloads\outputvideos\test6.jpg"); */
                                             emguImage=matImage2.ToImage<Bgr,byte>();
                                         }
                                         frameDetails.IsFirstFrame=isFirstFrame;
@@ -2004,19 +1839,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                                     emguImage.Save(RenderImageFilePath+frameRendererData.Fid+ApplicationConstants.FileExtensions.jpg);
                                                 }
                                             }
-                                            /* Console.WriteLine("Hitted save");
-                                            Save the processed image into local file path for debug purpose */
+                                            
                                             if(isFirstFrame && isRenderImageEnabled!=null && isRenderImageEnabled.Equals("true",
                                             StringComparison.InvariantCultureIgnoreCase)) {
                                                 if(RenderImageFilePath!=null && Directory.Exists(RenderImageFilePath)) {
                                                     emguImage.Save(RenderImageFilePath+frameRendererData.Fid+ApplicationConstants.FileExtensions.jpg);
                                                 }
                                             }
-                                            /* emguImage.Dispose();
-                                            emguImage=null; */
+                                            
                                         }
-                                        /* else if(deviceDetails.VideoStreamingOption==2 && deviceDetails.VideoFeedType=="IMAGE") {
-                                        Save the processed image into local file path for debug purpose */
+                                        
                                         if(isFirstFrame && isImageDebugEnabled!=null && isImageDebugEnabled.Equals("true",
                                         StringComparison.InvariantCultureIgnoreCase)) {
                                             if(debugImageFilePath!=null && Directory.Exists(debugImageFilePath)) {
@@ -2025,13 +1857,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                         }
                                         emguImage.Dispose();
                                         emguImage=null;
-                                        /* } */
+                                        
                                     }
                                     TransportFrameDetails transportFrameDetails;
                                     switch(deviceDetails.VideoStreamingOption)  {
-                                        /* There are two VideoStreamingOptions: 0 and 1
-                                        Incase of VideoStreamingOptions is 0, tcp connection is established and frames are sent along with other details for analytics purpose
-                                        Incase of VideoStreamingOptions is 1, ffmpeg is intialised and only frames are sent */
+                                       
                                         case 1:
                                             data=frameDetails.Frame;
                                             break;
@@ -2039,7 +1869,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                             data=SerializeFrameDetails(frameDetails);
                                             break;
                                     }
-                                    /* if(deviceDetails.VideoStreamingOption!=2) { */
+                                    
                                     transportFrameDetails=new TransportFrameDetails {
                                         Data=data,
                                         DeviceId=frameRendererData.Did,
@@ -2055,7 +1885,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                         FrameNumber=frameRendererData.FrameNumber
                                     };
                                     transportFrameDetailsList.Add(transportFrameDetails);
-                                    /* } */
+                                    
                                     #if DEBUG
                                     LogHandler.LogDebug("FrameRendererProcess - after pushing transportFrameDetails - frameQueue count: {0} and thread id: {1}",
                                     LogHandler.Layer.Business,frameQueue.Count,Thread.CurrentThread.ManagedThreadId);
@@ -2082,7 +1912,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                 count++;
                                 frameTransferCountDetails[feedKey]=count;
                                 if(frameMessage!=null) {
-                                    /* If sequence number already exist in the frameMessage and update new frameDetails, if not add it to the message */
                                     if(!frameMessage.ContainsKey(seqNumber)) {
                                         frameMessage.Add(seqNumber,transportFrameDetailsList);
                                     }
@@ -2154,14 +1983,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 SeqNumberAfterClientActive.Add(feedKey, 0);
         }
 
-        
-
-
-        
-
-        
-
-        
+     
         public BigInteger getFrameId(string file)
         {
             file = file.Replace(".jpg", "");
@@ -2171,20 +1993,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         
 
-        
-        
-
-        
-
-       
-
-        private FrameDetails ProcessData(Image<Bgr,byte> image,QueueEntity.FrameRendererMetadata frameRendererData,string modelName,DeviceDetails deviceDetails) {
-            /* var response=JObject.Parse(Kpskeleton);
-            string[] values=Kpskeleton.Split(']');
-            JsonConvert.DeserializeObject(Kpskeleton);
-            foreach(var v in Kpskeleton) {
-                Console.WriteLine(v);
-            } */
+        private FrameDetails ProcessData(Image<Bgr,byte> image,QueueEntity.FrameRendererMetadata frameRendererData,string modelName) {
+            
             #if DEBUG
             LogHandler.LogDebug(String.Format("The ProcessData method of FrameRendererProcess class is getting executed with parameters: frameRendererData message={0}",
             JsonConvert.SerializeObject(frameRendererData)),LogHandler.Layer.Business,null);
@@ -2199,11 +2009,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     frameDetails.TenantId=frameRendererData.Tid;
                     frameDetails.DeviceId=frameRendererData.Did;
                     frameDetails.FrameId=frameRendererData.Fid;
-                    /* frameDetails.Ad=frameRendererData.Ad; */
+                   
                     int frameWidth=image.Width;
                     int frameHeight=image.Height;
                     List<QueueEntity.Predictions> ObjectList=new List<QueueEntity.Predictions>();
+                    Dictionary<string, List<QueueEntity.Predictions>> objDictionary = new Dictionary<string, List<QueueEntity.Predictions>>();
                     if(frameRendererData.Fs!=null && frameRendererData.Fs.Length!=0) {
+
+                        #region Taking predictions into lists
+                        /*
                         foreach(QueueEntity.Predictions obj in frameRendererData.Fs) {
                             ObjectDetails objectDetails=new ObjectDetails();
                             if(obj.Lb==null)  {
@@ -2228,20 +2042,57 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             #endif
                             frameDetails.Objects.Add(objectDetails);
                         }
-                        string outputImage=deviceDetails.OutputImage.ToLower();
-                        if(outputImage!="yes") {
-                            image=ProcessImage(ObjectList,image,frameWidth,frameHeight,modelName,
-                            frameRendererData.Info,deviceDetails,frameRendererData.Ad,frameDetails);
-                            /* image.Save(@"C:\Users\riya.sharma03\Downloads\outputvideos\test5.jpg"); */
+                        */
+                        #endregion
+
+                        #region Taking predictions into dictionary as per task type
+                        foreach (QueueEntity.Predictions obj in frameRendererData.Fs)
+                        {
+                            ObjectDetails objectDetails = new ObjectDetails();
+                            if (obj.Lb == null)
+                            {
+                                obj.Lb = obj.Pid;
+                            }
+                            if (objDictionary.TryGetValue(obj.TaskType, out List<QueueEntity.Predictions> predictions))
+                            {
+                                predictions.Add(obj);
+                            }
+                            else
+                            {
+                                objDictionary[obj.TaskType] = new List<QueueEntity.Predictions> { obj };
+                            }
+                            objectDetails.Class = obj.Lb;
+#if DEBUG
+                            using (LogHandler.TraceOperations("FrameRendererProcess:double.Parse",
+                            LogHandler.Layer.Business, Guid.NewGuid()))
+                            {
+#endif
+                                if (obj.Cs != null)
+                                {
+                                    double score = 0;
+                                    double.TryParse(obj.Cs, out score);
+                                    objectDetails.ConfidenceScore = score;
+                                }
+                                else
+                                {
+                                    objectDetails.ConfidenceScore = 0;
+                                }
+#if DEBUG
+                            }
+#endif
                         }
-                        /* image=ProcessImage(ObjectList,image,frameWidth,frameHeight,modelName,
-                        frameRendererData.Class,frameRendererData.Info,deviceDetails,frameRendererData.Ad); */
+                        #endregion
+
+                        string outputImage =deviceDetails.OutputImage.ToLower();
+                        if(outputImage!="yes") {
+                           
+                            image = ProcessFrame(objDictionary, image, frameWidth, frameHeight, modelName,
+                            frameRendererData.Info, frameRendererData.Ad, frameDetails);
+                           
+                        }
+                       
                     }
-                    /* Added to test heatmap
-                    else if(!string.IsNullOrEmpty(frameRendererData.Ad)) {
-                        image=ProcessImage(ObjectList,image,frameWidth,frameHeight,modelName,
-                        frameRendererData.Info,deviceDetails,frameRendererData.Ad);
-                    } */
+                    
                     else if(!string.IsNullOrEmpty(frameRendererData.Class)) {
                         ObjectDetails objectDetails=new ObjectDetails();
                         objectDetails.Class=frameRendererData.Class;
@@ -2256,11 +2107,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     LogHandler.LogError("Exception in ProcessData method of FrameRenderer process, message: {0}, stack trace: {1}",
                     LogHandler.Layer.Business,ex.Message,ex.StackTrace);
                     throw ex;
-                    /* Console.WriteLine(ex.Message); */
+                    
                 }
-                /* image.Save("bef.jpg"); */
+                
                 frameDetails.Frame=image.ToJpegData();
-                /* image.Save("tafter2.jpg"); */
+               
                 return frameDetails;
                 #if DEBUG
             }
@@ -2286,7 +2137,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
                     byte[] buffer = new byte[zipEntry.Size];
 
-                  
+                    
 
                     StreamUtils.Copy(zipInputStream, data, buffer);
                     result.Add(zipEntry.Name, data);
@@ -2298,26 +2149,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             return result;
         }
        
-
-
-        
-
-        
-
-        
-        
-       
-
-        
-        
-
-        
-
-
-
-        
-
-        
 
         private Image<Bgr,byte> ProcessImage(List<QueueEntity.Predictions> objectList,Image<Bgr,byte> image,int frameWidth,
         int frameHeight,string modelName,string info,DeviceDetails deviceDetails,string Ad,FrameDetails frameDetails) {
@@ -2334,7 +2165,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 Rectangle rectangle1=new Rectangle();
                 MCvScalar color=new MCvScalar();
                 #region Added background color from Device.json
-                Color clBgColor=Color.FromName(backGroundColor);
+                Color clBgColor=Color.FromName(backgroundColor);
                 Color clBgColorPredictCartList=Color.FromName(RendererPredictCartListBackgroundColor);
                 #endregion
                 string label="";
@@ -2351,12 +2182,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         var Obj = jObjects["Obj"].ToString();
                         #endregion
                         rectangle = new Rectangle(10, 10, 700, 35);
-                        
                         color = new MCvScalar(clBgColor.R, clBgColor.G, clBgColor.B);
                         CvInvoke.Rectangle(image, rectangle, color, penThickness);
                         CvInvoke.Rectangle(image, rectangle, color, -1);
                         rectangle = new Rectangle(10, 50, 200, 115);
-                        
                         color = new MCvScalar(clBgColorPredictCartList.R,clBgColorPredictCartList.G,clBgColorPredictCartList.B);
                         CvInvoke.Rectangle(image, rectangle, color, penThickness);
                         CvInvoke.Rectangle(image, rectangle, color, -1);
@@ -2384,11 +2213,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 {
                     
                     rectangle = new Rectangle(RendererRectanglePointX, RendererRectanglePointY, frameWidth, RendererRectangleHeight);
-                    
                     color = new MCvScalar(clBgColor.R, clBgColor.G, clBgColor.B);
                     CvInvoke.Rectangle(image, rectangle, color, penThickness);
                     CvInvoke.Rectangle(image, rectangle, color, -1);
-                    
                     Point point = new Point(RendererLabelPointX, RendererLabelPointY);
                     
                     Color color3 = Color.FromName(labelFontColor);
@@ -2398,7 +2225,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 }
                 else if (deviceDetails.BackgroundChange.ToLower() == "yes")
                 {
-                    
+
                 }
                 else if (deviceDetails.SegmentRendering.ToLower() == "yes")
                 {
@@ -2416,14 +2243,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         if (deviceDetails.PanopticSegmentation == "yes")
                         {
                             for (int i = 0; i < tpc.Count; i++)
-                                {
-                                    int x = (int)Math.Round(tpc[i][0] * w);
-                                    int y = (int)Math.Round(tpc[i][1] * h);
+                            {
+                                int x = (int)Math.Round(tpc[i][0] * w);
+                                int y = (int)Math.Round(tpc[i][1] * h);
                                     string pickColor = segmentColors[(obj+1).ToString()];
-                                    Color objectColor = System.Drawing.Color.FromName(pickColor);
-                                    tpcColor = new Bgr(objectColor);
-                                    image[y, x] = tpcColor;
-                                }
+                                Color objectColor = System.Drawing.Color.FromName(pickColor);
+                                tpcColor = new Bgr(objectColor);
+                                image[y, x] = tpcColor;
+                            }
                         }
                         else
                         {
@@ -2431,7 +2258,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             {
                                 int x = (int)Math.Round(tpc[i][0] * w);
                                 int y = (int)Math.Round(tpc[i][1] * h);
-                                
+                               
                                 string pickColor = labelColors[objectList[obj].Lb];
                                 Color objectColor = System.Drawing.Color.FromName(pickColor);
                                 tpcColor = new Bgr(objectColor);
@@ -2448,7 +2275,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         }
                     }
                 }
-                
+
                 else if(deviceDetails.SpeedDetection.ToLower() == "yes")
                 {
                     MCvScalar lbColor = new Bgr(255, 255, 255).MCvScalar;
@@ -2456,7 +2283,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     double fontScale = 1;
                     int thickness = 3;
 
-                    
+                  
                     Point position = new Point(10, 30);
 
                     
@@ -2500,159 +2327,119 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 }
                 else if (deviceDetails.ClassificationRendering.ToLower() == "yes")
                 {
-                    
+
                     if (objectList != null)
                     {
-                       
-                      rectangle = new Rectangle(RendererRectanglePointX,RendererRectanglePointY, frameWidth, RendererRectangleHeight);
+                        rectangle = new Rectangle(RendererRectanglePointX, RendererRectanglePointY, frameWidth, RendererRectangleHeight);
                         color = new MCvScalar(clBgColor.B, clBgColor.G, clBgColor.R);
-                        
                         CvInvoke.Rectangle(image, rectangle, color, -1);
-                       
                         Color color3 = Color.FromName(labelFontColor);
                         color = new MCvScalar(color3.B, color3.G, color3.R);
                         int x = RendererLabelPointX;
-                        int y = RendererLabelPointY;                        
+                        int y = RendererLabelPointY;
                         double cs;
                         for (int i = 0; i < objectList.Count; i++)
                         {
+
+                            string[] words = objectList[i].Lb.Split(' ');
+                            string currentLine = "";
+                            int baseline = 0;
+                            Size textSize = CvInvoke.GetTextSize(currentLine, FontFace.HersheySimplex, deviceDetails.RendererFontScale, deviceDetails.RendererFontThickness, ref baseline);
+                            foreach (string word in words)
+                            {
+                                baseline = 0;
+                                textSize = CvInvoke.GetTextSize(currentLine, FontFace.HersheySimplex, deviceDetails.RendererFontScale, deviceDetails.RendererFontThickness, ref baseline);
+                                if (textSize.Width < image.Width * 0.8)
+                                {
+                                    currentLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
+                                }
+                                else
+                                {
+                                    y += textSize.Height;
+                                    Point point = new Point(x, y);
+                                    CvInvoke.PutText(image, currentLine, point, FontFace.HersheySimplex, deviceDetails.RendererFontScale, color, deviceDetails.RendererFontThickness);
+                                    currentLine = "";
+                                }
+                            }
+
                             if (objectList[i].Cs != "")
                             {
                                 cs = Convert.ToDouble(objectList[i].Cs);
                                 cs = Math.Round(cs, 2);
-                                y += 10;
+                                y += textSize.Height;
+                                currentLine += " , " + cs.ToString();
                                 Point point = new Point(x, y);
-                                CvInvoke.PutText(image, objectList[i].Lb + ", " + cs, point, FontFace.HersheySimplex, deviceDetails.RendererFontScale, color,deviceDetails.RendererFontThickness);
+                                CvInvoke.PutText(image, currentLine, point, FontFace.HersheySimplex, deviceDetails.RendererFontScale, color, deviceDetails.RendererFontThickness);
                             }
                             else
                             {
-                                y += 10;
+                                y += textSize.Height;
                                 Point point = new Point(x, y);
-                                CvInvoke.PutText(image, objectList[i].Lb, point, FontFace.HersheySimplex, deviceDetails.RendererFontScale, color, deviceDetails.RendererFontThickness);
+                                CvInvoke.PutText(image, currentLine, point, FontFace.HersheySimplex, deviceDetails.RendererFontScale, color, deviceDetails.RendererFontThickness);
                             }
                         }
                     }
                 }
-             
-             else if(deviceDetails.Tracking.ToLower() == "yes")
+                else if(deviceDetails.Tracking.ToLower() == "yes")
                 {
-                     Color color2 = new Color();
-                  
+                    Color color2 = new Color();
                     for (var i = 0; i < objectList.Count; i++)
                     {
                         QueueEntity.Predictions face = objectList[i];
                         QueueEntity.BoundingBox box = face.Dm;
                         if (face.Uid != null)
                         {
-                            
                             label = face.Uid;
                         }
                         else
                         {
                             label = face.Pid.ToLower();
                         }
-                        switch (label.Contains("mask"))
+                       
+                        JObject colorJson = JObject.Parse(boxColor);
+                        string pencolor;
+                        if (colorJson[label] != null)
                         {
-                            case true:
-                                if (label.StartsWith("mask"))
+                            pencolor = colorJson[label].ToString();
+                            color2 = Color.FromName(pencolor);
+                        }
+                        else if (label != null && int.TryParse(label, out int value))
+                        {
+                            try
+                            {
+                                pencolor = colornames[Convert.ToInt32(label)].ToString();
+                                color2 = Color.FromName(pencolor);
+                            }
+                            catch(Exception ex)
+                            {
+                               
+                                LogHandler.LogError("Error in rendering, Exception : {0}\nStackTrace : {1}", LogHandler.Layer.Business, ex.Message, ex.StackTrace);
+                            }
+                        }
+                        else
+                        {
+                            pencolor = string.Empty;
+                            if (face.Np != null)
+                            {
+                                if (face.Np.ToLower() == "yes")
                                 {
-                                    color2 = Color.FromName(maskPenColor);
-                                    if (label.Contains("2"))
-                                    {
-                                        /*
-                                        LogHandler.CollectPerformanceMetric(ApplicationConstants.FRPerfMonCategories.CategoryName,
-                                        ApplicationConstants.FRPerfMonCounters.Mask2ObjectDetected,
-                                        counterInstanceName,1,false,false);
-                                        */
-                                    }
-                                    else if (label.Contains("1"))
-                                    {
-                                        /*
-                                        LogHandler.CollectPerformanceMetric(ApplicationConstants.FRPerfMonCategories.CategoryName, 
-                                        ApplicationConstants.FRPerfMonCounters.Mask1ObjectDetected,
-                                        counterInstanceName,1,false,false);
-                                        */
-                                    }
-                                    label = FrameRendererKey.maskLabel;
-                                }
-                                else if (label.StartsWith("no"))
-                                {
-                                    color2 = Color.FromName(noMaskPenColor);
-                                    label = FrameRendererKey.noMaskLabel;
-                                    /*
-                                    LogHandler.CollectPerformanceMetric(ApplicationConstants.FRPerfMonCategories.CategoryName, 
-                                    ApplicationConstants.FRPerfMonCounters.NoMaskObjectDetected,
-                                    counterInstanceName,1,false,false);
-                                    */
-                                }
-                                color = new MCvScalar(color2.B, color2.G, color2.R);
-                                break;
-                            case false:
-                                JObject colorJson = JObject.Parse(boxColor);
-                                string pencolor;
-                                if (colorJson[label] != null)
-                                {
-                                    pencolor = colorJson[label].ToString();
+                                    pencolor = colorJson["new_person"].ToString();
                                     color2 = Color.FromName(pencolor);
                                 }
-                                else if (label != null && int.TryParse(label, out int value))
-                                {
-                                    try
-                                    {
-                                        pencolor = colornames[Convert.ToInt32(label)].ToString();
-                                        color2 = Color.FromName(pencolor);
-                                    }
-                                    catch(Exception ex)
-                                    {
-                                        
-                                        LogHandler.LogError("Error in rendering, Exception : {0}\nStackTrace : {1}", LogHandler.Layer.Business, ex.Message, ex.StackTrace);
-                                    }
-                                }
                                 else
                                 {
-                                    pencolor = string.Empty;
-                                    if (face.Np != null)
-                                    {
-                                        if (face.Np.ToLower() == "yes")
-                                        {
-                                            pencolor = colorJson["new_person"].ToString();
-                                            color2 = Color.FromName(pencolor);
-                                        }
-                                        else
-                                        {
-                                            pencolor = colorJson["default"].ToString();
-                                            color2 = Color.FromName(pencolor);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        pencolor = colorJson["default"].ToString();
-                                        color2 = Color.FromName(pencolor);
-                                    }
+                                    pencolor = colorJson["default"].ToString();
+                                    color2 = Color.FromName(pencolor);
                                 }
-                                color = new MCvScalar(color2.B, color2.G, color2.R);
-                                string counterName;
-                                if (predictionClassType == "dynamic")
-                                {
-                                    counterName = string.Format(ApplicationConstants.FRPerfMonCounters.CounterTemplate,
-                                    predictionModel);
-                                }
-                                else
-                                {
-                                    counterName = string.Format(ApplicationConstants.FRPerfMonCounters.CounterTemplate,
-                                    label);
-                                }
-                                /*
-                                LogHandler.CollectPerformanceMetric(ApplicationConstants.FRPerfMonCategories.CategoryName, 
-                                counterName,counterInstanceName,1,false,false);
-                                */
-                                break;
+                            }
+                            else
+                            {
+                                pencolor = colorJson["default"].ToString();
+                                color2 = Color.FromName(pencolor);
+                            }
                         }
-                        /*
-                        LogHandler.CollectPerformanceMetric(ApplicationConstants.FRPerfMonCategories.CategoryName, 
-                        ApplicationConstants.FRPerfMonCounters.TotalObjectDetected,
-                        counterInstanceName,1,false,false);
-                        */
+                        color = new MCvScalar(color2.B, color2.G, color2.R);
+                        
                         if (box != null)
                         {
                             int x = Convert.ToInt32(Math.Round(float.Parse(box.X) * image.Width));
@@ -2665,10 +2452,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 #endif
                             rectangle = new Rectangle(x, y, w, h);
                             CvInvoke.Rectangle(image, rectangle, color, penThickness);
-                            /*
-                            image.Data.SetValue((byte)105,new int[]{0,0,0});
-                            image.Data.SetValue((byte)105,new int[]{0,0,1});
-                            */
+                            
                             rectangle = new Rectangle(x, y - labelHeight, w, labelHeight);
                             CvInvoke.Rectangle(image, rectangle, color, penThickness);
                             CvInvoke.Rectangle(image, rectangle, color, -1);
@@ -2676,16 +2460,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             Color color3 = Color.FromName(labelFontColor);
                             color = new MCvScalar(color3.B, color3.G, color3.R);
                             CvInvoke.PutText(image, label, point3, FontFace.HersheySimplex, deviceDetails.RendererFontScale, color, deviceDetails.RendererFontThickness);
-                            /*
-                            image.Data.SetValue((byte)35,new int[]{0,0,0});
-                            image.Data.SetValue((byte)35,new int[]{0,0,2});
-                            */
+                            
                         }
 
                     }
                 }
-              else if (deviceDetails.CrowdCounting.ToLower() == "yes")
-                {                  
+                else if (deviceDetails.CrowdCounting.ToLower() == "yes")
+                {
                     Color color2 = new Color();
                     
                     QueueEntity.Predictions face = objectList[0];
@@ -2703,13 +2484,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     Color color3 = Color.FromName(labelFontColor);
                     color = new MCvScalar(color3.B, color3.G, color3.R);
                     CvInvoke.PutText(image, label, point3, FontFace.HersheySimplex, deviceDetails.RendererFontScale, color, deviceDetails.RendererFontThickness);
-            
+
                     for (var z = 0; z < face.Tpc.Count; z++)
                     {
                         var point1 = Convert.ToInt32(face.Tpc[z][0] * image.Width);
                         var point2 = Convert.ToInt32(face.Tpc[z][1] * image.Height);
-                       CvInvoke.Circle(image, new Point(point1, point2), 4, new MCvScalar(0, 0, 255), -1);
-                      
+                        CvInvoke.Circle(image, new Point(point1, point2), 4, new MCvScalar(0, 0, 255), -1);
+
                     }
                     string ext = new ImageFormatConverter().ConvertToString(image.ToJpegData());
                 }
@@ -2763,6 +2544,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             imageStream.CopyTo(ms);
                             byte[] imageBytes = bytes.ToArray();
 
+                          
                             FGH.FrameGrabberHelper.CompressImage(imageBytes, ms, 100).CopyTo(ms);
                             FGH.FrameGrabberHelper.UploadToBlob(ms, frameDetails.FrameId + ApplicationConstants.FileExtensions.jpg);
                             ms.Dispose();
@@ -2773,12 +2555,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     {
                         throw ex;
                     }
-                    
 
 
+
+
+
+                   
 
                 }
-              
+                
+                
                 else {
                     Color color2=new Color();
                     for(var i=0;i<objectList.Count;i++) {
@@ -2790,78 +2576,41 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         else {
                             label=face.Pid.ToLower();
                         }
-                        switch(label.Contains("mask")) {
-                            case true:
-                                if(label.StartsWith("mask")) {
-                                    color2=Color.FromName(maskPenColor);
-                                    if(label.Contains("2")) {
-                                        /* LogHandler.CollectPerformanceMetric(ApplicationConstants.FRPerfMonCategories.CategoryName,
-                                        ApplicationConstants.FRPerfMonCounters.Mask2ObjectDetected,
-                                        counterInstanceName,1,false,false) */
-                                    }
-                                    else if(label.Contains("1")) {
-                                        /* LogHandler.CollectPerformanceMetric(ApplicationConstants.FRPerfMonCategories.CategoryName, 
-                                        ApplicationConstants.FRPerfMonCounters.Mask1ObjectDetected,
-                                        counterInstanceName,1,false,false); */
-                                    }
-                                    label=FrameRendererKey.maskLabel;
-                                }
-                                else if(label.StartsWith("no")) {
-                                    color2=Color.FromName(noMaskPenColor);
-                                    label=FrameRendererKey.noMaskLabel;
-                                    /* LogHandler.CollectPerformanceMetric(ApplicationConstants.FRPerfMonCategories.CategoryName, 
-                                    ApplicationConstants.FRPerfMonCounters.NoMaskObjectDetected,
-                                    counterInstanceName,1,false,false); */
-                                }
-                                color=new MCvScalar(color2.B,color2.G,color2.R);
-                                break;
-                            case false:
-                                JObject colorJson=JObject.Parse(boxColor);
-                                string pencolor;
-                                if(colorJson[label]!=null) {
-                                    pencolor=colorJson[label].ToString();
+                        
+                        JObject colorJson=JObject.Parse(boxColor);
+                        string pencolor;
+                        if(colorJson[label]!=null) {
+                            pencolor=colorJson[label].ToString();
+                            color2=Color.FromName(pencolor);
+                        }
+                        else {
+                            pencolor=string.Empty;
+                            if(face.Np!=null) {
+                                if(face.Np.ToLower()=="yes") {
+                                    pencolor=colorJson["new_person"].ToString();
                                     color2=Color.FromName(pencolor);
                                 }
                                 else {
-                                    pencolor=string.Empty;
-                                    if(face.Np!=null) {
-                                        if(face.Np.ToLower()=="yes") {
-                                            pencolor=colorJson["new_person"].ToString();
-                                            color2=Color.FromName(pencolor);
-                                        }
-                                        else {
-                                            pencolor=colorJson["default"].ToString();
-                                            color2=Color.FromName(pencolor);
-                                        }
-                                    }
-                                    else {
-                                        pencolor=colorJson["default"].ToString();
-                                        color2=Color.FromName(pencolor);
-                                    }
+                                    pencolor=colorJson["default"].ToString();
+                                    color2=Color.FromName(pencolor);
                                 }
-                                color=new MCvScalar(color2.B,color2.G,color2.R);
-                                string counterName;
-                                if(predictionClassType=="dynamic") {
-                                    counterName=string.Format(ApplicationConstants.FRPerfMonCounters.CounterTemplate,
-                                    predictionModel);
-                                }
-                                else {
-                                    counterName=string.Format(ApplicationConstants.FRPerfMonCounters.CounterTemplate,
-                                    label);
-                                }
-                               
-                                break;
+                            }
+                            else {
+                                pencolor=colorJson["default"].ToString();
+                                color2=Color.FromName(pencolor);
+                            }
                         }
+                        color=new MCvScalar(color2.B,color2.G,color2.R);
                        
                         if(box!=null) {
                             int x=Convert.ToInt32(Math.Round(float.Parse(box.X)*image.Width));
                             int y=Convert.ToInt32(Math.Round(float.Parse(box.Y)*image.Height));
                             int w=Convert.ToInt32(Math.Round(float.Parse(box.W)*image.Width));
                             int h=Convert.ToInt32(Math.Round(float.Parse(box.H)*image.Height));
-                            #if DEBUG
+#if DEBUG
                             LogHandler.LogInfo(String.Format("v0:{0} v1:{1} v2:{2}",color.V0,
                             color.V1,color.V2),LogHandler.Layer.Business,null);
-                            #endif
+#endif
                             rectangle=new Rectangle(x,y,w,h);
                            
                             Bgr background=new Bgr(0,0,0);
@@ -2869,10 +2618,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             if(modelName.ToLower()=="templatematching") {
                                 double angle = Convert.ToDouble(face.Info);
                                 image =image.Rotate(angle,background,false);
-                                
+                               
                             }
                             CvInvoke.Rectangle(image,rectangle,color,penThickness);
-                          
+                           
                             rectangle=new Rectangle(x,y-labelHeight,w,labelHeight);
                             CvInvoke.Rectangle(image,rectangle,color,penThickness);
                             CvInvoke.Rectangle(image,rectangle,color,-1);
@@ -2889,9 +2638,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                 int y1=(size2.Height-size1.Height)/2;
                                 Rectangle roi=new Rectangle(x1,y1,size1.Width,size1.Height);
                                 image.ROI=roi;
-                              
+                               
                             }
-                           
+                            
                         }
                     }
                 }
@@ -2906,8 +2655,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         }
 
 
-
-
+        
 
 
         private byte[] SerializeFrameDetails(FrameDetails frameDetails)
@@ -2919,13 +2667,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             byte[] result = null;
             
             string json = JsonConvert.SerializeObject(frameDetails);
-            
+          
             Byte[] data = System.Text.Encoding.ASCII.GetBytes(json);
 
-          
+           
             int byteSize = data.Length;
             int n = 10 - byteSize.ToString().Length;
 
+            
             string byteSizeString = byteSize.ToString().PadLeft(10, '0');
             byte[] sizeBytes = Encoding.ASCII.GetBytes(byteSizeString);
             result = JoinArrays(sizeBytes, data);
@@ -2966,6 +2715,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             }
         }
 
+        
         public ClientConnectHost StartClient(string ipAddress, int port)
         {
             return ClientConnect(ipAddress, port);
@@ -3125,8 +2875,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         
 
+       
 
-
+        
+       
 
         public override bool HandleEventMessage(QueueEntity.MaintenanceMetaData message)
         {
@@ -3134,6 +2886,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             {
                 try
                 {
+                    
                     string eventType = message.EventType;
                     switch (eventType)
                     {
@@ -3141,6 +2894,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             if (message != null)
                             {
 
+                                
                                 HandleStartOfFile(message);
 
 
@@ -3172,15 +2926,22 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 
                 DeviceDetails deviceDetails = ConfigHelper.SetDeviceDetails(frameInformation.TID, frameInformation.DID, CacheConstants.FrameRendererCode);
                 cleanUpStreamingFolder(deviceDetails.StreamingPath);
-             
-   
                
-                    Task.Run(() =>
+
+                          
+
+                #region Commenting TriggerTransferFrame invocation to avoiding multiple invocations in case of multi threading and multiple events
+                
+                #endregion
+
+                var triggerTransferFrame = new Lazy<Task>(() =>
+                {
+                    return Task.Run(() =>
                     {
                         TriggerTransferFrame(frameInformation);
                     });
-                
-
+                });
+                Parallel.Invoke(async () => await triggerTransferFrame.Value);
             }
 
 
@@ -3193,7 +2954,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         private void setEndOfFrameDetails(QueueEntity.MaintenanceMetaData message)
         {
-            
             if (message != null && message.Data != null)
             {
                 QueueEntity.FrameInformation frameInformation = JsonConvert.DeserializeObject<QueueEntity.FrameInformation>(message.Data);
@@ -3204,7 +2964,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     int totalFrameCount = int.Parse(frameInformation.TotalFrameCount);
                     int totalMessage = int.Parse(frameInformation.TotalMessageSendForPrediction);
                     Dictionary<int, string> framesNotSend = frameInformation.FramesNotSendForRendering;
-                    
                     if (framesNotSend != null)
                     {
                         totalMessage = totalMessage - framesNotSend.Count;
@@ -3223,7 +2982,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     {
                         totalFrameSendForPredictDetails.Add(feedKey, totalMessage);
                     }
-                 
+                    
 
                     if (framesNotSend != null)
                     {
@@ -3256,6 +3015,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     fileinfo.Delete();
                 }
 
+                
 
             }
         }
@@ -3294,7 +3054,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             }
         }
 
-       
+        
         private Workflow DownLoadLot(QueueEntity.FrameRendererMetadata frameRendererData, DeviceDetails deviceDetails)
         {
             Workflow workflow = null;
@@ -3352,24 +3112,21 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 postProcessStopWatch.Reset();
                 postProcessStopWatch.Start();
                 List<string> deviceIdList = new List<string>();
-              
+               
                 List<byte[]> dataList = new List<byte[]>();
                 string deviceId = frameRendererData.Did;
                 string baseUrl = deviceDetails.BaseUrl;
-                predictionModel = deviceDetails.PredictionModel;
+                predictionModel = deviceDetails.PredictionModel.Contains(_taskCode) ? JsonConvert.DeserializeObject<Dictionary<string, string>>(deviceDetails.PredictionModel).GetValueOrDefault(_taskCode) : JsonConvert.DeserializeObject<Dictionary<string, string>>(deviceDetails.PredictionModel).GetValueOrDefault("default");
                 bool enableLot = deviceDetails.EnableLots;
                 string ipaddress = deviceDetails.IpAddress;
                 port = deviceDetails.Port;
                 penThickness = deviceDetails.PenThickness;
-                maskPenColor = deviceDetails.MaskPenColor;
-                noMaskPenColor = deviceDetails.NoMaskPenColor;
                 boxColor = deviceDetails.BoxColor;
                 int tenantId = Convert.ToInt32(frameRendererData.Tid);
                 labelFontSize = deviceDetails.LabelFontSize;
                 labelFontStyle = deviceDetails.LabelFontStyle;
                 labelHeight = deviceDetails.LabelHeight;
                 labelFontColor = deviceDetails.LabelFontColor;
-                predictionClassType = deviceDetails.PredictionClassType;
                 int videoStreamingOption = deviceDetails.VideoStreamingOption;
                 string ffmpegArguments = deviceDetails.FfmpegArguments;
 
@@ -3452,10 +3209,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                             emguImage = matImage.ToImage<Bgr, byte>();
                                         }
                                         frameRendererData.Fid = key.Replace(".jpg", "");
-                                       
+                                        
 
-                                        frameDetails = ProcessData(emguImage, frameRendererData, modelName,
-                                        deviceDetails);
+                                        frameDetails = ProcessData(emguImage, frameRendererData, modelName);
 
                                         if (frameDetails == null)
                                         {
@@ -3463,7 +3219,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                         }
                                         frameDetails.IsFirstFrame = isFirstFrame;
 
-                                        /*Save the processed image into local file path for debug purpose*/
+                                        
                                         if (isFirstFrame && isImageDebugEnabled != null && isImageDebugEnabled.Equals("true",
                                         StringComparison.InvariantCultureIgnoreCase))
                                         {
@@ -3476,7 +3232,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                         emguImage = null;
 
                                     }
-                             
+                                   
 #if DEBUG
                                     LogHandler.LogDebug("FrameRendererProcess - after pushing transportFrameDetails - frameQueue count {0} and thread id {1}",
                                     LogHandler.Layer.Business, frameQueue.Count, Thread.CurrentThread.ManagedThreadId);
@@ -3507,7 +3263,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                 frameTransferCountDetails[feedKey] = count;
                                 if (frameMessage != null)
                                 {
-                                    /* If sequence number already exist in the frameMessage and update new frameDetails, if not add it to the message */
                                     if (!frameMessage.ContainsKey(seqNumber))
                                     {
                                         frameMessage.Add(seqNumber, transportFrameDetailsList);
@@ -3558,6 +3313,30 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 }
                 throw ex;
             }
+        }
+
+        private Image<Bgr, byte> ProcessFrame(Dictionary<string, List<QueueEntity.Predictions>> objDictionary, Image<Bgr, byte> image, int frameWidth,
+        int frameHeight, string modelName, string info, string Ad, FrameDetails frameDetails)
+        {
+            try
+            {
+                foreach(var key in objDictionary.Keys)
+                {
+                   
+                        IRender client = RenderFactory.CreateInstance(key.ToString());
+                        if (client != null)
+                        {
+                            image = client.RenderFrame(objDictionary[key], image, frameWidth, frameHeight, modelName, info, deviceDetails, Ad, frameDetails);
+                        }
+                  
+                }
+            }
+            catch(Exception ex)
+            {
+                LogHandler.LogError("Error in rendering method ProcessFrame, exception: {0}, inner exception: {1}, stack trace: {2}", 
+                    LogHandler.Layer.FrameRenderer, ex.Message, ex.InnerException, ex.StackTrace);
+            }
+            return image;
         }
     }
 

@@ -8,9 +8,10 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Infosys.Lif</RootNamespace>
     <AssemblyName>Infosys.Lif.KafkaAdapter</AssemblyName>
+    <BaseOutputPath>..\bin\</BaseOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,7 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LegacyCommon\LegacyCommon.csproj" />
-    <ProjectReference Include="..\LegacyIntegratorService\LegacyIntegratorService.csproj" />
+    <ProjectReference Include="..\LegacyIntegrator\LegacyIntegrator.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -95,18 +94,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Index
     public class Predictions
     {
         public BoundingBox Dm { get; set; } 
-        public string Cs { get; set; }
-        public string Lb { get; set; } 
+        public string Cs { get; set; } 
+        public string Lb { get; set; }
 
         public string Info { get; set; }
         public string NoObj { get; set; }
         public string Uid { get; set; }
-        public string Pid { get; set; } 
-        public string Np { get; set; } 
+        public string Pid { get; set; }
+        public string Np { get; set; }
 
         public List<MaskDetectorAPIResMsgEntity> Objects { get; set; }
 
-        public int Rc { get; set; }
+        public int Rc { get; set; } 
 
         public string Rm { get; set; }
 
@@ -119,9 +118,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Index
 
         public List<List<float>> Bpc { get; set; }
 
-       
+      
 
-        
         
     }
 
@@ -135,21 +133,21 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Index
         [Text(Name = "H")]
         public string H { get; set; } 
         [Text(Name = "W")]
-        public string W { get; set; } 
+        public string W { get; set; }
     }
 
     public class FrameElasticSearchMetadata
     {
         public string Tid { get; set; } 
-        public string Did { get; set; } 
+        public string Did { get; set; }
         public string Fid { get; set; } 
         public string Pts { get; set; } 
         public Predictions[] Fs { get; set; } 
         public string PredictionType { get; set; } 
         public string FeedId { get; set; } 
         public string SequenceNumber { get; set; } 
-        public string Status { get; set; } 
-        public string FrameNumber { get; set; }
+        public string Status { get; set; }
+        public string FrameNumber { get; set; } 
 
         public string FileName { get; set; }
 
@@ -159,7 +157,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Index
         public string Rendered_base64_image { get; set; }
     }
 
-    
+   
 
     public class FrameMetaDataEntity
     {

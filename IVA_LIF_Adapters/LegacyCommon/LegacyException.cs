@@ -1,13 +1,12 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 /****************************************************************
  * This file is a part of the Legacy Integration Framework.
  * This file contains the LegacyException definition.
- * Copyright (c) 2003 - 2005 Infosys Technologies Ltd. All Rights Reserved.
+ * Copyright (c) 2003 - 2025 Infosys Technologies Ltd. All Rights Reserved.
  ***************************************************************/
 
 using System;
@@ -59,7 +58,7 @@ namespace Infosys.Lif.LegacyCommon
         #region Methods
 
         #region parameter less constructor
-        
+      
         public QueueNotRespondedException() : base()
         {
         }
@@ -73,7 +72,7 @@ namespace Infosys.Lif.LegacyCommon
         #endregion
 
         #region Two parameter constructor for setting inner exception.
-       
+        
         public QueueNotRespondedException(string message, Exception exception) :
             base(message, exception)
         {
@@ -81,7 +80,7 @@ namespace Infosys.Lif.LegacyCommon
         #endregion
 
         #region Two parameter constructor for setting SerializationInfo
-        
+       
         private QueueNotRespondedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {

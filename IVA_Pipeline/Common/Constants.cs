@@ -1,8 +1,9 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
+﻿
 
 using System;
 
@@ -12,12 +13,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
     public struct ApplicationConstants
     {
         public const string FRAMERENDERER_HANDLING_POLICY = "VideoAnalytics.FrameRender";
+        public const string FRAMEVIEWER_HANDLING_POLICY="VideoAnalytics.FrameViewer";
         public const string WORKER_EXCEPTION_HANDLING_POLICY = "VideoAnalytics.Worker";
         public const string SERVICE_EXCEPTIONHANDLING_POLICY = "VideoAnalytics.Worker";
 
         #region Blob Constants
         public const string APP_NAME = "WEM";
-        public const string DOCUMENTSTORE_KEY = "FrameRepository"; //should change acordingly
+        public const string DOCUMENTSTORE_KEY = "FrameRepository"; 
         public const string SCRIPT_STORE_KEY = "ScriptRepository";
         public const string TWOFIELD_KEY_FORMAT = "{0}_{1}";
         public const string SCRIPT_REPO_SERVICEINTERFACE = "/iapwemservices/WEMScriptService.svc";
@@ -194,13 +196,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             public const string FrameCountInLot = @"# of Frames in Lot";
             public const string ErrorCount = @"# of Errors";
             public const string FrameBlobUploadTime = @"Frame Post Wait Time(ms)";
+            
             public const string TotalFramesProcessed = @"# of Frames Processed";
             public const string NumOfFramesProcessedPerSec = @"# of Frames Processed/Sec";
             public const string NumOfPredictionFramesProcessedPerSec = @"# of Prediction Frames Processed/Sec";
             public const string NumOfLotFramesProcessedPerSec = @"# of Lot Frames Processed/Sec";
             public const string FrameProcessingTime = @"Prediction Frame Process Time(ms)";
-            public const string LotProcessingTime = @"Lot Process Time (ms)";
             
+            public const string LotProcessingTime = @"Lot Process Time (ms)";
+           
             public const string FrameFileSizeInBytes = @"Frame File Size in bytes";
             public const string LotFileSizeInBytes = @"Lot File Size in bytes";
             public const string TotalFramesUploaded = @"# of Frames Uploaded";
@@ -317,7 +321,17 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         public const string FrameRepositoryRegion = "FrameRepository";
         public const string MemoryDoc = "MemoryDoc";
         public const string FrameElasticSearch = "FES";
-        public const string GenerativeAI = "GENAI";
+        public const string FrameExplainer = "XEN";
+        public const string PromptHandler = "PRH";
+        public const string PromptInjector = "PRI";
+        public const string FrameExplainerNode = "FEN";
+        public const string SensorDataCollectorProcess = "SEN";
+        public const string FrameExplainerDataCollector = "XDCO";
+        public const string PcdHandlerCode="PCH";
+        public const string DataAggregatorCode = "AGR";
+        public const string FrameViewerCode="FVI";
+        public const string ExplainerModelPredictor = "EMR";
+        
     }
 
     public struct CacheConstants
@@ -336,7 +350,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         public const string FrameRendererEOF = "FrameRendererEOF";
         public const string CacheKeyFormatForFfmpegIntialise = "FFMPEGIntialise";
         public const string FrameElasticSearch = "FES";
-        public const string GenerativeAI = "GENAI";
+        public const string PromptHandler = "PRH";
+        public const string PromptInjector = "PRI";
+        public const string SensorDataCollectorProcess = "SEN";
+        public const string FrameExplainerDataCollector = "XDCO";
+        public const string PcdHandlerCode="PCH";
+        public const string FrameViewerCode="FVI";
+        public const string FrameExplainer="XEN";
+        public const string ObjectDetectorAnalytics="ODA";
+        public const string HelperCode="HEL";
+        public const string ClientConnectHost="CCH";
+        public const string ClientTCPConnect="CTC";
+        public const string DataAggregatorCode = "AGR";
+        public const string ExplainerModelPredictor = "EMR";
+        
     }
 
 
@@ -359,6 +386,19 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         SMS = 2,
         Push = 4,
     }
+    public enum XaiConstantsAttributes
+    {
+        Ad,
+        Class,
+        Did,
+        FrameNumber,
+        Cs,
+        Lb,
+        AttributeComparison,
+        Yes,
+        No,
+        Explainer_Metadata
+    }
     public static class ExtentionMethodsClass
     {
         public static string RemoveSpaces(this string str)
@@ -379,7 +419,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             public const string UniquePersonCode = "TPR";
             public const string FrameCollectorCode = "DCO";
             public const string FramePreloaderCode = "PRL";
-            public const string GenerativeAI = "GENAI";
+            public const string PromptHandler = "PRH";
+            public const string PromptInjector = "PRI";
+            public const string FrameExplainer = "FEN";
+            public const string FrameElasticSearch = "FES";
+            
+            public const string SensorDataCollectorProcess = "SEN";
+            public const string FrameExplainerDataCollector = "XDCO";
+            public const string ExplainerModelPredictor = "EMR";    
         }
 
         public struct TaskRouteConstants
@@ -395,7 +442,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             public const string AnalyticsCode = "ANA";
             public const string FrameGrabberLotCode = "FGL";
             public const string FrameGrabberUniquePersonCode = "FGU";
-            public const string GenerativeAI = "GENAI";
+            public const string PromptHandler = "PRH";
+            public const string PromptInjector = "PRI";
+            public const string FrameExplainer = "XEN";
+            public const string FrameElasticSearch = "FES";
+            public const string FrameExplainerNode = "XEN";
+            public const string SensorDataCollectorProcess = "SEN";
+            public const string FrameExplainerDataCollector = "XDCO";
+            public const string ExplainerModelPredictor = "EMR";
         }
         public static double ConvertToDouble(this string str)
         {
@@ -413,8 +467,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             else
                 return new DateTime();
         }
+        public enum XaiConstantsAttributes
+        {
+            Ad,
+            Class,
+            Did,
+            FrameNumber,
+            Cs,
+            Lb
+        }
 
-       
     }
 
 }

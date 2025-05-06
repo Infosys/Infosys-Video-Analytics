@@ -1,11 +1,15 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
+﻿/*
+ *© 2019 Infosys Limited, Bangalore, India. All Rights Reserved. Infosys believes the information in this document is accurate as of its publication date; such information is subject to change without notice. Infosys acknowledges the proprietary rights of other companies to the trademarks, product names and such other intellectual property rights mentioned in this document. Except as expressly permitted, neither this document nor any part of it may be reproduced, stored in a retrieval system, or transmitted in any form or by any means, electronic, mechanical, printing, photocopying, recording or otherwise, without the prior permission of Infosys Limited and/or any named intellectual property rights holders under this document.   
+ * 
+ * © 2019 INFOSYS LIMITED. CONFIDENTIAL AND PROPRIETARY 
+ */
 
-
-using Infosys.Ainauto.Framework.Facade;
+//using Infosys.Ainauto.Framework.Facade;
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess;
@@ -27,12 +31,14 @@ using DE = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity;
 using SC = Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ServiceClientLibrary;
 using SE = Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts;
 using ST = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Document;
+using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 {
     public class Helper
     {
         private static AppSettings appSettings = Config.AppSettings;
+        static DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.HelperCode);
         public static ST.Workflow DownloadBlob(string DeviceId, string FrameId, string TenantId, string StorageBaseURL, string fileExtension)
         {
             WorkflowDS wf = new WorkflowDS();
@@ -107,9 +113,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         
 
 
-
-
-
         public static DeviceDetails AssignConfigValues(AttributeDetailsResMsg objSE)
         {
             LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "AssignConfigValues", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
@@ -141,41 +144,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                         case "OFFLINE_VIDEO_DIRECTORY":
                             retObj.OfflineVideoDirectory = obj.AttributeValue;
                             break;
+                        case "MIL_LIBRARYNAME":
+                            retObj.MILLibraryName = obj.AttributeValue;
+                            break;
                         case "ARCHIVE_LOCATION":
                             retObj.ArchiveDirectory = obj.AttributeValue;
                             break;
                         case "ARCHIVE_ENABLED":
                             retObj.ArchiveEnabled = obj.AttributeValue.Equals("Yes", StringComparison.InvariantCultureIgnoreCase) ? true : false;
                             break;
-                        case "RENDERER_Q":
-                            retObj.QueueName = obj.AttributeValue;
-                            break;
-                        case "MASK_DETECTOR_VIEWER_IP_ADDRESS":
+                        case "VIEWER_IP_ADDRESS":
                             retObj.IpAddress = obj.AttributeValue;
                             break;
-                        case "MASK_DETECTOR_VIEWER_PORT":
+                        case "VIEWER_PORT":
                             retObj.Port = Convert.ToInt32(obj.AttributeValue);
-                            break;
-                        case "ALL_IP_ADDRESS":
-                            retObj.AllIpAddress = obj.AttributeValue;
-                            break;
-                        case "COMPLIANCE_UPPER_THRESHOLD":
-                            retObj.ComplianceUpperThreshold = Convert.ToInt32(obj.AttributeValue);
-                            break;
-                        case "COMPLIANCE_LOWER_THRESHOLD":
-                            retObj.ComplianceLowerThreshold = Convert.ToInt32(obj.AttributeValue);
-                            break;
-                        case "NOMASK_UPPER_THRESHOLD":
-                            retObj.NoMaskUpperThreshold = Convert.ToInt32(obj.AttributeValue);
-                            break;
-                        case "NOMASK_LOWER_THRESHOLD":
-                            retObj.NoMaskLowerThreshold = Convert.ToInt32(obj.AttributeValue);
-                            break;
-                        case "MASK_LABEL":
-                            retObj.MaskLabel = obj.AttributeValue;
-                            break;
-                        case "NOMASK_LABEL":
-                            retObj.NoMaskLabel = obj.AttributeValue;
                             break;
                         case "CONFIDENCE_THRESHOLD":
                             retObj.ConfidenceThreshold = Convert.ToSingle(obj.AttributeValue);
@@ -185,16 +167,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                             break;
                         case "ENABLELOTS":
                             retObj.EnableLots = obj.AttributeValue.Equals("Yes", StringComparison.InvariantCultureIgnoreCase) ? true : false;
-                            break;
-                        case "NOMASK_PEN_COLOR":
-                            string noMaskcolor = obj.AttributeValue.ToLower();
-                            noMaskcolor = Char.ToUpper(noMaskcolor[0]) + noMaskcolor.Substring(1);
-                            retObj.NoMaskPenColor = noMaskcolor;
-                            break;
-                        case "MASK_PEN_COLOR":
-                            string maskColor = obj.AttributeValue.ToLower();
-                            maskColor = Char.ToUpper(maskColor[0]) + maskColor.Substring(1);
-                            retObj.MaskPenColor = maskColor;
                             break;
                         case "BOX_COLOR":
                             string boxColor = obj.AttributeValue.ToLower();
@@ -234,12 +206,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                         case "UNIQUE_PERSON_MODEL":
                             retObj.UPModelName = obj.AttributeValue;
                             break;
-                        case "PREDICTION_CLASS_TYPE":
-                            retObj.PredictionClassType = obj.AttributeValue;
-                            break;
-                        case "ML_MODEL_URL":
-                            retObj.MlModelUrl = obj.AttributeValue;
-                            break;
                         case "METRIC_TYPE":
                             retObj.MetricType = obj.AttributeValue;
                             break;
@@ -252,10 +218,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                         case "TRANSPORT_REGION_CODES":
                             retObj.TransportRegionCodes = obj.AttributeValue;
                             break;
-                        case "IS_CLIENT_ACTIVE":
-                            retObj.IsClientActive = obj.AttributeValue.Equals("Yes", StringComparison.InvariantCultureIgnoreCase) ? true : false;
-                            break;
-
+                        
                         case "PERSONCOUNT_OVERLAP_THRESHOLD":
                             if (float.TryParse(obj.AttributeValue, out float upOverlapThreshold))
                                 retObj.UniquePersonOverlapThreshold = upOverlapThreshold;
@@ -269,8 +232,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                         case "STREAMING_PATH":
                             retObj.StreamingPath = obj.AttributeValue;
                             break;
+                        case "STREAMING_PATH_RAW":
+                            retObj.StreamingPathRaw=obj.AttributeValue;
+                            break;
                         case "FFMPEG_ARGUMENTS":
                             retObj.FfmpegArguments = obj.AttributeValue;
+                            break;
+                        case "FFMPEG_ARGUMENTS_RAW_INPUT":
+                            retObj.FfmpegArgumentsRawInput=obj.AttributeValue;
                             break;
                         case "DISPLAY_ALL_FRAMES":
                             retObj.DisplayAllFrames = obj.AttributeValue.Equals("Yes", StringComparison.InvariantCultureIgnoreCase) ? true : false;
@@ -282,7 +251,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                         case "MAX_SEQUENCE_NUMBER":
                             retObj.MaxSequenceNumber = Convert.ToInt32(obj.AttributeValue);
                             break;
-                        case "INITIAL_COLLECTION_BUFFERING_SIZE": 
+                        case "INITIAL_COLLECTION_BUFFERING_SIZE": // INITIAL_COLLECTION_BUFFERING_SIZE , TRANSPORT_SEQUENCING_BUFFERING_SIZE
                             retObj.InitialCollectionBufferingSize = Convert.ToInt32(obj.AttributeValue);
                             break;
                         case "DELETE_FRAMES_FROM_BLOB":
@@ -296,9 +265,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                             break;
                         case "TRANSPORT_SEQUENCING_BUFFERING_SIZE":
                             retObj.TransportSequencingBufferingSize = Convert.ToInt32(obj.AttributeValue);
-                            break;
-                        case "MEDIA_STREAMING_URL":
-                            retObj.MediaStreamingUrl = obj.AttributeValue;
                             break;
                         case "DEVICE_ID":
                             retObj.DeviceId = obj.AttributeValue;
@@ -361,7 +327,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                             retObj.PythonVersion = obj.AttributeValue;
                             break;
                         case "BACKGROUND_COLOR":
-                            retObj.BackGroundColor = obj.AttributeValue;
+                            retObj.BackgroundColor = obj.AttributeValue;
                             break;
                         case "RENDERER_RECTANGLE_POINT_X":
                             retObj.RendererRectanglePointX = Convert.ToInt32(obj.AttributeValue);
@@ -387,41 +353,134 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                         case "FFMPEG_BACKGROUNDCHANGE":
                             retObj.FfmpegforBackgroundChange = obj.AttributeValue;
                             break;
-                        case "ENABLE_PROMPT":
-                            retObj.EnablePrompt = obj.AttributeValue;
-                            break;
                         case "PROMPT_INPUT_DIRECTORY":
                             retObj.PromptInputDirectory = obj.AttributeValue;
-                            break;
-                        case "MASK_IMAGE_INPUT":
-                            retObj.MaskImageInput = obj.AttributeValue;
                             break;
                         case "MASK_IMAGE_DIRECTORY":
                             retObj.MaskImageDirectory = obj.AttributeValue;
                             break;
-                        case "REPLACE_IMAGE_INPUT":
-                            retObj.ReplaceImageInput = obj.AttributeValue;
-                            break;
                         case "REPLACE_IMAGE_DIRECTORY":
                             retObj.ReplaceImageDirectory = obj.AttributeValue;
                             break;
-                        case "BLOB_GENAI":
-                            retObj.BlobforGenerativeAI = obj.AttributeValue;
-                            break;
-                        case "GENAI":
-                            retObj.GENAI = obj.AttributeValue;
-                            break;
                         case "ENABLE_ELASTICSTORE":
                             retObj.EnableElasticStore = obj.AttributeValue;
-                            break;
-                        case "ELASTICSTORE_LABEL":
-                            retObj.ElasticStoreLabel = obj.AttributeValue;
                             break;
                         case "OUTPUT_IMAGE":
                             retObj.OutputImage = obj.AttributeValue;
                             break;
                         case "PCD_DIRECTORY":
                             retObj.PcdDirectory = obj.AttributeValue;
+                            break;
+                        case "RENDER_IMAGE_FILE_PATH":
+                            retObj.RenderImageFilePath=obj.AttributeValue;
+                            break;
+                        case "RENDER_IMAGE_ENABLED":
+                            retObj.RenderImageEnabled=obj.AttributeValue;
+                            break;
+                        case "DEBUG_IMAGE_FILE_PATH":
+                            retObj.DebugImageFilePath=obj.AttributeValue;
+                            break;
+                        case "IMAGE_DEBUG_ENABLED":
+                            retObj.ImageDebugEnabled=obj.AttributeValue;
+                            break;
+                        case "ENABLE_PING":
+                            retObj.EnablePing=Convert.ToBoolean(obj.AttributeValue);
+                            break;
+                        case "CLIENT_CONNECTION_RETRY_COUNT":
+                            retObj.ClientConnectionRetryCount=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "FRAME_RENDERER_WAIT_TIME_FOR_TRANSPORT_MS":
+                            retObj.FrameRenderer_WaitTimeForTransportms=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "FRAME_RENDERER_EOF_COUNT":
+                            retObj.FrameRenderer_EOF_Count=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "FRAME_RENDERER_EOF_FILE_PATH":
+                            retObj.FrameRenderer_EOF_File_Path=obj.AttributeValue;
+                            break;
+                        case "FRAME_GRAB_RATE_THROTTLING_SLEEP_FRAME_COUNT":
+                            retObj.FrameGrabRateThrottlingSleepFrameCount=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "FRAME_GRAB_RATE_THROTTLING_SLEEP_DURATION_MSEC":
+                            retObj.FrameGrabRateThrottlingSleepDurationMsec=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "FFMPEG_EXE_FILE":
+                            retObj.FfmpegExeFile=obj.AttributeValue;
+                            break;
+                        case "MAX_EMPTY_FRAME_COUNT":
+                            retObj.MaxEmptyFrameCount=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "CALCULATE_FRAME_GRABBER_FPR":
+                            retObj.CalculateFrameGrabberFPR=obj.AttributeValue;
+                            break;
+                        case "EMPTY_FRAME_PROCESS_INTERVAL":
+                            retObj.EmptyFrameProcessInterval=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "FTP_CYCLE":
+                            retObj.FTPCycle=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "ELASTIC_STORE_INDEX_NAME":
+                            retObj.ElasticStoreIndexName=obj.AttributeValue;
+                            break;
+                        case "PROMPT_TEMPLATES_DIRECTORY":
+                            retObj.PromptTemplatesDirectory=obj.AttributeValue;
+                            break;
+                        case "REDUCE_FRAME_QUALITY_TO":
+                            retObj.ReduceFrameQualityTo=Convert.ToDouble(obj.AttributeValue);
+                            break;
+                        case "MIN_THREAD_ON_POOL":
+                            retObj.MinThreadOnPool=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "MAX_THREAD_ON_POOL":
+                            retObj.MaxThreadOnPool=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "MAX_FAIL_COUNT":
+                            retObj.MaxFailCount=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "VIDEO_FORMATS_ALLOWED":
+                            retObj.VideoFormatsAllowed=obj.AttributeValue;
+                            break;
+                        case "IMAGE_FORMATS_TO_USE":
+                            retObj.ImageFormatsToUse=obj.AttributeValue;
+                            break;
+                        case "OFFLINE_PROCESS_INTERVAL":
+                            retObj.OfflineProcessInterval=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "DATA_STREAM_TIME_OUT":
+                            retObj.DataStreamTimeOut=obj.AttributeValue;
+                            break;
+                        case "CLIENT_CONNECTION_WAITING_TIME":
+                            retObj.ClientConnectionWaitingTime=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "PROCESS_LOADER_TRACE_FILE":
+                            retObj.ProcessLoaderTraceFile=obj.AttributeValue;
+                            break;
+                        case "PREDICTION_TYPE":
+                            retObj.PredictionType=obj.AttributeValue;
+                            break;
+                        case "ANALYTICS_PREDICTION_TYPE":
+                            retObj.AnalyticsPredictionType=obj.AttributeValue;
+                            break;
+                        case "DB_ENABLED":
+                            retObj.DBEnabled=Convert.ToBoolean(obj.AttributeValue);
+                            break;
+                        case "XAI_API_VERSION":
+                            retObj.XaiApiVersion = obj.AttributeValue;
+                            break;
+                        case "XAI_TO_RUN":
+                            retObj.XaiToRun = obj.AttributeValue;
+                            break;
+                        case "XAI_MODEL":
+                            retObj.XaiModel = obj.AttributeValue;
+                            break;
+                        case "XAI_BATCH_SIZE":
+                            retObj.XaiBatchSize = Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "HYPERPARAMETERS":
+                            retObj.HyperParameters = obj.AttributeValue;
+                            break;
+                        case "OBJECTDETECTION_RENDERING":
+                            retObj.ObjectDetectionRendering = obj.AttributeValue;
                             break;
                         default:
                             break;
@@ -442,8 +501,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
         public static void UpdateFeedRequestStatus(int feedId, string status)
         {
-            if (!appSettings.DBEnabled)
-            {
+            if(!deviceDetails.DBEnabled) {
                 return;
             }
             SC.MaskDetector maskDetector = new SC.MaskDetector();
@@ -471,8 +529,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             using (LogHandler.TraceOperations("UpdateFeedRequestDetails:FrameGrabberHelper", LogHandler.Layer.FrameGrabber, Guid.NewGuid(), null))
             {
 #endif
-                if (!appSettings.DBEnabled)
-                {
+                if(!deviceDetails.DBEnabled) {
                     return;
                 }
                 try
@@ -505,8 +562,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 #endif
                 
                 bool clientStatus = true;
-                if (appSettings.DBEnabled)
-                {
+                if(deviceDetails.DBEnabled) {
                     var uri = String.Format($"{Config.AppSettings.ConfigWebApi}Configuration/GetClientStatus?tid={tenantId}&did={deviceId}");
                     var apiResponse = ServiceCaller.ServiceCall(null, uri, "GET");
                     clientStatus = Convert.ToBoolean(apiResponse);

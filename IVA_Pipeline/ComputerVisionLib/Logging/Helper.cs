@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +13,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
     public class Constants
     {
-       
+        
         public const string PARAMDIRECTION_IN = "(In)";
         public const string PARAMDIRECTION_OUT = "(Out)";
         public const string PARAMDIRECTION_INANDOUT = "(InAndOut)";
@@ -26,14 +25,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         public const string READTEXTAREA = "ReadTextArea";
         public const string GETWINDOWSHANDLE = "GetWindowsHandle";
 
-       
+        
         public const string AUTOMATIONFACADE = "AutomationFacade constructor";        
 
-      
+        
         public const string APPLICATION = "Application constructor";
         public const string REFRESHAPPHANDLE = "RefreshAppHandle";       
 
-       
+        
         public const string CONTROL = "Control constructor";
         public const string FINDCONTROLS = "FindControls";
         public const string ADDCONTROL = "AddControl";
@@ -47,11 +46,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         public const string MATCHFORAPPLICATIONTREEPATH = "MatchForApplicationTreePath";
         public const string GETAUTOMATIONELEMENTFROMWITHINBOUNDARY= "GetAutomationElementFromWithinBoundary";
         public const string SCANXAXIX ="ScanXaxix";
-  
+        
         public const string SCREEN = "Screen constructor";
         public const string REFRESHSCREENHANDLE = "RefreshScreenHandle";
 
-       
+        
         public const string BUTTON = "Button constructor";
         public const string CHECKBOX = "CheckBox constructor";
         public const string COMBOBOX = "ComboBox constructor";

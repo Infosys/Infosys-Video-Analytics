@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 // Copyright 2004, Microsoft Corporation
 // Sample Code - Use restricted to terms of use defined in the accompanying license agreement (EULA.doc)
 
@@ -88,6 +87,7 @@ namespace Infosys.Lif.LegacyIntegratorService
         public string SecondaryQueues { get; set; }
         public int QueueLoadLimit { get; set; }
         public int TransactionWaitTimeInMins { get; set; }
+        public int ParallelProcessingLimit { get; set; }
 
     }
     public class MSMQ
@@ -139,6 +139,8 @@ namespace Infosys.Lif.LegacyIntegratorService
         public RabbitMQAdapter RabbitMQAdapter { get; set; }
 
         public AzureIoTAdapter AzureIoTAdapter { get; set; }
+        public AzureVault AzureVault { get; set; }
+        public AWSSecrets AWSSecrets { get; set; }
     }
 
     public class Kafka
@@ -191,7 +193,12 @@ namespace Infosys.Lif.LegacyIntegratorService
         public string SessionToken { get; set; }
         public string BucketName { get; set; }
         public string RegionName { get; set; }
-        
+        //public string DestinationBucketName { get; set; }
+        //public string DestinationS3Path { get; set; }
+        //public string LocalDestinationPath { get; set; }
+        ////public string Devices { get; set; }
+        ////public int IntervalForCheckingFilesInS3 { get; set; }
+        //public Boolean DownloadToLocal { get; set; }
         public string AWSDirectory { get; set; }
         public string TargetRegion { get; set; }
         public int WaitTimeForFolderDelete { get; set; }
@@ -202,10 +209,13 @@ namespace Infosys.Lif.LegacyIntegratorService
         public int RetryLimit { get; set; }
         public int RetryWaitTime { get; set; }
         public int TokenRefreshTimeBeforeExpiry { get; set; }
-        
+        //public string SubStringInVideoFile { get; set; }
+        //public string KeyName { get; set; } // file name to delete file
+        //public string FilePath { get; set; }    //file path for file to upload
+        //public string objectName { get; set; } //file to upload
     }
 
-   
+    //Added to Message Adapter for RabbitMQ
 
     public class RabbitMQAdapter
     {
@@ -216,11 +226,11 @@ namespace Infosys.Lif.LegacyIntegratorService
 
     public class MessageDetails
     {
-        public string TransportName { get; set; } 
+        public string TransportName { get; set; } //Supported Protocols MQTT,AMQP,HTTP
         public string ConnectionString { get; set; }
         public string DeviceName { get; set; }
         public string RegionName { get; set; }
-       
+        //Properties for RabbitMQ server.
         public string HostName { get; set; }
         public string Port { get; set; }
         public string UserName { get; set; }
@@ -228,7 +238,7 @@ namespace Infosys.Lif.LegacyIntegratorService
         public string VirtualHost { get; set; }
         public string ContinuationTimeout { get; set; }
 
-        public string TransportType { get; set; } 
+        public string TransportType { get; set; } // Specifies the transport mode e.g Azure Iot Hud, RabbitMQ . etc
         public string QueueName { get; set; }
 
         public string TopicName { get; set; }
@@ -245,15 +255,51 @@ namespace Infosys.Lif.LegacyIntegratorService
     }
     public class AzureIoTDetails
     {
-        public string TransportName { get; set; } 
+        public string TransportName { get; set; } //Supported Protocols MQTT,AMQP,HTTP
         public string IoTConnectionString { get; set; }
         public string QueueConnectionString { get; set; }
         public string DeviceName { get; set; }
         public string RegionName { get; set; }
 
-        public string TransportType { get; set; } 
+        public string TransportType { get; set; } // Specifies the transport mode e.g Azure Iot Hud, RabbitMQ . etc
         public string ServiceBusQueueName { get; set; }
 
+    }
+
+    public class AzureVault
+    {
+        public string DllPath { get; set; }
+        public string TypeName { get; set; }
+        public IList<AzureVaultDetails> AzureVaultDetails { get; set; }
+    }
+
+    public class AzureVaultDetails
+    {
+        public string TransportName { get; set; }
+        public string VaultName { get; set; }
+        public string VaultUrl { get; set; }
+        public int Delay { get; set; }
+        public int MaxDelay { get; set; }
+        public int MaxRetries { get; set; }
+        public string CertificatePath { get; set; } 
+        public string TenantId { get; set; }
+        public string ClientId { get; set; }
+    }
+
+
+    public class AWSSecrets
+    {
+        public string DllPath { get; set; }
+        public string TypeName { get; set; }
+        public IList<AWSSecretsDetails> AWSSecretsDetails { get; set; }
+    }
+
+    public class AWSSecretsDetails
+    {
+        public string TransportName { get; set; }
+        public string VersionStage { get; set; }
+        public string Region { get;set; }
+        public int Retry { get; set; }
     }
 
 }

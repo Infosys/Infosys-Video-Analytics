@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +11,7 @@ using System.Threading.Tasks;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using System;
 using System.IO;
+//using SC = Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ServiceClientLibrary;
 using SE = Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts;
 using Newtonsoft.Json;
 using Infosys.Solutions.Ainauto.VideoAnalytics.AIModels;
@@ -21,6 +21,7 @@ using System.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
 using System.Threading;
+//using Infosys.Solutions.Ainauto.VideoAnalytics.Entity;
 using System.Diagnostics;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Entity;
 using Amazon;
@@ -49,6 +50,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         ObjectDetectorAPIResMsg objectDetectorResponse = null;
         private AmazonSageMakerRuntimeClient smRuntimeClient;
         private AWSCredentials sessionCredentials;
+        
         public override bool InitializeModel()
         {
             return true;
@@ -86,30 +88,33 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         {
             try
             {
-                ObjectDetectorAPIResMsg response = null; 
+                ObjectDetectorAPIResMsg response = null; // 
                 var region = RegionEndpoint.GetBySystemName("us-east-1");
                 if (smRuntimeClient == null || sessionCredentials == null)
                 {
                     Console.WriteLine("Model loading started");
-          
+                    
+
                     smRuntimeClient = new
                          AmazonSageMakerRuntimeClient(modelParameters.AWSAccessKey,
                          modelParameters.AWSSecretKey, modelParameters.AWSSessionToken, region);
                     Console.WriteLine("Model loading SageMaker client initiated");
                 }
-           
+                
                 var sagemakerClient = new
                            AmazonSageMakerRuntimeClient(modelParameters.AWSAccessKey,
                            modelParameters.AWSSecretKey,
                            modelParameters.AWSSessionToken,
                 region);
 
+                
 
                 object json_req = new
                 {
                     base64 = base64
                 };
                 string js = JsonConvert.SerializeObject(json_req);
+                
                 var request = new InvokeEndpointRequest
                 {
                     EndpointName = modelParameters.AWSEndpointName,
@@ -117,7 +122,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(js)),
 
                 };
-               
+                
                 var apiresponse = await sagemakerClient.InvokeEndpointAsync(request);
                 string result = Encoding.UTF8.GetString(apiresponse.Body.ToArray());
                 response = JsonConvert.DeserializeObject<ObjectDetectorAPIResMsg>(result);
@@ -131,7 +136,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     }
                 }
                 string metadata= JsonConvert.SerializeObject(response);
-              
+                
                 return metadata;
             }
             catch (Exception ex)
@@ -146,8 +151,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         {
             using (MemoryStream memoryStream = new MemoryStream())
             {
-                stream.CopyTo(memoryStream);
+                stream.CopyTo(memoryStream); // Copy the data from the Stream to the MemoryStream
 
+                
                 string base64String = Convert.ToBase64String(memoryStream.ToArray());
                 return base64String;
             }

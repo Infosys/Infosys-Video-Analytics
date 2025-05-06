@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Infosys.Lif.LegacyIntegrator;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using System;
@@ -20,7 +19,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess
                 AdapterManager adapterManager = new AdapterManager();
                 string serializedPresentationMsg = Utility.SerialiseToJSON(message);
                 msgResponse = adapterManager.Execute(serializedPresentationMsg, transportRegion);
-                //LogHandler.ArchiveMessages(serializedPresentationMsg, transportRegion);
+                
                
 
             }

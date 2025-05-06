@@ -9,7 +9,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>Infosys.Ainauto.FacecMaskDetection.ProcessLoader</AssemblyName>
     <RootNamespace>Infosys.Solutions.Ainauto.FacecMaskDetection.ProcessLoader</RootNamespace>

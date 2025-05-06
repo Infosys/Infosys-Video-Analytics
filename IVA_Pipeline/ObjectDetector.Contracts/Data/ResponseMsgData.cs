@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,7 +35,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         public string LastFrameProcessedTime { get; set; }
         [DataMember]
         public string StartFrameProcessedTime { get; set; }
-       
+        
         [DataMember]
         public string ModelName { get; set; }
         [DataMember]
@@ -49,7 +48,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         public string MachineName { get; set; }
         [DataMember]
         public Media_Metadata VideoMetaData { get; set; }
-       
+        
         [DataMember]
         public int TotalFrameProcessed { get; set; }
         [DataMember]
@@ -88,7 +87,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         public int FeedProcessorMasterId { get; set; }
         [DataMember]
         public string RequestId { get; set; }
-       
+        
         [DataMember]
         public System.DateTime CreatedDate { get; set; }
         [DataMember]
@@ -161,7 +160,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         public Nullable<int> Status { get; set; }
         [DataMember]
         public string MachineName { get; set; }
-       
         
         [DataMember]
         public int TotalFrameProcessed { get; set; }

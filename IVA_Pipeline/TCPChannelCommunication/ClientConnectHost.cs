@@ -1,9 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using System;
 using System.Collections.Generic;
@@ -13,6 +12,8 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute;
+using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCommunication
 {
@@ -23,7 +24,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCom
         private readonly Thread ClientThread;
         private NetworkStream connectNetStreamGlobal;
         private string _host;
-        int waitingTime = Config.AppSettings.ClientConnectionWaitingTime;
+        public static AppSettings appSettings=Config.AppSettings;
+        public static DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.ClientConnectHost);
+        int waitingTime=deviceDetails.ClientConnectionWaitingTime;
         #region Constructor
         public ClientConnectHost(string Host, int Port)
         {
@@ -63,7 +66,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCom
             }
 
 
-          
+            
                 var StartTime = DateTime.Now;
                 int i = 0;
                 byte[] readResponse = new byte[10];
@@ -78,7 +81,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCom
                        
                         connectNetStreamGlobal.Write(payload, 0, payload.Length);
 
-                  
+                     
                         int icount = connectNetStreamGlobal.Read(readResponse, 0, readResponse.Length);
 
                         string responseCode = Encoding.UTF8.GetString(readResponse, 0, readResponse.Length);
@@ -120,7 +123,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCom
                 }
                 return true;
 
-           
+            
         }
 
         #region Protected Functions

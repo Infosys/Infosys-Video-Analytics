@@ -1,10 +1,8 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,21 +15,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
     [DataContract]
     public class ObjectDetectorAPIReqMsg
     {
-       
+        
 
         
         [DataMember]
         public string Did { get; set; }
         [DataMember]
         public string Fid { get; set; }
-
-
-
         [DataMember]
         public string Tid { get; set; }
-
-
-
         [DataMember]
         public string Ts { get; set; }
         [DataMember]
@@ -45,36 +37,32 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         [DataMember]
         public string Base_64 { get; set; }  
         [DataMember]
-        public float C_threshold { get; set; }    
-
-
-
+        public float C_threshold { get; set; } 
         [DataMember]
         public List<Mtp> Mtp { get; set; }
         [DataMember]
         public List<Per> Per { get; set; }
         [DataMember]
         public string Ad { get; set; }
-      
-
+       
         [DataMember]
         public string Ffp { get; set; } 
         [DataMember]
         public string Ltsize { get; set; } 
         [DataMember]
         public string Lfp { get; set; }
-
         [DataMember]
         public string I_fn { get; set; }
-
         [DataMember]
         public List<string> Msk_img { get; set; }
-
         [DataMember]
         public List<string> Rep_img { get; set; }
-
         [DataMember]
         public List<List<string>> Prompt { get; set; }
+        [DataMember]
+        public List<PersonDetails> Fs { get; set; }
+        [DataMember]
+        public string Hp { get; set; }
     }
 
     [DataContract]
@@ -84,7 +72,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         public string Fid { get; set; }
         [DataMember]
         public CartPredictions[] Fs { get; set; }
-      
+        
     }
     [DataContract]
     public class Fs
@@ -155,11 +143,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
     public class PersonCount
     {
         [DataMember]
-        public string Class { get; set; }
+        public string Class { get; set; } 
         [DataMember]
-        public string info { get; set; } 
+        public string info { get; set; }
         [DataMember]
-        public string Fid { get; set; } 
+        public string Fid { get; set; }
         [DataMember]
         public PersonAndBounding[] Fs { get; set; } 
     }
@@ -191,7 +179,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         [DataMember]
         public string Cs { get; set; } 
         [DataMember]
-        public string Lb { get; set; }
+        public string Lb { get; set; } 
         [DataMember]
         public string Info { get; set; }
         [DataMember]
@@ -201,9 +189,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         [DataMember]
         public string Pid { get; set; } 
         [DataMember]
-        public string Np { get; set; }        
+        public string Np { get; set; }     
         [DataMember]
         public Dictionary<int, List<float>> Kp { get; set; }
+        [DataMember]
+        public string TaskType { get; set; }
 
     }
     [DataContract]
@@ -216,5 +206,77 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
         public int[] y { get; set; }
         [DataMember]
         public string Base_64 { get; set; }
+    }
+
+    [DataContract]
+    public class ObjectDetectorAPIReqMsgExp
+    {
+       
+        [DataMember]
+        public string Did { get; set; }
+        [DataMember]
+        public List<string> Fid { get; set; }
+
+
+
+        [DataMember]
+        public string Tid { get; set; }
+
+
+
+        [DataMember]
+        public string Ts { get; set; }
+        [DataMember]
+        public string Ts_ntp { get; set; }
+        [DataMember]
+        public string Msg_ver { get; set; }
+        [DataMember]
+        public string Inf_ver { get; set; }
+        [DataMember]
+        public string Model { get; set; }
+        [DataMember]
+        public List<string> Base_64 { get; set; }  
+        [DataMember]
+        public string C_threshold { get; set; }   
+
+
+
+        [DataMember]
+        public List<Mtp> Mtp { get; set; }
+        [DataMember]
+        public List<Per> Per { get; set; }
+        [DataMember]
+        public string Ad { get; set; }
+        
+
+        [DataMember]
+        public string Ffp { get; set; } 
+        [DataMember]
+        public string Ltsize { get; set; } 
+        [DataMember]
+        public string Lfp { get; set; }
+
+        [DataMember]
+        public string I_fn { get; set; }
+
+        [DataMember]
+        public List<string> Msk_img { get; set; }
+
+        [DataMember]
+        public List<string> Rep_img { get; set; }
+
+        [DataMember]
+        public List<List<string>> Prompt { get; set; }
+        [DataMember]
+        public byte[] Pcd { get; set; }
+        [DataMember]
+        public string Exp_api_ver { get; set; }
+        [DataMember]
+        
+        public List<string> Explainers_to_run { get; set; }
+        [DataMember]
+        public Dictionary<string, List<string>> TE { get; set; } 
+        [DataMember]
+        public  string Explainer_url { get; set; } 
     }
 }

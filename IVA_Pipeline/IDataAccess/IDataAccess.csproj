@@ -8,15 +8,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Infosys.Solutions.VideoAnalytics.Resource.IDataAccess</RootNamespace>
     <AssemblyName>Infosys.Solutions.VideoAnalytics.Resource.IDataAccess</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Collections" Version="4.3.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0-preview.3.22175.4" />
-    <PackageReference Include="System.Linq" Version="4.3.0" />
   </ItemGroup>
 
 </Project>

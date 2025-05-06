@@ -1,15 +1,15 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DE = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity;
+//using DE1=Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Framedetail;
 using QE = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess;
 using Newtonsoft.Json;
@@ -62,15 +62,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 MachineName = System.Environment.MachineName,
                 Status = "",
                 TenantId = Convert.ToInt32(message.Tid),
-                PredictionType = Config.AppSettings.AnalyticsPredictionType
-              
+                PredictionType=predictionType
+                
             });
 
             if (insEntity != null)
                 return true;
             else
                 return false;
-           
+            
         }
         public static IList<DE.Framedetail.FramePredictedClassDetail> GetRegions(string frameId, string deviceId, int tenantId)
         {

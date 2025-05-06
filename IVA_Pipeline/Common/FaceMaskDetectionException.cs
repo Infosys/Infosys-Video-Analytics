@@ -1,9 +1,9 @@
 /*=============================================================================================================== *
- * Copyright 2024 Infosys Ltd.                                                                                    *
+ * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-
+﻿
 
 using System;
 using System.Runtime.Serialization;
@@ -30,7 +30,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         protected FaceMaskDetectionException(SerializationInfo info, StreamingContext context)
                 : base(info, context)
         {
-            
+           
         }
     }
 
@@ -74,12 +74,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         protected FaceMaskDetectionDataItemNotFoundException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-           
+          
         }
 
     }
 
-   
+  
     [Serializable]
     public class FaceMaskDetectionValidationException : System.Exception, ISerializable
     {
@@ -105,7 +105,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         }
 
     }
-    
+   
     [Serializable]
     public class FaceMaskDetectionInvalidConfigException : System.Exception, ISerializable
     {
@@ -131,7 +131,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         }
 
     }
-   
+  
     [Serializable]
     public class FaceMaskDetectionFrameGrabberZipperException : System.Exception, ISerializable
     {
@@ -179,7 +179,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         protected FaceMaskDetectionVideoCompletedException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
-            
+           
         }
 
     }
@@ -205,7 +205,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         protected ClientInactiveException(SerializationInfo info, StreamingContext context)
           : base(info, context)
         {
-            
+          
         }
 
     }
@@ -227,7 +227,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         protected ClientNotConnectedException(SerializationInfo info, StreamingContext context)
           : base(info, context)
         {
-            
+      
         }
 
     }
@@ -250,7 +250,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         protected ClientDisconnectedException(SerializationInfo info, StreamingContext context)
           : base(info, context)
         {
-            
+          
         }
 
     }
@@ -273,7 +273,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         protected DuplicateRecordException(SerializationInfo info, StreamingContext context)
           : base(info, context)
         {
-           
+         
         }
 
     }
@@ -304,7 +304,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         protected TaskRouteNotFoundException(SerializationInfo info, StreamingContext context)
           : base(info, context)
         {
-            
+           
         }
 
 

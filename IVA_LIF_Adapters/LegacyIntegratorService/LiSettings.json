@@ -52,7 +52,7 @@
       ]
     },
     "MSMQ": {
-      "DllPath": "D:\\TFS Workspace\\ManaExpertServices\\Solutions\\FaceMaskDetection\\Source Code\\Dot Net\\DotnetCore\\LIF_CORE\\MSMQAdapter\\bin\\Debug\\net5.0\\MSMQAdapter.dll",
+      "DllPath": "D:\\Dot Net\\DotnetCore\\LIF_CORE\\MSMQAdapter\\bin\\Debug\\net5.0\\MSMQAdapter.dll",
       "TypeName": "Infosys.Lif.Ext.MSMQAdapterExtenstion",
       "MSMQDetails": [
         {
@@ -98,16 +98,16 @@
       ]
     },
     "MemoryQueue": {
-      "DllPath": "D:\\TFS Workspace\\ManaExpertServices\\Solutions\\FaceMaskDetection\\Source Code\\Dot Net\\DotnetCore\\LIF_CORE\\MemoryQueueAdapter\\bin\\Debug\\net5.0\\MemoryQueueAdapter.dll",
+      "DllPath": "D:\\Dot Net\\DotnetCore\\LIF_CORE\\MemoryQueueAdapter\\bin\\Debug\\net5.0\\MemoryQueueAdapter.dll",
       "TypeName": "Infosys.Lif.MemoryQueueAdapter",
       "MemoryQueueDetails": [
         {
           "TransportName": "FP_1_MemoryQueue",
-          
+          //"ServerName": "localhost",
           "QueueName": "frameprocessor",
-         
+          //"PoisonQueueName": "facemask_poison",
           "MessageLabel": "frame",
-         
+          //"QueueType": "Private",
           "QueueReadingType": "Receive",
           "QueueReadingMode": "Async",
           "MessageProcessingMaxCount": 5,
@@ -123,11 +123,11 @@
         },
         {
           "TransportName": "FP_2_MemoryQueue",
-        
+          //"ServerName": "localhost",
           "QueueName": "frameprocessor",
-          
+          //"PoisonQueueName": "facemask_poison",
           "MessageLabel": "frame",
-          
+          //"QueueType": "Private",
           "QueueReadingType": "Receive",
           "QueueReadingMode": "Sync",
           "MessageProcessingMaxCount": 5,
