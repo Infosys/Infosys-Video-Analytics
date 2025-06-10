@@ -1,17 +1,9 @@
 # Infosys Video Analytics
 
-### Introduction
-
-Infosys Video Analytics(IVA) is constructed using .NET 6.0. It reads frames from a video file and makes an API call to the Python Inference API pipeline by sending a JSON request (refer to [References](#-References) section). The response from the Python Inference pipeline is then used to render the output video. This tool is designed to facilitate video analysis and processing using advanced machine learning models.
-
-IVA(Infosys IP) offers a flexible, vendor-neutral approach for end-to-end Computer Vision services. It supports a range of AI models, including cutting-edge next-gen Generative AI, pre-configured for diverse vision tasks. Additionally multiple hardware like NVidia Jetson, Raspberry, Drone etc. are supported with IVA. IVA seamlessly blends on-premise, Cloud, Edge, AI & Vision technologies.
-![alt text](Docs/OverallArchitecture.png)
-
 ## Table of Contents
 - [Installation](#-Installation)
 - [Getting Started](#-Getting-Started)
 - [Prerequisites](#-Prerequisites)
-- [Architecture](#-Architecture)
 - [Workflow](#-Workflow)
 - [Build and Test](#-Build-and-Test)
 - [Tests](#%EF%B8%8F-contacts)
@@ -43,8 +35,6 @@ Visit https://git-scm.com to download and install console Git if not already ins
 
 ### Getting Started
 
-![alt text](Docs/capabilityarchitecture.png)
-
 This section guides users through setting up and running the IVA on their system.
 
 ### Prerequisites (Install Dependencies)
@@ -55,28 +45,13 @@ This section guides users through setting up and running the IVA on their system
 - **Windows Server**: If running on a server, Windows Server 2012 R2 or greater.
 - **VLC Player**: Required to view the video output. Ensure the latest version is installed.
 
-### Architecture
-
-![alt text](Docs/Architecturepic.png)
-
 - **Framework**: IVA is constructed using .NET 6.0.
 - **Data Flow**:
 
   - Reads frames from a video/image file.
   - Sends a JSON request to the Python Inference API pipeline. (refer to [References](#-References) section for sample JSON request and response structures)
   - Receives the response and renders the output video.
-- **Components**:
 
-  - **Frame Grabber**: Captures frames from the input video/image.
-  - **Frame Predictor**: Processes frames using the Python model API.
-  - **Data Collector**: Collects data for further processing.
-  - **Frame Renderer**: Renders the processed frames into a video.
-    Data Collector
-  - This module stores AI prediction metadata to the database. It can be used for downstream applications, analytics and notification purposes.
-  - It comprises of SQL Server database (for persistent storage), Blob storage (for temporary storage), Queue- MSMQ, Kafka (for transient storage of messages), disk storage. SQL stores structured data like prediction results from AI models, Blob stores image frames, Queue stores messages which are transmitted through various modules of pipeline, disks can store image, videos.
-    Rendering:
-  - The rendering part is modified as per the new schema for the models and conditions for executing specific models are specified in the configuration file based on that model is executed.
-  - Multiple attributes are set for the models based on that it will render model and generate the output video.
 - **Workflow**:
 
   1. Upload the image/video to IVA.
@@ -84,11 +59,7 @@ This section guides users through setting up and running the IVA on their system
   3. The Frame Predictor forwards the data to the Data Collector and Frame Renderer.
   4. The rendered video output can be viewed using VLC media player.
 
-  ##### Overall Architecture Diagramatic Representation
-
-![alt text](Docs/DeploymentArchitecture.png)
-
-###🚀 Build and Test (Usage) (IVA SetUp)
+### Build and Test (Usage) (IVA SetUp)
 
 1. **Extract the IVA-open source archive**: Use 7-Zip or WinZip to unzip the binaries folder to a directory of your choice.
 2. **Build the Solution**:
@@ -119,10 +90,12 @@ This section guides users through setting up and running the IVA on their system
    - PythonModelExecutor.py
    - Python Executor setup folder
    - Python >=3.9 (Ensure it is installed on the machine to run Python inference)
+     
 2. Installation Steps:
    - Install Necessary Packages:
    - Verify installed packages using:
    - Install any missing packages.
+     
 3. Install Wheel File:
 
 Navigate to the model inference directory and locate the wheel file.
