@@ -127,6 +127,7 @@ The Deployment Architecture illustrates how IVA components are orchestrated acro
 
 This library will helps in testing the local python inference with IVA for different models. 
 - IMIL library is used to test local python inference testing with IVA, as its easy to deploy, single library for local invocation with provision for adding custom models, we need the library folder with the help of that the iva will run the local python execution.
+For more information like setup and usage, refer the open source [link](https://github.com/Infosys/Infosys-Model-Inference-Library)
 
 #### PCD Handling 
 
