@@ -93,13 +93,13 @@ This approach helps safeguard sensitive data and aligns with industry best pract
 
 ## Capability Architecture
 
-![alt text](IVA_Pipeline/Docs/capabilityarchitecture.png)
+![alt text](Docs/capabilityarchitecture.png)
 
 This architecture delivers a comprehensive AI vision pipeline designed for real-time, multi-source video analytics. It integrates diverse input protocols (CCTV, LIDAR, drones, etc.) with a robust streaming layer and advanced AI inferencing. The system supports full model lifecycle management, from data engineering to deployment, with strong MLOps and edge capabilities. Built on a modular foundation, it ensures scalability, performance optimization, and seamless integration with specialized hardware and infrastructure.
 
 ## Deployment Architecture
 
-![alt text](IVA_Pipeline/Docs/DeploymentArchitecture.png)
+![alt text](Docs/DeploymentArchitecture.png)
 
 The Deployment Architecture illustrates how IVA components are orchestrated across various environments—cloud, edge, and on-premises. It highlights the flow of data from multiple input sources (such as CCTV, LIDAR, and drones) through the streaming and AI inference layers, and demonstrates how modules are deployed for scalability, high availability, and performance optimization. The architecture supports integration with specialized hardware accelerators, secure communication between services, and robust lifecycle management for AI models. This modular approach ensures seamless deployment, monitoring, and management of vision analytics workloads in diverse enterprise scenarios.
 
