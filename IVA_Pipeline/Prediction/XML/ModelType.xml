@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ModelType>
+	<Type key="DetectMask_t5_Offline">PythonInference</Type>
+	<Type key="MaskDetectionT5FastAPI" modelUrl="" taskType="ObjectDetection">ObjectDetectionInferenceAPI</Type>
+	<Type key="yolov7" modelUrl="" taskType="Posepoint">ObjectDetectionInferenceAPI</Type>
+	<Type key="TemplateMatching" modelPath="atr\\CommonWealth.atr" canonicalPath="CommonWealth.Tennis.Logo" taskType="ObjectDetection">ComputerVisionInference</Type>
+</ModelType>

@@ -1,0 +1,148 @@
+{
+  "LISettings": {
+
+    "HostRegion": {
+      "Region": [
+        {
+          "Name": "FrameProcessor",
+          "TransportMedium": "MSMQ",
+          "TransportName": "frameprocessorchannel",
+          "CommunicationType": "Async"
+        },
+        {
+          "Name": "Test",
+          "TransportMedium": "MSMQ",
+          "TransportName": "Testchannel",
+          "CommunicationType": "Async"
+        },
+        {
+          "Name": "FP_1_MemoryQueue",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "FP_1_MemoryQueue",
+          "CommunicationType": "Sync"
+        },
+        {
+          "Name": "FP_2_MemoryQueue",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "FP_2_MemoryQueue",
+          "CommunicationType": "Sync"
+        },
+        {
+          "Name": "Infosys-Dev",
+          "TransportMedium": "IISDoc",
+          "TransportName": "Teststore",
+          "CommunicationType": "Sync"
+        }
+      ]
+    },
+    "IISDoc": {
+      "DllPath": "C:\\Infosys.IntegrationLib\\References\\Infosys.Lif.IISDoc.dll",
+      "TypeName": "Infosys.Lif.IIS_DocAdapter",
+      "IISDocDetails": [
+        {
+          "TransportName": "framestore",
+          "DataBlockSize": 250,
+          "DocumentsVirtualDirectoryFromRoot": "Documents"
+        },
+        {
+          "TransportName": "Teststore",
+          "DataBlockSize": 250,
+          "DocumentsVirtualDirectoryFromRoot": "Documents"
+        }
+      ]
+    },
+    "MSMQ": {
+      "DllPath": "D:\\Dot Net\\DotnetCore\\LIF_CORE\\MSMQAdapter\\bin\\Debug\\net5.0\\MSMQAdapter.dll",
+      "TypeName": "Infosys.Lif.Ext.MSMQAdapterExtenstion",
+      "MSMQDetails": [
+        {
+          "TransportName": "frameprocessorchannel",
+          "ServerName": "localhost",
+          "QueueName": "frameprocessor",
+          "PoisonQueueName": "facemask_poison",
+          "MessageLabel": "frame",
+          "QueueType": "Private",
+          "QueueReadingType": "Receive",
+          "QueueReadingMode": "Async",
+          "MessageProcessingMaxCount": 5,
+          "ReadAndDelete": true,
+          "MessaseInvisibilityTimeout": 20000,
+          "QueueReadTimeout": 1000,
+          "PollingRestDuration": 100,
+          "ContinueToReceive": true,
+          "SendPattern": "None",
+          "SecondaryQueues": "",
+          "QueueLoadLimit": 0,
+          "TransactionWaitTime": 4
+        },
+        {
+          "TransportName": "Testchannel",
+          "ServerName": "localhost",
+          "QueueName": "testprocessor",
+          "PoisonQueueName": "facemask_poison",
+          "MessageLabel": "frame",
+          "QueueType": "Private",
+          "QueueReadingType": "Receive",
+          "QueueReadingMode": "Async",
+          "MessageProcessingMaxCount": 5,
+          "ReadAndDelete": true,
+          "MessaseInvisibilityTimeout": 20000,
+          "QueueReadTimeout": 1000,
+          "PollingRestDuration": 100,
+          "ContinueToReceive": true,
+          "SendPattern": "None",
+          "SecondaryQueues": "",
+          "QueueLoadLimit": 0,
+          "TransactionWaitTime": 4
+        }
+      ]
+    },
+    "MemoryQueue": {
+      "DllPath": "D:\\Dot Net\\DotnetCore\\LIF_CORE\\MemoryQueueAdapter\\bin\\Debug\\net5.0\\MemoryQueueAdapter.dll",
+      "TypeName": "Infosys.Lif.MemoryQueueAdapter",
+      "MemoryQueueDetails": [
+        {
+          "TransportName": "FP_1_MemoryQueue",
+          //"ServerName": "localhost",
+          "QueueName": "frameprocessor",
+          //"PoisonQueueName": "facemask_poison",
+          "MessageLabel": "frame",
+          //"QueueType": "Private",
+          "QueueReadingType": "Receive",
+          "QueueReadingMode": "Async",
+          "MessageProcessingMaxCount": 5,
+          "ReadAndDelete": true,
+          "MessaseInvisibilityTimeout": 20000,
+          "QueueReadTimeout": 1000,
+          "PollingRestDuration": 100,
+          "ContinueToReceive": true,
+          "SendPattern": "None",
+          "SecondaryQueues": "",
+          "QueueLoadLimit": 0,
+          "TransactionWaitTime": 4
+        },
+        {
+          "TransportName": "FP_2_MemoryQueue",
+          //"ServerName": "localhost",
+          "QueueName": "frameprocessor",
+          //"PoisonQueueName": "facemask_poison",
+          "MessageLabel": "frame",
+          //"QueueType": "Private",
+          "QueueReadingType": "Receive",
+          "QueueReadingMode": "Sync",
+          "MessageProcessingMaxCount": 5,
+          "ReadAndDelete": true,
+          "MessaseInvisibilityTimeout": 20000,
+          "QueueReadTimeout": 1000,
+          "PollingRestDuration": 100,
+          "ContinueToReceive": true,
+          "SendPattern": "None",
+          "SecondaryQueues": "",
+          "QueueLoadLimit": 0,
+          "TransactionWaitTime": 4
+        }
+      ]
+    }
+  }
+
+}

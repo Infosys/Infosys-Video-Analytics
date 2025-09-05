@@ -1,0 +1,1 @@
+{"impact": "4","contact_type": "email","category": "Database","subcategory": "Oracle","short_description": "##ANOMALY_REASON##","description": "An Anomaly has been detected in ##RESOURCETYPENAME## - ##RESOURCENAME## while monitoring the ##OBSERVABLENAME## metric. Please find below details ##DETAILS## "}

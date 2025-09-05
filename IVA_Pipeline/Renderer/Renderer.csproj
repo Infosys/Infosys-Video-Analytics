@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Infosys.Solutions.Ainauto.VideoAnalytics.Renderer</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenCvSharp4.Extensions" Version="4.11.0.20250507" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BusinessComponent\BusinessComponent.csproj" />
+    <ProjectReference Include="..\BusinessEntity\BusinessEntity.csproj" />
+    <ProjectReference Include="..\PythonLoader\PythonLoader.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,142 @@
+{
+  "LISettings": {
+    //Provide region details of the host
+    "HostRegion": {
+      "Region": [
+        {
+          "Name": "FrameProcessor",
+          "TransportMedium": "MSMQ",
+          "TransportName": "frameprocessorchannel",
+          "CommunicationType": "Async"
+        },
+        {
+          "Name": "Test",
+          "TransportMedium": "MSMQ",
+          "TransportName": "Testchannel",
+          "CommunicationType": "Async"
+        },
+        {
+          "Name": "FP_1_MemoryQueue",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "FP_1_MemoryQueue",
+          "CommunicationType": "Sync"
+        },
+        {
+          "Name": "FP_2_MemoryQueue",
+          "TransportMedium": "MemoryQueue",
+          "TransportName": "FP_2_MemoryQueue",
+          "CommunicationType": "Sync"
+        },
+        {
+          "Name": "Infosys-Dev",
+          "TransportMedium": "IISDoc",
+          "TransportName": "Teststore",
+          "CommunicationType": "Sync"
+        },
+        {
+          "Name": "FrameRepository",
+          "TransportMedium": "MemoryDoc",
+          "TransportName": "framestore2",
+          "CommunicationType": "Sync"
+        }
+      ]
+    },
+    "IISDoc": {
+      "DllPath": "D:\\Dot Net\\DotnetCore\\LIF_CORE\\IIS_DocAdapter\\bin\\Debug\\net5.0\\Infosys.Lif.IIS_DocAdapter.dll",
+      "TypeName": "Infosys.Lif.IIS_DocAdapter",
+      "IISDocDetails": [
+        {
+          "TransportName": "Teststore",
+          "DataBlockSizeInKB": 250,
+          "DocumentsVirtualDirectoryFromRoot": "Documents"
+        }
+      ]
+    },
+ 
+    "MSMQ": {
+      "DllPath": "D:\\Dot Net\\DotnetCore\\LIF_CORE\\MSMQAdapter\\bin\\Debug\\net5.0\\MSMQAdapter.dll",
+      "TypeName": "Infosys.Lif.Ext.MSMQAdapterExtenstion",
+      "MSMQDetails": [
+        {
+          "TransportName": "frameprocessorchannel",
+          "ServerName": "localhost",
+          "QueueName": "frameprocessor",
+          "PoisonQueueName": "facemask_poison",
+          "MessageLabel": "frame",
+          "QueueType": "Private",
+          "QueueReadingType": "Receive",
+          "QueueReadingMode": "Async",
+          "MessageProcessingMaxCount": 5,
+          "ReadAndDelete": true,
+          "MessaseInvisibilityTimeout": 20000,
+          "QueueReadTimeout": 1000,
+          "PollingRestDuration": 100,
+          "ContinueToReceive": true,
+          "SendPattern": "None",
+          "SecondaryQueues": "",
+          "QueueLoadLimit": 0,
+          "TransactionWaitTime": 4
+        }
+      ]
+    },
+    "MemoryQueue": {
+      "DllPath": "D:\\Dot Net\\DotnetCore\\LIF_CORE\\MemoryQueueAdapter\\bin\\Debug\\net5.0\\Infosys.Lif.MemoryQueueAdapter.dll",
+      "TypeName": "Infosys.Lif.MemoryQueueAdapter",
+      "MemoryQueueDetails": [
+        {
+          "TransportName": "FP_1_MemoryQueue",
+          "QueueName": "frameprocessor",
+          "MessageLabel": "frame",
+          "QueueReadingType": "Receive",
+          "QueueReadingMode": "Async",
+          "MessageProcessingMaxCount": 5,
+          "ReadAndDelete": true,
+          "MessaseInvisibilityTimeout": 20000,
+          "QueueReadTimeout": 1000,
+          "PollingRestDuration": 100,
+          "ContinueToReceive": true,
+          "SendPattern": "None",
+          "SecondaryQueues": "",
+          "QueueLoadLimit": 0,
+          "TransactionWaitTimeInMins": 4
+        },
+        {
+          "TransportName": "FP_2_MemoryQueue",
+          "QueueName": "frameprocessor",
+          "MessageLabel": "frame",
+          "QueueReadingType": "Receive",
+          "QueueReadingMode": "Sync",
+          "MessageProcessingMaxCount": 5,
+          "ReadAndDelete": true,
+          "MessaseInvisibilityTimeout": 20000,
+          "QueueReadTimeout": 1000,
+          "PollingRestDuration": 100,
+          "ContinueToReceive": true,
+          "SendPattern": "None",
+          "SecondaryQueues": "",
+          "QueueLoadLimit": 0,
+          "TransactionWaitTimeInMins": 4
+        }
+      ]
+    },
+    "MemoryDoc": {
+      "DllPath": "D:\\MemoryDocAdapter\\bin\\Debug\\net5.0\\Infosys.Lif.MemoryDocAdapter.dll",
+      "TypeName": "Infosys.Lif.MemoryDocAdapter",
+      "MemoryDocDetails": [
+        {
+          "TransportName": "framestore",
+          "DataBlockSizeInKB": 250,
+          "DocumentsVirtualDirectoryFromRoot": "Documents",
+          "MemoryCacheSlidingExpirationInMins": 10,
+          "CacheMemoryLimitBytes": 0,
+          "PhysicalMemoryLimitPrctg": 0,
+          "CachePollingIntervalInSec": 0,
+          "GCTriggerExpireCount": 0,
+          "MemoryControlMode": 2
+        }
+      ]
+    }
+
+  }
+
+}

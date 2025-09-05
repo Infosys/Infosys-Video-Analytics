@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Infosys.Ainauto.ProcessScheduler.Framework</AssemblyName>
+    <RootNamespace>Infosys.Solutions.Ainauto.Infrastructure.ProcessScheduler.Framework</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\DataEntity\DataEntity.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="LegacyCommon">
+      <HintPath>..\references\Infosys.Lif.LegacyCommon.dll</HintPath>
+    </Reference>
+    <Reference Include="LegacyIntegrator">
+      <HintPath>..\references\Infosys.Lif.LegacyIntegrator.dll</HintPath>
+    </Reference>
+    <Reference Include="LegacyIntegratorService">
+      <HintPath>..\references\Infosys.Lif.LegacyIntegratorService.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

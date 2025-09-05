@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Infosys.Solutions.Ainauto.VideoAnalytics.Processes</RootNamespace>
+    <AssemblyName>Infosys.Solutions.Ainauto.VideoAnalytics.Processes</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Confluent.Kafka" Version="2.0.2" />
+    <PackageReference Include="Elastic.CommonSchema.NLog" Version="1.5.3" />
+    <PackageReference Include="SharpZipLib" Version="1.3.2" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
+  </ItemGroup>
+
+  
+  <ItemGroup>
+    <ProjectReference Include="..\BusinessComponent\BusinessComponent.csproj" />
+    <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\DataAccess\DataAccess.csproj" />
+    <ProjectReference Include="..\DataEntity\DataEntity.csproj" />
+    <ProjectReference Include="..\Prediction\Prediction.csproj" />
+    <ProjectReference Include="..\ProcessScheduler.Framework\ProcessScheduler.Framework.csproj" />
+    <ProjectReference Include="..\Renderer\Renderer.csproj" />
+    <ProjectReference Include="..\TaskRoute\TaskRoute.csproj" />
+    <ProjectReference Include="..\TCPChannelCommunication\TCPChannelCommunication.csproj" />
+  </ItemGroup>
+
+</Project>

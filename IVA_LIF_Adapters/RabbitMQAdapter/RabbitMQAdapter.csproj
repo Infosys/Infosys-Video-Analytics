@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Infosys.Lif</RootNamespace>
+    <AssemblyName>Infosys.Lif.RabbitMQAdapter</AssemblyName>
+    <BaseOutputPath>..\bin\</BaseOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.17.0" />
+    <PackageReference Include="M2Mqtt" Version="4.3.0" />
+    <PackageReference Include="Microsoft.Azure.Devices" Version="1.39.0" />
+    <PackageReference Include="Microsoft.Azure.Devices.Client" Version="1.42.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.6.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
+  
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\LegacyCommon\LegacyCommon.csproj" />
+    <ProjectReference Include="..\LegacyIntegratorService\LegacyIntegratorService.csproj" />
+  </ItemGroup>
+  
+</Project>

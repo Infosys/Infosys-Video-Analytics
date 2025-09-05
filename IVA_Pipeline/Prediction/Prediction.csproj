@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.21.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+    <PackageReference Include="Microsoft.ML" Version="1.6.0" />
+    <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="1.6.0" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.7.0" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu" Version="1.13.0" />
+    <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="1.6.0" />
+    <PackageReference Include="Microsoft.ServiceFabric" Version="8.0.514" />
+    <PackageReference Include="pythonnet" Version="3.0.2" />
+    <!--<PackageReference Include="pythonnet_netstandard_py39_win" Version="2.5.2" />-->
+    <PackageReference Include="RestSharp" Version="106.15.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
+
+    <PackageReference Include="AWSSDK.Core" Version="3.7.202.5" />
+    <PackageReference Include="AWSSDK.SageMaker" Version="3.7.212" />
+    <PackageReference Include="AWSSDK.SageMakerRuntime" Version="3.7.201.6" />
+    <PackageReference Include="AWSSDK.SecurityToken" Version="3.7.201.32" />
+  </ItemGroup>
+
+  <ItemGroup>
+    
+    <ProjectReference Include="..\BusinessComponent\BusinessComponent.csproj" />
+    <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\ComputerVisionLib.Entities\ComputerVisionLib.Entities.csproj" />
+    <ProjectReference Include="..\ComputerVisionLib.OCREngine\ComputerVisionLib.OCREngine.csproj" />
+    <ProjectReference Include="..\ComputerVisionLib\ComputerVisionLib.csproj" />
+    <ProjectReference Include="..\ObjectDetector.Contracts\ObjectDetector.Contracts.csproj" />
+    <ProjectReference Include="..\PythonLoader\PythonLoader.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Common">
+      <HintPath>..\..\..\FaceMaskDetection\Source Code\Dot Net\InfosysMaskDetector\Common\bin\Debug\Microsoft.Practices.EnterpriseLibrary.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Practices.EnterpriseLibrary.Logging">
+      <HintPath>..\..\..\FaceMaskDetection\Source Code\Dot Net\InfosysMaskDetector\Common\bin\Debug\Microsoft.Practices.EnterpriseLibrary.Logging.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="XML\ModelType.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

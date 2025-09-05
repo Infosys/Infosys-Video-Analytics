@@ -1,0 +1,42 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent</RootNamespace>
+    <AssemblyName>Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="FacadeHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediaToolkit" Version="1.1.0.1" />
+    <PackageReference Include="OpenCvSharp4" Version="4.11.0.20250507" />
+    <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.11.0.20250507" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BusinessEntity\BusinessEntity.csproj" />
+    <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\DataAccess\DataAccess.csproj" />
+    <ProjectReference Include="..\DataEntity\DataEntity.csproj" />
+    <ProjectReference Include="..\ProcessScheduler.Framework\ProcessScheduler.Framework.csproj" />
+    <ProjectReference Include="..\TaskRoute\TaskRoute.csproj" />
+    <ProjectReference Include="..\ObjectDetector.Contracts\ObjectDetector.Contracts.csproj" />
+    <ProjectReference Include="..\ServiceClientLibrary\ServiceClientLibrary.csproj" />
+  </ItemGroup>
+
+</Project>

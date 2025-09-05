@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ServiceClientLibrary</RootNamespace>
+    <AssemblyName>Infosys.Ainauto.VideoAnalytics.ServiceClientLibrary</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0-preview.3.22175.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ObjectDetector.Contracts\ObjectDetector.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

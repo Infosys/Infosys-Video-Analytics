@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup Label="Globals">
+		<SccProjectName>SAK</SccProjectName>
+		<SccProvider>SAK</SccProvider>
+		<SccAuxPath>SAK</SccAuxPath>
+		<SccLocalPath>SAK</SccLocalPath>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AssemblyName>Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.PythonLoader</AssemblyName>
+		<RootNamespace>Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.PythonLoader</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="pythonnet" Version="3.0.2" />
+	  <!--<PackageReference Include="pythonnet_netstandard_py39_win" Version="2.5.2" />-->
+	  <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\TaskRoute\TaskRoute.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\BusinessEntity\BusinessEntity.csproj" />
+	  <ProjectReference Include="..\TaskRoute\TaskRoute.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Python\labels.txt">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>labels.txt</TargetPath>
+		</None>
+		<None Update="Python\DetectMask_t5_Offline.py">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>DetectMask_t5_Offline.py</TargetPath>
+		</None>
+		<None Update="Python\object_detection.py">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>object_detection.py</TargetPath>
+		</None>
+		<None Update="Python\saved_model.pb">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>saved_model.pb</TargetPath>
+		</None>
+	</ItemGroup>
+
+</Project>

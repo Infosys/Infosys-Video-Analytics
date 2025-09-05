@@ -1,0 +1,658 @@
+{
+	"Attributes": [
+		// Archive inputs to secondary folder after they are processed by IVA. Possible values are "yes" and "no".
+		{
+			"AttributeName": "ARCHIVE_ENABLED",
+			"AttributeValue": "no"
+		},
+		// Folder location where input files are archived after they are processed by IVA. This is applicable if attribute ARCHIVE_ENABLED is set as "yes". 
+		{
+			"AttributeName": "ARCHIVE_LOCATION",
+			"AttributeValue": "C:\\IVA\\Archieved\\"
+		},
+		{
+			"AttributeName": "ANALYTICS_PREDICTION_TYPE",
+			"AttributeValue": "UniquePerson"
+		},
+		// Color of the box which will be drawn for an object. Each class name can have an independent color for the box.
+		{
+			"AttributeName": "BOX_COLOR",
+			"AttributeValue": "{\"mask 1\":\"green\",\"mask 2\":\"green\",\"no mask\":\"red\",\"default\":\"blue\",\"new_person\":\"green\",\"fire\":\"red\",\"smoke\":\"yellow\",\"car\":\"white\",\"person\":\"ActiveBorder\"\t}\t"
+		},
+		// Color of the label for a given class name which is drawn on the output - image/video.
+		{
+			"AttributeName": "LABEL_COLOR",
+			"AttributeValue": "{\"default\":\"blue\",\"new_person\":\"green\",\"fire\":\"red\",\"smoke\":\"yellow\",\"car\":\"white\",\"person\":\"ActiveBorder\"\t}\t"
+		},
+		// Colors used for different classes. Primarily used for segmentation based rendering.
+		{
+			"AttributeName": "SEGMENTCOLORS",
+			"AttributeValue": "{\"1\":\"AliceBlue\",\"2\":\"AntiqueWhite\",\"3\":\"Aqua\",\"4\":\"Aquamarine\",\"5\":\"Azure\",\"6\":\"Beige\",\"7\":\"Bisque\",\"8\":\"Black\",\"9\":\"BlanchedAlmond\",\"10\":\"Blue\",\"11\":\"BlueViolet\",\"12\":\"Brown\",\"13\":\"BurlyWood\",\"14\":\"CadetBlue\",\"15\":\"Chartreuse\",\"16\":\"Chocolate\",\"17\":\"Coral\",\"18\":\"CornflowerBlue\",\"19\":\"Cornsilk\",\"20\":\"Crimson\",\"21\":\"Cyan\",\"22\":\"DarkBlue\",\"23\":\"DarkCyan\",\"24\":\"DarkGoldenrod\",\"25\":\"DarkGray\",\"26\":\"DarkGreen\",\"27\":\"DarkKhaki\",\"28\":\"DarkMagenta\",\"29\":\"DarkOliveGreen\",\"30\":\"DarkOrange\",\"31\":\"DarkOrchid\",\"32\":\"DarkRed\",\"33\":\"DarkSalmon\",\"34\":\"DarkSeaGreen\",\"35\":\"DarkSlateBlue\",\"36\":\"DarkSlateGray\",\"37\":\"DarkTurquoise\",\"38\":\"DarkViolet\",\"39\":\"DeepPink\",\"40\":\"DeepSkyBlue\",\"41\":\"DimGray\",\"42\":\"DodgerBlue\",\"43\":\"Firebrick\",\"44\":\"FloralWhite\",\"45\":\"ForestGreen\",\"46\":\"Fuchsia\",\"47\":\"Gainsboro\",\"48\":\"GhostWhite\",\"49\":\"Gold\",\"50\":\"Goldenrod\"}"
+		},
+		// Color for the background box which is drawn on the output - image/video.
+		{
+			"AttributeName": "BACKGROUND_COLOR",
+			"AttributeValue": "red"
+		},
+		// Changing the background of an image/video with another image.
+		{
+			"AttributeName": "BACKGROUND_CHANGE",
+			"AttributeValue": "no"
+		},
+		// The boundary thickness of bounding box for rendering.
+		{
+			"AttributeName": "PEN_THICKNESS",
+			"AttributeValue": "6"
+		},
+		// Color of the font which will be used for rendering purpose.
+		{
+			"AttributeName": "LABEL_FONT_COLOR",
+			"AttributeValue": "Black"
+		},
+		// Size of the font which will be used for rendering purpose.
+		{
+			"AttributeName": "LABEL_FONT_SIZE",
+			"AttributeValue": "12"
+		},
+		// Style of the font which will be used for rendering purpose.
+		{
+			"AttributeName": "LABEL_FONT_STYLE",
+			"AttributeValue": "Arial"
+		},
+		// Height of the label which will be used for rendering purpose.
+		{
+			"AttributeName": "LABEL_HEIGHT",
+			"AttributeValue": "20"
+		},
+		{
+			"AttributeName": "RENDERER_FONT_SCALE",
+			"AttributeValue": "0.8"
+		},
+		// Boldness of the font to be used in rendering.
+		{
+			"AttributeName": "RENDERER_FONT_THICKNESS",
+			"AttributeValue": "2"
+		},
+		// X coordinate of the rectangle. Primarily used for classification, drawing rectangles, etc.
+		{
+			"AttributeName": "RENDERER_RECTANGLE_POINT_X",
+			"AttributeValue": "10"
+		},
+		// Y coordinate of the rectangle. Primarily used for classification, drawing rectangles, etc.
+		{
+			"AttributeName": "RENDERER_RECTANGLE_POINT_Y",
+			"AttributeValue": "10"
+		},
+		// X coordinate of the label. Primarily used for classification, adding labels, etc.
+		{
+			"AttributeName": "RENDERER_LABEL_POINT_X",
+			"AttributeValue": "20"
+		},
+		// Y coordinate of the label. Primarily used for classification, adding labels, etc.
+		{
+			"AttributeName": "RENDERER_LABEL_POINT_Y",
+			"AttributeValue": "20"
+		},
+		// Height of the rectangle to be drawn. Primarily used for classification, drawing rectangles, etc.
+		{
+			"AttributeName": "RENDERER_RECTANGLE_HEIGHT",
+			"AttributeValue": "35"
+		},
+		{
+			"AttributeName": "RENDERER_PREDICTCART_LIST_BACKGROUNDCOLOR",
+			"AttributeValue": "white"
+		},
+		// For cleaning up index files generated from previous run. Applicable when ffmpeg is configured to generate index files.
+		{
+			"AttributeName": "CLEAN_UP_STREAMING_FOLDER",
+			"AttributeValue": "yes"
+		},
+		// Path from where the previous inferenced data needs to be cleaned up.
+		{
+			"AttributeName": "STREAMING_PATH",
+			"AttributeValue": "Output\\"
+		},
+		// Path from where the previous raw data needs to be cleaned up.
+		{
+			"AttributeName": "STREAMING_PATH_RAW",
+			"AttributeValue": "D:\\RawStream"
+		},
+		// Used to filter inference output based on confidence results returned by the model. Possible values range from 0 to 1.
+		{
+			"AttributeName": "CONFIDENCE_THRESHOLD",
+			"AttributeValue": "0.4"
+		},
+		// Used for uwp. If there is a connection issue then the number of times connectivity can be retried.
+		{
+			"AttributeName": "CLIENT_CONNECTION_RETRY_COUNT",
+			"AttributeValue": "3"
+		},
+		// To calculate the fps of incoming input if it is cctv. Possible values are "yes" and "no". 
+		{
+			"AttributeName": "CALCULATE_FRAME_GRABBER_FPR",
+			"AttributeValue": "Yes"
+		},
+		// Time interval to wait while making connection to uwp. Values are in milliseconds.
+		{
+			"AttributeName": "CLIENT_CONNECTION_WAITING_TIME",
+			"AttributeValue": "200"
+		},
+		// If blob storage is being used for saving frames then to specify if those frames are to be deleted after processing. Possible values are "yes" and "no".
+		{
+			"AttributeName": "DELETE_FRAMES_FROM_BLOB",
+			"AttributeValue": "no"
+		},
+		// To display all frames while rendering in output video. Possible values are "yes" and "no". If it is set as "no" then only inferenced frames are used for rendering.
+		{
+			"AttributeName": "DISPLAY_ALL_FRAMES",
+			"AttributeValue": "yes"
+		},
+		// Used in playground to allow fetching few attributes from database. Possible values are "true" and "false". If "true" then some attributes are fetched from database and if "false" then all attributes are fetched from configuration files.
+		{
+			"AttributeName": "DB_ENABLED",
+			"AttributeValue": "false"
+		},
+		// Timeout values for reading/writing stream in uwp. Values are in milliseconds.
+		{
+			"AttributeName": "DATA_STREAM_TIME_OUT",
+			"AttributeValue": "5000"
+		},
+		{
+			"AttributeName": "EMAIL_NOTIFICATION_DESCRIPTION",
+			"AttributeValue": "To View Frame Details [FRAMELINK]"
+		},
+		// Specify whether input frames are to be zipped for use in IVA. Possible values are "yes" and "no".
+		{
+			"AttributeName": "ENABLELOTS",
+			"AttributeValue": "no"
+		},
+		// When IVA is used in async/batch mode this parameter allows rendering to happen in the correct sequence of frames. Possible values are "yes" and "no". If set as "no" then rendering can happen in any frame order. Used for video/live scenario.
+		{
+			"AttributeName": "ENFORCE_FRAME_SEQUENCING",
+			"AttributeValue": "yes"
+		},
+		// Used to check if uwp client is online. Possible values are "true" and "false".
+		{
+			"AttributeName": "ENABLE_PING",
+			"AttributeValue": "false"
+		},
+		// Time interval to wait in case frame grabber is encountering empty frames. Values are in milliseconds.
+		{
+			"AttributeName": "EMPTY_FRAME_PROCESS_INTERVAL",
+			"AttributeValue": "60000"
+		},
+		// Ffmpeg arguments for rendering of video with inferenced metadata.
+		{
+			"AttributeName": "FFMPEG_ARGUMENTS",
+			// "AttributeValue": "-re -f image2pipe -i pipe:.bmp -bufsize 4096k -c:v libx264 -crf 20 -g 15 -preset superfast -an -f hls -hls_time 2 -hls_list_size 50 -hls_flags 2 D:\\InferenceStream\\index.m3u8"
+		 "AttributeValue": "-re -f image2pipe -i pipe:.bmp -r 24 Output\\Output.flv"
+		},
+		// Ffmpeg arguments for rendering of video without inferenced metadata.
+		{
+			"AttributeName": "FFMPEG_ARGUMENTS_RAW_INPUT",
+			"AttributeValue": "-re -f image2pipe -i pipe:.bmp -bufsize 4096k -c:v libx264 -crf 20 -g 15 -preset superfast -an -f hls -hls_time 2 -hls_list_size 50 -hls_flags 2 D:\\RawStream\\index.m3u8"
+			// "AttributeValue": "-re -f image2pipe -i pipe:.bmp -r 24 Output1.flv"
+		},
+		// Ffmpeg arguments to change background of rendered video with an image.
+		{
+			"AttributeName": "FFMPEG_BACKGROUNDCHANGE",
+			"AttributeValue": "-i D:\\background.jpg -i \"Output.flv\" -filter_complex \"[1:v]colorkey=0x3BBD1E:0.08:0.25[ckout];[0:v][ckout]overlay[out]\" -map \"[out]\" BackgroundChanged.mp4"
+		},
+		{
+			"AttributeName": "FRAME_SEQUENCING_MESSAGE_RETRY",
+			"AttributeValue": "10"
+		},
+		{
+			"AttributeName": "FRAME_SEQUENCING_MESSAGE_STUCK_DURATION_MSEC",
+			"AttributeValue": "100"
+		},
+		{
+			"AttributeName": "FRAME_RENDERER_WAIT_TIME_FOR_TRANSPORT_MS",
+			"AttributeValue": "2000"
+		},
+		{
+			"AttributeName": "FRAME_RENDERER_EOF_COUNT",
+			"AttributeValue": "50"
+		},
+		{
+			"AttributeName": "FRAME_RENDERER_EOF_FILE_PATH",
+			"AttributeValue": "C:\\MaskDetectionDeployement\\VideoAnalyticsCompleted.jpg"
+		},
+		{
+			"AttributeName": "FRAME_GRAB_RATE_THROTTLING_SLEEP_FRAME_COUNT",
+			"AttributeValue": "200"
+		},
+		{
+			"AttributeName": "FRAME_GRAB_RATE_THROTTLING_SLEEP_DURATION_MSEC",
+			"AttributeValue": "1000"
+		},
+		// Executable file of ffmpeg.
+		{
+			"AttributeName": "FFMPEG_EXE_FILE",
+			"AttributeValue": "ffmpeg.exe"
+		},
+		// The cycle limit of frames after which the fps will be calculated and frames to predict value will be changed. For the first 2 frames or each ftp cycle frame we need to calculate frame grabber fps.
+		{
+			"AttributeName": "FTP_CYCLE",
+			"AttributeValue": "120"
+		},
+		// Nth frame which needs to be sent to model for inference. Example - if value is 5 then only 5th frame will be sent to model for prediction and rest will be skipped. 
+		{
+			"AttributeName": "FRAMETOPREDICT",
+			"AttributeValue": "1"
+		},
+		{
+			"AttributeName": "FTP_PERSECOND",
+			"AttributeValue": "0"
+		},
+		{
+			"AttributeName": "INITIAL_COLLECTION_BUFFERING_SIZE",
+			"AttributeValue": "1"
+		},
+		// Ip address on which uwp will listen.
+		{
+			"AttributeName": "VIEWER_IP_ADDRESS",
+			"AttributeValue": "hostname"
+		},
+		// Port number on which uwp will listen.
+		{
+			"AttributeName": "VIEWER_PORT",
+			"AttributeValue": "8010"
+		},
+		{
+			"AttributeName": "MAX_SEQUENCE_NUMBER",
+			"AttributeValue": "5184000"
+		},
+		{
+			"AttributeName": "METRIC_TYPE",
+			"AttributeValue": "ClassDetected"
+		},
+		// Maximum empty frames encountered by frame grabber before it logs an error.
+		{
+			"AttributeName": "MAX_EMPTY_FRAME_COUNT",
+			"AttributeValue": "100"
+		},
+		{
+			"AttributeName": "MIN_THREAD_ON_POOL",
+			"AttributeValue": "0"
+		},
+		{
+			"AttributeName": "MAX_THREAD_ON_POOL",
+			"AttributeValue": "100"
+		},
+		{
+			"AttributeName": "MAX_FAIL_COUNT",
+			"AttributeValue": "10"
+		},
+		{
+			"AttributeName": "PROMPT_TEMPLATES_DIRECTORY",
+			"AttributeValue": "Configurations\\PromptTemplates.json"
+		},
+		// Path where video/image files should be read from. Used when attribute VIDEO_FEED_TYPE is IMAGE/OFFLINE.
+		{
+			"AttributeName": "OFFLINE_VIDEO_DIRECTORY",
+			"AttributeValue": "Input"
+		},
+		// Path where point cloud data files should be read from. Used when attribute VIDEO_FEED_TYPE is PCD.
+		{
+			"AttributeName": "PCD_DIRECTORY",
+			"AttributeValue": "C:\\Users\\Downloads\\input"
+		},
+		// Path where text file that contains prompts should be read from.
+		{
+			"AttributeName": "PROMPT_INPUT_DIRECTORY",
+			"AttributeValue": "Prompt"
+		},
+		// Path where masked images should be read from. These images are passed on to the model for replacement of objects which are masked.
+		{
+			"AttributeName": "MASK_IMAGE_DIRECTORY",
+			"AttributeValue": "C:\\MaskDetectionDeployement\\MaskImageInput"
+		},
+		// Path where replacement images should be read from. These images are used to replace objects of some other image.
+		{
+			"AttributeName": "REPLACE_IMAGE_DIRECTORY",
+			"AttributeValue": "C:\\MaskDetectionDeployement\\ReplaceImageInput"
+		},
+		// Path where output images need to be saved. Used when attribute VIDEO_STREAMING_OPTION is 2.
+		{
+			"AttributeName": "RENDER_IMAGE_FILE_PATH",
+			"AttributeValue": "Output\\"
+		},
+		// Used for cases where image is the input to IVA. If we want to save the image then value is "true" otherwise "false".
+		{
+			"AttributeName": "RENDER_IMAGE_ENABLED",
+			"AttributeValue": "true"
+		},
+		// Path where output frames are saved. Used primarily while testing IVA.
+		{
+			"AttributeName": "DEBUG_IMAGE_FILE_PATH",
+			"AttributeValue": "C:\\Users\\Downloads\\outputvideos\\outimages\\"
+		},
+		// Enabling output frames to be saved while testing IVA. Possible values are "true" and "false".
+		{
+			"AttributeName": "IMAGE_DEBUG_ENABLED",
+			"AttributeValue": "false"
+		},
+		{
+			"AttributeName": "OFFLINE_PROCESS_INTERVAL",
+			"AttributeValue": "10"
+		},
+		// To calculate overlap percenatge between multiple bounding boxes. Value can range from 0 to 1. If values are on the higher side then it means that multiple bounding boxes has been predicted for the same object.
+		{
+			"AttributeName": "OVERLAP_THRESHOLD",
+			"AttributeValue": "0.2"
+		},
+		// To calculate overlap percenatge between multiple bounding boxes. Value can range from 0 to 1. If values are on the higher side then it means that multiple bounding boxes has been predicted for the same object.
+		{
+			"AttributeName": "PERSONCOUNT_OVERLAP_THRESHOLD",
+			"AttributeValue": "0.2"
+		},
+		// Name of the ai model to be used for prediction.
+		{
+			"AttributeName": "PREDICTION_MODEL",
+			"AttributeValue": "{\"default\":\"TemplateMatching\"}"
+		},
+		// Number of previous frames along with its metadata a model needs in its payload. Mostly used in tracking.
+		{
+			"AttributeName": "PREVIOUS_FRAME_COUNT",
+			"AttributeValue": "5"
+		},
+		// Details of process loader execution are logged in this text file.
+		{
+			"AttributeName": "PROCESS_LOADER_TRACE_FILE",
+			"AttributeValue": "TextOutput.txt"
+		},
+		{
+			"AttributeName": "PREDICTION_TYPE",
+			"AttributeValue": "DetectMask"
+		},
+		// Reduce the quality of input image/frames. This helps in increasing overall throughput of the application.
+		{
+			"AttributeName": "REDUCE_FRAME_QUALITY_TO",
+			"AttributeValue": "100"
+		},
+		// Confidence score for object match. If lower than this value it will not be a match. Use this in case of TPR.
+		{
+			"AttributeName": "SIMILARITY_THRESHOLD",
+			"AttributeValue": "0.4"
+		},
+		// Base url for blob storage.
+		{
+			"AttributeName": "STORAGE_BASE_URL",
+			"AttributeValue": "http://localhost"
+		},
+		// Pipeline configuration for IVA. Name of the modules which needs to be enabled and their sequence.
+		{
+			"AttributeName": "TASKS_ROUTE",
+			"AttributeValue": "{\"FGR\":[\"OPR\"],\"OPR\":[\"REN\",\"DCO\"],\"REN\":[],\"DCO\":[]}"
+			// "AttributeValue": "{\"DCO\":[]}"
+			// "AttributeValue": "{\"PCH\":[\"OPR\"],\"OPR\":[\"REN\",\"DCO\"],\"TPR\":[],\"PRL\":[],\"REN\":[],\"DCO\":[],\"ANA\":[],\"MIN\":[],\"FES\":[],}"
+			// "AttributeValue": "{\"FGR\":[\"PRH\"],\"PRH\":[\"OPR\"],\"OPR\":[\"REN\",\"DCO\"],\"TPR\":[],\"PRL\":[],\"REN\":[],\"DCO\":[],\"ANA\":[],\"MIN\":[],\"FES\":[],}"
+			// "AttributeValue": "{\"FGR\":[\"TPR\"],\"TPR\":[\"REN\"],\"OPR\":[],\"PRL\":[],\"REN\":[],\"DCO\":[],\"ANA\":[],\"MIN\":[]}"
+		},
+		// IVA module codes and their names.
+		{
+			"AttributeName": "TRANSPORT_REGION_CODES",
+			"AttributeValue": "{\"FGR\":\"FrameGrabber\",\"OPR\":\"FrameProcessor\",\"AGR\":\"DataAggregator\",\"ANA\":\"FrameAnalytics\",\"PRL\":\"FramePreLoader\",\"REN\":\"FrameRenderer\",\"DCO\":\"FrameCollector\",\"TPR\":\"UniquePersonTracking\",\"FES\":\"FrameElasticSearch\",\"PRH\":\"PromptHandler\",\"PRI\":\"PromptInjector\",\"PCH\":\"PcdHandler\",\"XEN\":\"FrameExplainer\",\"XDCO\":\"FrameExplainerDataCollector\",\"EMR\":\"ExplainerModelPredictor\",\"FVI\":\"FrameViewer\"}"
+			// "AttributeValue": "{\"OPR\":\"FrameProcessor\",\"XEN\":\"FrameExplainer\",\"XDCO\":\"FrameExplainerDataCollector\",\"DCO\":\"FrameCollector\",\"EMR\":\"ExplainerModelPredictor\"}"
+			// "AttributeValue": "{\"OPR\":\"FrameProcessor\",\"ANA\":\"FrameAnalytics\",\"PRL\":\"FramePreLoader\",\"REN\":\"FrameRenderer\",\"DCO\":\"FrameCollector\",\"TPR\":\"UniquePersonTracking\",\"FES\":\"FrameElasticSearch\",\"PRH\":\"PromptHandler\",\"PRI\":\"PromptInjector\",\"PCH\":\"PcdHandler\"}"
+		},
+		{
+			"AttributeName": "TRANSPORT_SEQUENCING_BUFFERING_SIZE",
+			"AttributeValue": "1"
+		},
+		// Name of the unique person tracking model.
+		{
+			"AttributeName": "UNIQUE_PERSON_MODEL",
+			"AttributeValue": "DetectPersonCount_CentroidTracking"
+		},
+		{
+			"AttributeName": "UNIQUEPERSONTRACKING_ENABLED",
+			"AttributeValue": "no"
+		},
+		// Defines input type. OFFLINE for video files, IMAGE for image files, LIVE for cctv, PCD for point cloud data files and PROMPT to process only prompt input file.
+		{
+			"AttributeName": "VIDEO_FEED_TYPE",
+			"AttributeValue": "IMAGE"
+		},
+		// Url of the input streaming video. Possible values are 0 for webcam and RTSP url of a cctv.
+		{
+			"AttributeName": "CAMERA_URL",
+			"AttributeValue": "0"
+		},
+		// Image formats supported as input to IVA. Currently supported formats are .JPEG, .JPG and .PNG.
+		{
+			"AttributeName": "IMAGE_FORMATS_TO_USE",
+			"AttributeValue": ".JPEG,.JPG,.PNG"
+		},
+		// Video formats supported as input to IVA. Currently supported formats are .mp4, .wmv and .avi.
+		{
+			"AttributeName": "VIDEO_FORMATS_ALLOWED",
+			"AttributeValue": ".mp4,.wmv,.avi"
+		},
+		// Output data format. 1 to generate video for OFFLINE and LIVE, 2 to save frames/images as output for IMAGE, PROMPT and PCD.
+		{
+			"AttributeName": "VIDEO_STREAMING_OPTION",
+			"AttributeValue": "2"
+		},
+		// Set this value to "no" if task route has TPR and attribute UNIQUE_PERSON_MODEL value does not need to send frame as part of api call. Set this value to "yes" if task route has TPR and attribute UNIQUE_PERSON_MODEL value value needs to send frame as part of api call.
+		{
+			"AttributeName": "SHARED_BLOB_STORAGE",
+			"AttributeValue": "no"
+		},
+		// Unique identifier for a input type. Example - unique id of cctv can be used here to identify that cctv.
+		{
+			"AttributeName": "DEVICE_ID",
+			"AttributeValue": "DeviceId_10"
+		},
+		// Unique identifier for a tenant (organization, department, etc).
+		{
+			"AttributeName": "TENANT_ID",
+			"AttributeValue": "1"
+		},
+		// Version of the payload message which is being sent to the model. MSG - Message version.
+		{
+			"AttributeName": "MSG_VERSION",
+			"AttributeValue": "1"
+		},
+		// Version of the API which will be invoked. INF - Inference version.
+		{
+			"AttributeName": "INF_VERSION",
+			"AttributeValue": "1"
+		},
+		// When the model is expected to send back already rendered image then "yes" is used otherwise "no".
+		{
+			"AttributeName": "OUTPUT_IMAGE",
+			"AttributeValue": "no"
+		},
+		// Used for pose point based rendering.
+		{
+			"AttributeName": "POSE_POINT_RENDERING",
+			"AttributeValue": "no"
+		},
+		// Used for speed detection based rendering.
+		{
+			"AttributeName": "SPEED_DETECTION",
+			"AttributeValue": "no"
+		},
+		// Used for segment based rendering.
+		{
+			"AttributeName": "SEGMENT_RENDERING",
+			"AttributeValue": "no"
+		},
+		// Used for panoptic segmentation based rendering.
+		{
+			"AttributeName": "PANOPTICSEGMENTATION",
+			"AttributeValue": "no"
+		},
+		// Used for object detection based rendering.
+		{
+			"AttributeName": "OBJECTDETECTION_RENDERING",
+			"AttributeValue": "yes"
+		},
+		// Used for classification based rendering.
+		{
+			"AttributeName": "CLASSIFICATION_RENDERING",
+			"AttributeValue": "no"
+		},
+		// Used for crowd counting based rendering.
+		{
+			"AttributeName": "CROWD_COUNTING",
+			"AttributeValue": "no"
+		},
+		// Used for predict cart based rendering.
+		{
+			"AttributeName": "PREDICT_CART",
+			"AttributeValue": "no"
+		},
+		// Used for tracking based rendering.
+		{
+			"AttributeName": "TRACKING",
+			"AttributeValue": "no"
+		},
+		// Used for mplug based rendering.
+		{
+			"AttributeName": "MPLUG",
+			"AttributeValue": "no"
+		},
+		// Used for heatmap based rendering.
+		{
+			"AttributeName": "HEATMAP",
+			"AttributeValue": "no"
+		},
+		// Index name of the elastic store.
+		{
+			"AttributeName": "ELASTIC_STORE_INDEX_NAME",
+			"AttributeValue": "framemetadata_staging_video4"
+		},
+		// To enable elastic store as the metadata storage. Possible values are "yes" and "no".
+		{
+			"AttributeName": "ENABLE_ELASTICSTORE",
+			"AttributeValue": "no"
+		},
+		// Name of the MIL - Model Inference Library file.
+		{
+			"AttributeName": "MIL_LIBRARYNAME",
+			"AttributeValue": "infosysmodelinferencelibrary.PythonModelExecutor"
+		},
+		// Path of the python virtual environment. Used in case of local invocation of models.
+		{
+			"AttributeName": "PYTHONVIRTUALPATH",
+			"AttributeValue": "C:\\Program Files\\Python311"
+		},
+		// Version of the python virtual environment. Used in case of local invocation of models.
+		{
+			"AttributeName": "PYTHONVERSION",
+			"AttributeValue": "C:\\Program Files\\Python311\\python311.dll"
+		},
+		// Possible values are "yes" and "no". Yes means we are matching multiple templates in an image.
+		{
+			"AttributeName": "CVPREDICT_FIND_CONTROL_IN_MULTIPLE_CONTROL_STATES",
+			"AttributeValue": "yes"
+		},
+		// Maximum time until which recognition is tried.
+		{
+			"AttributeName": "CVPREDICT_IMAGE_RECOGNITION_TIMEOUT",
+			"AttributeValue": "1000"
+		},
+		// Possible values are "yes" and "no". No means images will be compared against gray scale.
+		{
+			"AttributeName": "CVPREDICT_USE_TRUE_COLOR_TEMPLATE_MATCHING",
+			"AttributeValue": "yes"
+		},
+		// Image comparison probability score. Possible values are between 0 to 100. 80 here means if the comparison is below 80 there will be no match.
+		{
+			"AttributeName": "CVPREDICT_IMAGE_MATCH_CONFIDENCE_THRESHOLD",
+			"AttributeValue": "80"
+		},
+		// Useful when we do not know the size of the template to be compared in source image. Possible values are "yes" and "no". Yes means scale invariant match.
+		{
+			"AttributeName": "CVPREDICT_MULTIPLE_SCALE_TEMPLATE_MATCHING",
+			"AttributeValue": "yes"
+		},
+		// Maximum number of increments for scale invariant match. Possible values are 1 to any. 10 here means template will be scaled 10 times for values mentioned in attribute CVPREDICT_IMAGE_MATCH_SCALE_STEP_SIZE.
+		{
+			"AttributeName": "CVPREDICT_IMAGE_MATCH_MAX_SCALE_STEP_COUNT",
+			"AttributeValue": "10"
+		},
+		// Template scale increment decrement. Possible values are 0.1 to any.
+		{
+			"AttributeName": "CVPREDICT_IMAGE_MATCH_SCALE_STEP_SIZE",
+			"AttributeValue": "0.2"
+		},
+		// Useful when we do not know the angle of the template to be compared in source image. Possible values are "yes" and "no". Yes means rotation invariant match.
+		{
+			"AttributeName": "CVPREDICT_MULTI_ROTATION_TEMPLATE_MATCHING",
+			"AttributeValue": "yes"
+		},
+		// Image angle increment decrement. Possible values are between -180 to 180. 
+		{
+			"AttributeName": "CVPREDICT_IMAGE_MATCH_ROTATION_STEP_ANGLE",
+			"AttributeValue": "5"
+		},
+		{
+			"AttributeName": "CVPREDICT_ENABLE_TEMPLATE_MATCHING_MAPPING",
+			"AttributeValue": "yes"
+		},
+		{
+			"AttributeName": "CVPREDICT_WAIT_FOREVER",
+			"AttributeValue": "no"
+		},
+		{
+			"AttributeName": "CVPREDICT_TEMPLATE_MATCH_MAPPING_BORDER_THICKNESS",
+			"AttributeValue": "1"
+		},
+		// Version of XAI model.
+		{
+			"AttributeName": "XAI_API_VERSION",
+			"AttributeValue": "1.0"
+		},
+		// Specifiy the XAI explainers to run against the model.
+		{
+			"AttributeName": "XAI_TO_RUN",
+			"AttributeValue": "[\"layercam\"]"
+		},
+		// XAI model name.
+		{
+			"AttributeName": "XAI_MODEL",
+			"AttributeValue": "SteelDefectDetectionExplainer"
+		},
+		// Specifies the batch size of image/frames to be processed against the XAI model.
+		{
+			"AttributeName": "XAI_BATCH_SIZE",
+			"AttributeValue": "2"
+		},
+		// Specifies the XAI template name to be used.
+		{
+			"AttributeName": "XAI_TEMPLATE_NAME",
+			"AttributeValue": "XAI Template6"
+		},
+		// Used to modify the parameters of a model which can then give different outputs.   
+		{
+			"AttributeName": "HYPERPARAMETERS",
+			"AttributeValue": "{\"batch_size\": 1, \"seed\": 42}"
+		}
+	],
+	// Skeleton definition of a given model for pose estimation.
+	"KpSkeleton": {
+		"1": [ 16, 14 ],
+		"2": [ 14, 12 ],
+		"3": [ 17, 15 ],
+		"4": [ 15, 13 ],
+		"5": [ 12, 13 ],
+		"6": [ 6, 12 ],
+		"7": [ 7, 13 ],
+		"8": [ 6, 7 ],
+		"9": [ 6, 8 ],
+		"10": [ 7, 9 ],
+		"11": [ 8, 10 ],
+		"12": [ 9, 11 ],
+		"13": [ 2, 3 ],
+		"14": [ 1, 2 ],
+		"15": [ 1, 3 ],
+		"16": [ 2, 4 ],
+		"17": [ 3, 5 ],
+		"18": [ 4, 6 ],
+		"19": [ 5, 7 ]
+	}
+}

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2005 rel. 3 U (http://www.altova.com) by avinash (MTC) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns="">
+  <xs:element name="LISettings">
+    <xs:annotation>
+      <xs:documentation>Root element</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="HostRegion">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Region" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="Name" type="xs:string" />
+                    <xs:element name="TransportMedium" type="xs:string" />
+                    <xs:element name="TransportName" type="xs:string" />
+                    <xs:element name="CommunicationType" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="IBMMQ">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element ref="Connection" minOccurs="0" />
+              <xs:element name="DllPath" type="xs:string" />
+              <xs:element name="TypeName" type="xs:string" />
+              <xs:element name="IBMMQDetails" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element ref="Connection" minOccurs="0" />
+                    <xs:element name="TransportName" type="xs:string" />
+                    <xs:element name="ChannelName" type="xs:string" />
+                    <xs:element name="ConnectionName" type="xs:string" />
+                    <xs:element name="Port" type="xs:int" />
+                    <xs:element name="QueueManager" type="xs:string" />
+                    <xs:element name="RequestQueue" type="xs:string" />
+                    <xs:element name="ResponseQueue" type="xs:string" />
+                    <xs:element name="QueueType" type="xs:string" />
+                    <xs:element name="ModelQueueName" type="xs:string" />
+                    <xs:element name="ExpiryTime" type="xs:int" />
+                    <xs:element name="Persistence" type="xs:string" />
+                    <xs:element name="TimeOut" type="xs:int" />
+                    <xs:element name="EnableTrace" type="xs:string" />
+                    <xs:element name="SSLRequired" type="xs:string" />
+                    <xs:element name="CertificatePath" nillable="true" type="xs:string" />
+                    <xs:element name="EncryptionType" nillable="true" type="xs:string" />
+                    <xs:element name="RetryCount" type="xs:int" />
+                    <xs:element name="RetryAll" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element name="ActiveTimeForConnection" type="xs:int" />
+              <xs:element name="PoolScanFrequency" type="xs:int" />
+              <xs:element name="EnablePerformanceCounters" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="HIS">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="DllPath" type="xs:string" />
+              <xs:element name="TypeName" type="xs:string" />
+              <xs:element name="EnableTrace" type="xs:string" />
+              <xs:element name="EnablePerformanceCounters" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="TCPIP">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="DllPath" type="xs:string" />
+              <xs:element name="TypeName" type="xs:string" />
+              <xs:element name="TCPIPDetails" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="TransportName" type="xs:string" />
+                    <xs:element name="Mode" type="xs:string" />
+                    <xs:element name="IPAddress" type="xs:string" />
+                    <xs:element name="Port" type="xs:int" />
+                    <xs:element ref="Connection" minOccurs="0" />
+                    <xs:element name="TransactionID" type="xs:string" />
+                    <xs:element name="HostProgID" type="xs:string" />
+                    <xs:element name="EnableTrace" type="xs:string" />
+                    <xs:element name="EnablePerformanceCounters" type="xs:string" />
+                    <xs:element name="TimeOut" type="xs:int" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="MSMQ">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="DllPath" type="xs:string" />
+              <xs:element name="TypeName" type="xs:string" />
+              <xs:element name="MSMQDetails" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="TransportName" type="xs:string" />
+                    <xs:element name="ServerName" type="xs:string" />
+                    <xs:element name="QueueName" type="xs:string" />
+                    <xs:element name="PoisonQueueName" type="xs:string" />
+                    <xs:element name="MessageLabel" type="xs:string" />
+                    <xs:element name="QueueType" type="MSMQType" />
+                    <xs:element name="QueueReadingType" type="MSMQReadType" />
+                    <xs:element name="QueueReadingMode" type="MSMQReadMode" />
+                    <xs:element name="MessageProcessingMaxCount" type="xs:int" default="3" />
+                    <xs:element name="ReadAndDelete" type="xs:boolean" default="true" />
+                    <xs:element name="MessaseInvisibilityTimeout" type="xs:long" default="60000" />
+                    <xs:element name="QueueReadTimeout" type="xs:long" default="1000" />
+                    <xs:element name="PollingRestDuration" type="xs:int" default="1000" />
+                    <xs:element name="ContinueToReceive" type="xs:boolean" default="true" />
+                    <xs:element name="IsQueueTransactional" type="xs:boolean" default="false" />
+                    <xs:element name="SendPattern" type="MSMQSendPattern" />
+                    <xs:element name="SecondaryQueues" type="xs:string" />
+                    <xs:element name="QueueLoadLimit" type="xs:int" default="10" />
+                    <xs:element name="TransactionWaitTime" type="xs:int" default="5" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="IISDoc">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="DllPath" type="xs:string" />
+              <xs:element name="TypeName" type="xs:string" />
+              <xs:element name="IISDocDetails" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="TransportName" type="xs:string" />                    
+                    <xs:element name="DataBlockSize" type="xs:int" />
+                    <xs:element name="DocumentsVirtualDirectoryFromRoot" type="xs:string" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="EnablePerformanceCounters" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Connection">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="ConnectionModel" type="xs:string" />
+        <xs:element name="Pooling" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="MinSize" type="xs:int" />
+              <xs:element name="MaxSize" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ConnectionTimeOut" type="xs:int" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="MSMQType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Public" />
+      <xs:enumeration value="Private" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="MSMQReadType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Receive" />
+      <xs:enumeration value="Peek" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="MSMQReadMode">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Async" />
+      <xs:enumeration value="Sync" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="MSMQSendPattern">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="RoundRobin" />
+      <xs:enumeration value="QueueLoad" />
+      <xs:enumeration value="None" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
