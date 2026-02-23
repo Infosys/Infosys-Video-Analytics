@@ -43,7 +43,6 @@ This section guides users through setting up and running the IVA on their system
 Few installations inside process loader project to run the solution:
 - **Npgsql 7.0.0**: Install from [Npgsql](http://www.npgsql.org/)
 - **Npgsql.EntityFrameworkCore.PostgreSQL 7.0.0**: Install from [NuGet](http://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL)
-- **EMGU CV**: Install from [EMGU CV](http://www.emgu.com/wiki/index.php)
 - **FFmpeg**: Install the `ffmpeg.exe` application from [FFmpeg](https://github.com/FFmpeg/FFmpeg)
 
 🚀 Build and Test (Usage) (IVA SetUp)
