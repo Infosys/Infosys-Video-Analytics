@@ -235,4 +235,5 @@ See [CHANGELOG.md](CHANGELOG.md) for a detailed list of changes across all relea
 
 - For sample input schema examples, please read [Docs/IVA-Input_Schema.md](Docs/IVA-Input_Schema.md)
 - For sample output schema, please read [Docs/IVA-Output_Schema.md](Docs/IVA-Output_Schema.md)
+- For deploying on NVIDIA Jetson or Raspberry Pi, see [Docs/Deployment-Linux-ARM64.md](Docs/Deployment-Linux-ARM64.md)
 - For the full changelog, see [CHANGELOG.md](CHANGELOG.md)

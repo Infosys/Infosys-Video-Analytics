@@ -122,3 +122,14 @@ For detailed documentation and instructions on the local execution of IMiL, plea
 
 Execute `processloader.exe` to initiate the command prompt. FFmpeg will start, and the output will be generated as `pd.flv`.
 
+---
+
+### Cross-Platform Deployment (Linux ARM64 / NVIDIA Jetson / Raspberry Pi)
+
+IVA supports cross-platform deployment on ARM64 Linux devices including NVIDIA Jetson and Raspberry Pi. The pipeline automatically detects the platform at runtime and selects the appropriate video backends.
+
+Automated setup and build scripts are provided in the `Scripts/` folder:
+- `Scripts/jetson/` — NVIDIA Jetson setup (with CUDA support)
+- `Scripts/rpi/` — Raspberry Pi setup
+
+For the full deployment guide, prerequisites, environment variables, and troubleshooting, see **[Docs/Deployment-Linux-ARM64.md](../Docs/Deployment-Linux-ARM64.md)**.
