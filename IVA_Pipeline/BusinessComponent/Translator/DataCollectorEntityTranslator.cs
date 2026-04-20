@@ -11,7 +11,9 @@ using BE = Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-
+using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Framedetail;
+using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue;
+using System.Linq;
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.Translator
 {
     public class DataCollectorEntityTranslator
@@ -79,17 +81,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.Translator
             }
         }
 
-        public   BE.Queue.FrameExplainerModeMetaData FaceMaskExplainerBEToDE(QE.FrameCollectorMetadata dataMessage)
+
+        public   BE.Queue.FrameExplainerModeMetaData FaceMaskExplainerBEToDE(QE.FrameExplainerCollectorMetadata dataMessage)
         {
             BE.Queue.FrameExplainerModeMetaData deMessage = new BE.Queue.FrameExplainerModeMetaData();
 
             if (dataMessage != null)
             {
                 deMessage.Fids = new List<string>();
-                
+
                 deMessage.Tid = dataMessage.Tid;
                 deMessage.Did = dataMessage.Did;
-              
+
                 deMessage.Pts = DateTime.UtcNow.Ticks.ToString();
                 deMessage.TE = dataMessage.TE;
                 deMessage.Fids = dataMessage.Fids;
@@ -99,17 +102,106 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.Translator
                 deMessage.Mtp = dataMessage.Mtp;
                 deMessage.Ad = dataMessage.Ad;
                 deMessage.videoFileName = dataMessage.videoFileName;
- 
+
                 deMessage.Obase_64 = dataMessage.Obase_64;
                 deMessage.Img_url = dataMessage.Img_url;
-                deMessage.Explainer_Metadata = dataMessage.Explainer_Metadata;
                 deMessage.ExpToRun = dataMessage.ExpToRun;
                 deMessage.ModelName = dataMessage.ModelName;
                 deMessage.ExpVer = dataMessage.ExpVer;
                 deMessage.I_Fn = dataMessage.videoFileName;
-
+                deMessage.Fid = dataMessage.Fids[0];
             }
-            
+
+            return deMessage;
+        }
+
+        public List<BE.Queue.FrameExplainerModeMetaDataByFrameId> FaceMaskExplainerBEToDEMetadata(FrameMetadatum message, QE.FrameExplainerCollectorMetadata dataMessage)
+        {
+            List<BE.Queue.FrameExplainerModeMetaDataByFrameId> deMessage = new List<BE.Queue.FrameExplainerModeMetaDataByFrameId>();
+            BE.Queue.FrameExplainerModeMetaDataByFrameId data = new BE.Queue.FrameExplainerModeMetaDataByFrameId();
+            var msg = JsonConvert.DeserializeObject<FrameExplainerModeMetaData>(message.MetaData);
+            List<Dictionary<string, Dictionary<string, string>>> valueList = new List<Dictionary<string, Dictionary<string, string>>>(dataMessage.Explainer_Metadata);
+            for (int i = 0; i < dataMessage.Fids.Count; i++)
+            {
+                if (msg.Fid == valueList[i]["FrameId"]["Id"])
+                {
+                    data = new BE.Queue.FrameExplainerModeMetaDataByFrameId();
+                    if (data != null)
+                    {
+                        data.Pts = DateTime.UtcNow.Ticks.ToString();
+                        data.TE = dataMessage.TE;
+                        data.Fids = msg.Fids;
+                        data.FeedId = dataMessage.FeedId;
+                        data.SequenceNumber = dataMessage.SequenceNumber;
+                        data.FrameNumber = dataMessage.FrameNumber;
+                        data.Ad = dataMessage.Ad;
+                        data.Obase_64 = dataMessage.Obase_64;
+                        data.Img_url = dataMessage.Img_url;
+                        data.Explainer_Metadata = valueList[i];
+                        data.ExpToRun = dataMessage.ExpToRun;
+                        data.ModelName = dataMessage.ModelName;
+                        data.ExpVer = dataMessage.ExpVer;
+                        data.FileName = dataMessage.I_fn;
+                        data.Tid = msg.Tid;
+                        data.Did = msg.Did;
+                        data.Fid = msg.Fid;
+                        data.Pts = msg.Pts;
+                        data.FeedId = msg.FeedId;
+                        data.SequenceNumber = msg.SequenceNumber;
+                        data.Status = msg.Status;
+                        data.FrameNumber = msg.FrameNumber;
+                        data.Obase_64 = msg.Obase_64;
+                        data.Img_url = msg.Img_url;
+                        data.Prompt = msg.Prompt;
+                        data.Mtp = dataMessage.Mtp;
+                        data.Hp = msg.Hp;
+                        if (msg.Fs != null)
+                        {
+                            int length = msg.Fs.Count();
+                            BE.Queue.Predictions[] BEPredArr = new BE.Queue.Predictions[length];
+                            int j = 0;
+                            foreach (Predictions DEPred in msg.Fs)
+                            {
+                                BE.Queue.Predictions BEPred = new BE.Queue.Predictions();
+                                BE.Queue.BoundingBox boundingBox = new BE.Queue.BoundingBox();
+                                BEPred.Info = DEPred.Info;
+                                BEPred.Cs = DEPred.Cs;
+                                BEPred.Lb = DEPred.Lb;
+                                BEPred.TaskType = DEPred.TaskType;
+                                if (DEPred.Dm != null)
+                                {
+                                    boundingBox.X = DEPred.Dm.X;
+                                    boundingBox.Y = DEPred.Dm.Y;
+                                    boundingBox.W = DEPred.Dm.W;
+                                    boundingBox.H = DEPred.Dm.H;
+
+                                    BEPred.Dm = boundingBox;
+                                }
+                                else
+                                {
+                                    BEPred.Dm = null;
+                                }
+                                if (DEPred.Kp != null)
+                                {
+                                    BEPred.Kp = DEPred.Kp;
+                                }
+                                if (DEPred.Tpc != null)
+                                {
+                                    BEPred.Tpc = DEPred.Tpc;
+                                }
+                                if (DEPred.Bpc != null)
+                                {
+                                    BEPred.Bpc = DEPred.Bpc;
+                                }
+                                BEPredArr[j] = BEPred;
+                                j++;
+                            }
+                            data.Fs = BEPredArr;
+                        }
+                        deMessage.Add(data);
+                    }
+                }
+            }
             return deMessage;
         }
     }

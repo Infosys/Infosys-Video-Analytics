@@ -1,4 +1,4 @@
-/*=============================================================================================================== *
+﻿/*=============================================================================================================== *
  * Copyright 2025 Infosys Ltd.                                                                                    *
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
@@ -19,6 +19,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             AdapterManager adapterManager = new AdapterManager();
             string result = adapterManager.GetSecrets(transportRegion, secrets);
             return result;
+        }
+
+        public void GetEnvironmentVariables(string transportRegion, out Dictionary<string, string?> environmentValues)
+        {
+            AdapterManager adapterManager = new AdapterManager();
+            environmentValues = adapterManager.GetEnvironmentVariables(transportRegion);
         }
     }
 }

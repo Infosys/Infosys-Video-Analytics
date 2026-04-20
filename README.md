@@ -18,8 +18,10 @@ IVA sits at the **crossroads of Cloud, Edge, AI, and Vision**, helping tradition
 5. [Additional Capabilities](#additional-capabilities)
 6. [Capability Architecture](#capability-architecture)
 7. [Modules of IVA](#modules-of-iva)
-8. [New Features in Release IVA-3.5](#new-features-in-release-iva-35)
-9. [References](#references)
+8. [New Features in Release IVA-3.7](#new-features-in-release-iva-37)
+9. [Features from Release IVA-3.5](#features-from-release-iva-35)
+10. [Changelog](#changelog)
+11. [References](#references)
 
 ## Key Capabilities
 
@@ -119,7 +121,50 @@ The Deployment Architecture illustrates how IVA components are orchestrated acro
 
   **Explainer Predictor**: Generating Explainability for predicted data by any AI model. It gets detailed explanation on how a AI Models arrived at a conclusion.
 
-### New Features in Release IVA-3.5
+### New Features in Release IVA-3.7
+
+#### ROI (Region of Interest) Processor
+- New pipeline node for extracting and processing specific regions from video frames before AI inference.
+- Supports three shape types: **Polygon**, **Circle**, and **Irregular** (pixel-level masks).
+- Three processing modes: individual ROI extraction, composite ROI image, and non-ROI blackout.
+- Debug image output support for ROI visualization.
+
+#### Data Collector Framework
+- Pluggable, file-based data collection system using factory pattern.
+- JSONL writer with in-memory buffering and automatic flush on last frame.
+- Configurable DB provider and output filename via environment variables.
+
+#### Cross-Platform Support (NVIDIA Jetson / Linux ARM64)
+- Runtime detection of `linux-arm64` with automatic video backend selection.
+- FFmpeg backend for file-based video and V4L2 for local cameras on ARM64.
+- Full migration from `System.Drawing` to **OpenCvSharp** for cross-platform rendering.
+
+#### Cross-Platform Color System
+- New `ColorHelper` class with 140+ named colors using OpenCvSharp `Scalar` (BGR format).
+- Eliminates `System.Drawing` dependency for Linux and ARM64 compatibility.
+
+#### Enhanced Object Detection API
+- `Base_64` now supports a list of images (multiple ROI images per frame).
+- `TaskType` field added per prediction for multi-task tracking.
+
+#### Split Screen Rendering
+- When using Multi-Model chaining, individual model inference results can now be viewed separately via split screen rendering within a single video output.
+- Enables easier visual comparison, faster debugging, model A/B evaluation, and better operational monitoring.
+
+#### Semi-Transparent Prediction Overlays
+- Prediction overlays (labels, bounding boxes, descriptions) can now be rendered semi-transparent so the underlying video remains visible.
+- Improves observability when overlays are large or dense.
+
+#### Enhanced TaskRoute & Device Configuration
+- Device configurations can now be driven from environment variables, enabling flexible deployment across environments.
+- Unified configuration assignment with environment variable injections into `DeviceDetails`.
+
+#### Bug Fixes
+- **Multi-Model Rendering**: Fixed an issue where only the last model's predictions were shown in the rendered output when using multiple models in the pipeline. All model results are now rendered correctly.
+
+---
+
+### Features from Release IVA-3.5
 
 #### IVA Core pipeline features -
 
@@ -182,7 +227,12 @@ Frame Viewer is a new component added in IVA to perform any kind of operation on
 - Elasticsearch 8.8.1 
 - PostgreSQL 14 
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for a detailed list of changes across all releases.
+
 ## References
 
-For sample input schema examples, please read[Docs/IVA-Input_Schema.md](Docs/IVA-Input_Schema.md)
-For sample output schema, please read [Docs/IVA-Output_Schema.md)](Docs/IVA-Output_Schema.md)
+- For sample input schema examples, please read [Docs/IVA-Input_Schema.md](Docs/IVA-Input_Schema.md)
+- For sample output schema, please read [Docs/IVA-Output_Schema.md](Docs/IVA-Output_Schema.md)
+- For the full changelog, see [CHANGELOG.md](CHANGELOG.md)

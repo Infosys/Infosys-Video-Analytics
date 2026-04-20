@@ -3,11 +3,11 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-﻿/*
- *© 2019 Infosys Limited, Bangalore, India. All Rights Reserved. Infosys believes the information in this document is accurate as of its publication date; such information is subject to change without notice. Infosys acknowledges the proprietary rights of other companies to the trademarks, product names and such other intellectual property rights mentioned in this document. Except as expressly permitted, neither this document nor any part of it may be reproduced, stored in a retrieval system, or transmitted in any form or by any means, electronic, mechanical, printing, photocopying, recording or otherwise, without the prior permission of Infosys Limited and/or any named intellectual property rights holders under this document.   
- * 
- * © 2019 INFOSYS LIMITED. CONFIDENTIAL AND PROPRIETARY 
- */
+/*
+*© 2019 Infosys Limited, Bangalore, India. All Rights Reserved. Infosys believes the information in this document is accurate as of its publication date; such information is subject to change without notice. Infosys acknowledges the proprietary rights of other companies to the trademarks, product names and such other intellectual property rights mentioned in this document. Except as expressly permitted, neither this document nor any part of it may be reproduced, stored in a retrieval system, or transmitted in any form or by any means, electronic, mechanical, printing, photocopying, recording or otherwise, without the prior permission of Infosys Limited and/or any named intellectual property rights holders under this document.   
+* 
+* © 2019 INFOSYS LIMITED. CONFIDENTIAL AND PROPRIETARY 
+*/
 
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using System;
@@ -30,16 +30,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
     public class PythonInference : ExecuteBase
     {
         static List<Per> perValue = new List<Per>();
-        
+
         PythonNet pNet;
-        
+
         public override bool InitializeModel()
         {
             try
             {
 
                 pNet = new PythonNet();
-                
+
                 pNet = PythonNet.GetInstance;
 
                 if (pNet == null)
@@ -56,10 +56,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
         }
 
-        
+
         public override string MakePrediction(Stream st, ModelParameters modelParameters)
         {
-            
+
             string sstime = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
 
             List<SE.Message.Mtp> MtpData = new List<SE.Message.Mtp>()
@@ -77,7 +77,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 ObjectCache cache = MemoryCache.Default;
                 string cacheKey = CacheConstants.UniquePersonCode + modelParameters.tId + modelParameters.deviceId;
                 string lastFrameStatus = null;
-                
+
 
 
                 if (st != null)
@@ -109,7 +109,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                             perValue.Add(JsonConvert.DeserializeObject<Per>(result.Dequeue().ToString()));
 
                         }
-                        
+
                     }
                 }
                 SE.Message.ObjectDetectorAPIReqMsg reqMsg = new SE.Message.ObjectDetectorAPIReqMsg()
@@ -125,8 +125,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     Model = modelParameters.ModelName,
                     Per = perValue,
                     Ad = " ",
-                    Base_64 = base64_image,// for yolov7
-                    C_threshold = modelParameters.ConfidenceThreshold, 
+                    Base_64 = new List<string>() { base64_image },// for yolov7 - ROI changes Base_64 to list of string
+                    C_threshold = modelParameters.ConfidenceThreshold,
 
                     Ffp = modelParameters.Ffp,
                     Ltsize = modelParameters.Ltsize,
@@ -135,8 +135,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     Rep_img = modelParameters.Rep_img == null ? new List<string>() : modelParameters.Rep_img,
                     I_fn = modelParameters.videoFileName,
                     Hp = modelParameters.Hp,
+                    Xai_ver = "",
+                    Xai_explainers = new List<string>(),
+                    Xai_url = ""
 
-                    
+
                 };
                 if (modelParameters.Fs != null)
                 {
@@ -156,43 +159,23 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 }
 
                 ObjectDetectorAPIResMsg response = null;
-                
+
                 try
                 {
-                    
-
-                    #region close for testing purpose of new response
-                    /* 
-                    var apiResponse = pNet.Inference(JsonConvert.SerializeObject(reqMsg) , modelName);
-                    string respose = Convert.ToString(apiResponse);
-                    */
-                    #endregion
-
-                    #region close for testing purpose of new response
-                    /*
-                    var apiResponse = "";
-                    using (StreamReader r = new StreamReader(@"D:\\I\\TestProject\\TestControl\\iphone\\ObjectDetectionApi\\api_response.json"))
-                    {
-                        apiResponse = r.ReadToEnd();
-                    }
-                    */
-                    #endregion
-                    
                     var apiResponse = pNet.Inference(JsonConvert.SerializeObject(reqMsg), modelParameters.ModelName);
-                    
+
                     string respose = Convert.ToString(apiResponse);
                     if (reqMsg.Lfp == "1")
                     {
                         lastFrameStatus = reqMsg.Lfp;
                         perValue = new List<Per>();
-                        
+
                     }
 
                     if (!string.IsNullOrEmpty(respose))
                     {
                         response = JsonConvert.DeserializeObject<ObjectDetectorAPIResMsg>(respose);
                         response.Prompt = reqMsg.Prompt;
-                        //   Console.WriteLine("Response from Payload{0}:{1}", response.Fid, JsonConvert.SerializeObject(response.Fs));
                         string etime = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
                         for (int i = 0; i < response.Mtp.Count; i++)
                         {
@@ -206,7 +189,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                             response.Fs[i].TaskType = modelParameters.TaskType;
                         }
                         response.I_fn = modelParameters.videoFileName; /* Appended Video Filename */
-                        
+
                     }
                 }
                 catch (Exception ex)
@@ -223,7 +206,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     throw ex;
                 }
 
-                
+
                 metadata = JsonConvert.SerializeObject(response);
 #if DEBUG
                 LogHandler.LogUsage(String.Format("PythonInference MakePrediction finished execution at : {0}", DateTime.UtcNow.ToLongTimeString()), null);

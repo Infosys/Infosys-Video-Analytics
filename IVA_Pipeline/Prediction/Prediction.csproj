@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup Label="Globals">
     <SccProjectName>SAK</SccProjectName>
@@ -14,20 +14,20 @@
 
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.21.7" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
     <PackageReference Include="Microsoft.ML" Version="1.6.0" />
     <PackageReference Include="Microsoft.ML.ImageAnalytics" Version="1.6.0" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.7.0" />
     <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu" Version="1.13.0" />
     <PackageReference Include="Microsoft.ML.OnnxTransformer" Version="1.6.0" />
     <PackageReference Include="Microsoft.ServiceFabric" Version="8.0.514" />
-    <PackageReference Include="pythonnet" Version="3.0.2" />
+    <PackageReference Include="pythonnet" Version="3.0.5" />
     <!--<PackageReference Include="pythonnet_netstandard_py39_win" Version="2.5.2" />-->
     <PackageReference Include="RestSharp" Version="106.15.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
-    <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="8.0.0" />
 
     <PackageReference Include="AWSSDK.Core" Version="3.7.202.5" />
     <PackageReference Include="AWSSDK.SageMaker" Version="3.7.212" />

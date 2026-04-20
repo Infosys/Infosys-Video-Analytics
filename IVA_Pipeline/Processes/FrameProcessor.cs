@@ -24,10 +24,12 @@ using System.Collections.Generic;
 
 using Infosys.Solutions.Ainauto.VideoAnalytics.AIModels;
 using System.IO;
-using System.Drawing;
+using OpenCvSharp;
 using static Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common.ApplicationConstants;
 using Infosys.Solutions.Ainauto.VideoAnalytics.AIModels;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message;
+using System.Linq;
+using DA=Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 {
@@ -37,17 +39,24 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         static string dummyString = "";
         TaskRoute taskRouter = new TaskRoute();
         public string _taskCode;
+        public static Dictionary<string,string> args;
         private static AppSettings appSettings = Config.AppSettings;
         private static DeviceDetails deviceDetails = new DeviceDetails();
         public FrameProcessor()
         {
-            deviceDetails = ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(), appSettings.DeviceID, TaskRouteConstants.FrameProcessorCode);
-                      
+            
         }
-        public FrameProcessor(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
-            deviceDetails = ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(), appSettings.DeviceID, _taskCode);
+        public FrameProcessor(string processId,Dictionary<string,string> arguments) {
+            args=arguments;
+            _taskCode =TaskRoute.GetTaskCode(processId,args);
+            deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,_taskCode,args);
+            if(args!=null && args.Count>0) {
+                string type=args[args.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=BusinessComponent.Helper.UpdateConfigValues(args,deviceDetails);
+                }
+            }
+            UpdateEnvironmentVariables();
         }
         int exceptionCount = 0;
         static int exceptionCountLimit = 0;
@@ -157,8 +166,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 {
                    
                     BE.Queue.FrameProcessorMetaData beReceivedMessage = new BE.Queue.FrameProcessorMetaData();
-                  
-                    message.Mod = deviceDetails.PredictionModel.Contains(_taskCode) ? JsonConvert.DeserializeObject<Dictionary<string, string>>(deviceDetails.PredictionModel).GetValueOrDefault(_taskCode) : JsonConvert.DeserializeObject<Dictionary<string, string>>(deviceDetails.PredictionModel).GetValueOrDefault("default");
+                    //Updating the model as per the taskRouteComponent
+                    message.Mod = deviceDetails.ModelName.Contains(_taskCode) ? JsonConvert.DeserializeObject<Dictionary<string, string>>(deviceDetails.ModelName).GetValueOrDefault(_taskCode) : JsonConvert.DeserializeObject<Dictionary<string, string>>(deviceDetails.ModelName).GetValueOrDefault("default");
                     beReceivedMessage = BE.FaceMaskTranslator.FaceMaskDEToBE(message);
                     if (!message.TE.ContainsKey(_taskCode))
                     {
@@ -236,26 +245,21 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 int messageRetry = deviceDetails.FrameSequencingMessageRetry;
                 
                 DE.Document.Workflow blobImage = null;
-                if ((beReceivedMessage.Pcd == null || beReceivedMessage.Pcd.Length == 0) && deviceDetails.VideoFeedType != "PROMPT")
-                {
-                    blobImage = BusinessComponent.Helper.DownloadBlob(beReceivedMessage.Did, beReceivedMessage.Fid, beReceivedMessage.Tid, beReceivedMessage.Sbu, ".jpg");
+                if((beReceivedMessage.Pcd==null || beReceivedMessage.Pcd.Length==0) && deviceDetails.VideoFeedType!="PROMPT" && (beReceivedMessage.Base64==null || beReceivedMessage.Base64.Count==0)) {
+                    blobImage=BusinessComponent.Helper.DownloadBlob(beReceivedMessage.Did,beReceivedMessage.Fid,beReceivedMessage.Tid,beReceivedMessage.Sbu,".jpg");
                 }
-                if (blobImage == null && (beReceivedMessage.Pcd == null || beReceivedMessage.Pcd.Length == 0) && deviceDetails.VideoFeedType != "PROMPT")
-                {
-                    for (int i = 0; i <= messageRetry; i++)
-                    {
+                if(blobImage==null && (beReceivedMessage.Pcd==null || beReceivedMessage.Pcd.Length==0) && deviceDetails.VideoFeedType!="PROMPT" && (beReceivedMessage.Base64==null || beReceivedMessage.Base64.Count==0)) {
+                    for(int i=0;i<=messageRetry;i++) {
                         Thread.Sleep(messageStucktime);
-                        blobImage = BusinessComponent.Helper.DownloadBlob(beReceivedMessage.Did, beReceivedMessage.Fid, beReceivedMessage.Tid, beReceivedMessage.Sbu, ".jpg");
-                        if (blobImage != null)
-                        {
+                        blobImage=BusinessComponent.Helper.DownloadBlob(beReceivedMessage.Did,beReceivedMessage.Fid,beReceivedMessage.Tid,beReceivedMessage.Sbu,".jpg");
+                        if(blobImage!=null) {
                             break;
                         }
                     }
                 }
 
 
-                if (blobImage != null || beReceivedMessage.Prompt != null || beReceivedMessage.Pcd.Length != 0)
-                {
+                if(blobImage!=null || beReceivedMessage.Prompt!=null || beReceivedMessage.Pcd.Length!=0 || beReceivedMessage.Base64!=null) {
                     
 
                     ModelParameters maskDetection = GetModelParameters(beReceivedMessage);
@@ -263,12 +267,17 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     predictionStopWatch.Start();
                     string predictedMetadata = string.Empty;
 
-                    if (!String.IsNullOrEmpty(deviceDetails.ImageDebugEnabled) && deviceDetails.ImageDebugEnabled.Equals("true", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        if (!String.IsNullOrEmpty(appSettings.FpDebugImageFilePath) && Directory.Exists(appSettings.FpDebugImageFilePath))
-                        {
-                            Image image = Image.FromStream(blobImage.File);
-                            image.Save(appSettings.FpDebugImageFilePath + beReceivedMessage.Fid + ".jpg");
+                    if(blobImage!=null && blobImage.File!=null && !String.IsNullOrEmpty(deviceDetails.ImageDebugEnabled) && deviceDetails.ImageDebugEnabled.Equals("true",StringComparison.InvariantCultureIgnoreCase)) {
+                        if(!String.IsNullOrEmpty(deviceDetails.InputDebugImageFilePath) && Directory.Exists(deviceDetails.InputDebugImageFilePath)) {
+                            blobImage.File.Position = 0;
+                            using (var debugMs = new MemoryStream()) {
+                                blobImage.File.CopyTo(debugMs);
+                                using (Mat debugMat = Cv2.ImDecode(debugMs.ToArray(), ImreadModes.Color))
+                                {
+                                    Cv2.ImWrite(deviceDetails.InputDebugImageFilePath+beReceivedMessage.Fid+".jpg", debugMat);
+                                }
+                            }
+                            blobImage.File.Position = 0;
                         }
                     }
                     Stream st = null;
@@ -291,6 +300,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         
                         DE.Queue.FrameRendererMetadata deReceivedPersonCountMessage = new DE.Queue.FrameRendererMetadata();
                         deReceivedPersonCountMessage = BE.FaceMaskTranslator.FaceMaskRendererBEToDE(predictedMetadata, message);
+                        deReceivedPersonCountMessage.FrameHeight=message.FrameHeight;
+                        deReceivedPersonCountMessage.FrameWidth=message.FrameWidth;
                         sendMessage(deReceivedPersonCountMessage, deReceivedPersonCountMessage.Tid, deReceivedPersonCountMessage.Did, deReceivedPersonCountMessage.TE);
                         
                         
@@ -357,9 +368,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 {
                     var type = deReceivedPersonCountMessage.GetType();
                     var property = type.GetProperty("TE");
-                    te = taskRouter.GetTaskRouteDetails(tenantId, deviceId, task);
+                    te=taskRouter.GetTaskRouteDetails(tenantId,deviceId,task,deviceDetails);
                     property.SetValue(deReceivedPersonCountMessage, te);
-                    taskRouter.SendMessageToQueueWithTask(TaskRoute.TaskRouteMetaData, _taskCode, deReceivedPersonCountMessage, task);
+                    taskRouter.SendMessageToQueueWithTask(TaskRoute.TaskRouteMetaData(deviceDetails),_taskCode,deReceivedPersonCountMessage,task);
                 }
             }
             return te;
@@ -367,8 +378,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         private void sendEventMessage(QueueEntity.MaintenanceMetaData message)
         {
-            TaskRouteMetadata taskRouteMetadata = taskRouter.GetTaskRouteConfig(message.Tid, message.Did);
-            var taskList = taskRouter.GetTaskRouteDetails(message.Tid, message.Did, _taskCode)[_taskCode];
+            TaskRouteMetadata taskRouteMetadata=taskRouter.GetTaskRouteConfig(message.Tid,message.Did,deviceDetails);
+            var taskList=taskRouter.GetTaskRouteDetails(message.Tid,message.Did,_taskCode,deviceDetails)[_taskCode];
             if (taskList != null)
             {
                 foreach (var task in taskList)
@@ -429,8 +440,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             maskDetection.Rep_img = beReceivedMessage.Rep_img;
             maskDetection.Prompt = beReceivedMessage.Prompt;
             maskDetection.Pcd = beReceivedMessage.Pcd;
+            maskDetection.Mtp=beReceivedMessage.Mtp;
+            maskDetection.Base64=beReceivedMessage.Base64;
             maskDetection.Hp = beReceivedMessage.Hp;
             maskDetection.ExplainerURL = deviceDetails.XaiModel;
+            maskDetection.args=args;
             if (beReceivedMessage.Fs != null)
             {
                 maskDetection.Fs = new List<PersonDetails>();
@@ -471,5 +485,29 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             return maskDetection;
         }
 
+        public static void UpdateEnvironmentVariables()
+        {
+            LIFAdapter adapter = new LIFAdapter();
+            Dictionary<string, string?> environmentValues = new Dictionary<string, string?>();
+            int retry = deviceDetails.EnvironmentAdapterRetryLimit;
+            while (retry > 0)
+            {
+                try
+                {
+                    adapter.GetEnvironmentVariables(ApplicationConstants.ENVIRONMENT_REGION, out environmentValues);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    retry--;
+                    LogHandler.LogError("Error while assigning environment variables, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.FrameProcessor, ex.Message, ex.InnerException, ex.StackTrace);
+                    if (retry == 0)
+                    {
+                        LogHandler.LogError("Exception in environment adapter, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.FrameProcessor, ex.Message, ex.InnerException, ex.StackTrace);
+                    }
+                }
+            }
+            deviceDetails = BusinessComponent.Helper.UpdateConfigValues(environmentValues, deviceDetails);
+        }
     }
 }

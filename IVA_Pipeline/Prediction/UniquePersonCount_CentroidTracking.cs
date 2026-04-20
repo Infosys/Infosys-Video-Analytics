@@ -56,11 +56,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     base64_image = Convert.ToBase64String(memoryStream.ToArray());
                     memoryStream.Dispose();
                 }
-                
-
-
-
-                
 
                 if (modelParameters.FrameNumber == 1)
                 {
@@ -95,14 +90,19 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     Model = modelParameters.ModelName,
                     Per = null,
                     Ad = Ad,
-                    Base_64 = base64_image,// for yolov7
-                    C_threshold = modelParameters.ConfidenceThreshold, // for yolov7
+                    Base_64 = new List<string>() { base64_image },// for yolov7
+                    Roi_c = modelParameters.Roi_c,
+                    C_threshold = modelParameters.ConfidenceThreshold, // for yolov7
 
                     Ffp = modelParameters.Ffp,
                     Ltsize = modelParameters.Ltsize,
                     Lfp = modelParameters.Lfp,
                     I_fn = modelParameters.videoFileName,
                     Hp = modelParameters.Hp,
+                    Xai_ver = "",
+                    Xai_explainers = new List<string>(),
+                    Xai_url = ""
+
                 };
 
                 if (!string.IsNullOrEmpty(modelParameters.Prompt))
@@ -117,34 +117,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     reqMsg.Prompt.Add(list);
                 }
 
-                #region  Commenting old request part for testing new response structure
-                /*
-               //var response = channel.GetDetectPersonCount_t7(reqMsg);
-               //metadata = JsonConvert.SerializeObject(response);
-
-               var apiResponse = ServiceCaller.ApiCaller(reqMsg, baseUrl + "/" + modelname, "POST");
-
-               try
-               {
-                   var response = JsonConvert.DeserializeObject<List<PersonCountAPIResMsg>>(apiResponse);
-                   metadata = JsonConvert.SerializeObject(response);
-               }
-               */
-                #endregion
-
                 ObjectDetectorAPIResMsg response = null;
 
                  var apiResponse = ServiceCaller.ApiCaller(reqMsg, modelParameters.BaseUrl + "/" + modelParameters.ModelName, "POST").Result;
-
-                #region Testing for new changes for IVA request/response structure
-                /*
-                var apiResponse = "";
-               using (StreamReader r = new StreamReader(@"D:\\I\\TestProject\\TestControl\\iphone\\ObjectDetectionApi\\api_response.json"))
-               {
-                   apiResponse = r.ReadToEnd();
-               }
-                */
-                #endregion
 
                 try
                 {

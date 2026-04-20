@@ -7,8 +7,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Windows;
-using System.Drawing;
+using OpenCvSharp;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using Infosys.IVA.ComputerVisionLib.OCREngine;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message;
@@ -98,7 +97,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         
 
         
-        public Rectangle ImageBoundingRectangle
+        public Rect ImageBoundingRectangle
         {
             get;
             set;
@@ -118,7 +117,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
        
         public void SetRegion(int x, int y, int width, int height)
         {
-            this.ImageBoundingRectangle = new Rectangle(x, y, width, height);
+            this.ImageBoundingRectangle = new Rect(x, y, width, height);
         }
 
         
@@ -126,7 +125,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
         public void UpdateCondition(string automationId, string automationName)
         {
-            this.ImageBoundingRectangle = Rectangle.Empty;
+            this.ImageBoundingRectangle = new Rect();
             if (automationId == null)
                 automationId = "";
             if (automationName == null)
@@ -181,10 +180,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             absoluteHeight = 0;
             absoluteWidth = 0;
 
-            Rectangle rect = new Rectangle();
+            Rect rect = new Rect();
 
                           
-            if (ImageBoundingRectangle != null)
+            if (ImageBoundingRectangle.Width > 0 || ImageBoundingRectangle.Height > 0)
             {
                 rect = ImageBoundingRectangle;
             }
@@ -261,7 +260,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
     public class ControlImageReference {
         public List<ControlStateReference> SupportedStates {get;set;}
         public string CurrentState {get;set;}
-        public Rectangle CurrentBoundingRectangle {get;set;}
+        public Rect CurrentBoundingRectangle {get;set;}
         public double ConfidenceScore {get;set;}
         public double Angle {get;set;}
     }
@@ -275,7 +274,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
     public class TemplateMatching
     {
-        public Rectangle BoundingBox { get; set; }
+        public Rect BoundingBox { get; set; }
         public double ConfidenceScore { get; set; }
     }
 

@@ -3,7 +3,7 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-﻿using Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message;
+using Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,7 +15,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 {
     [Serializable]
     public class ModelParameters : ICloneable
-    {   
+    {
         public string tId { get; set; }
         public string deviceId { get; set; }
         public string keyPrefix { get; set; }
@@ -41,7 +41,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         public string ImagePixelExtractionOrder { get; set; }
         public string GPUDeviceId { get; set; }
         public string CPUFallbackValue { get; set; }
-        public string Fid { get; set; } 
+        public string Fid { get; set; }
         public string Etime { get; set; }
         public string Src { get; set; }
         public string Stime { get; set; }
@@ -51,9 +51,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         public string Inf_ver { get; set; }
         public string Per { get; set; }
         public string Ad { get; set; }
-        public byte[] Pcd {get;set;}
-        public string Ffp { get; set; } 
-        public string Ltsize { get; set; } 
+        public byte[] Pcd { get; set; }
+        public string Ffp { get; set; }
+        public string Ltsize { get; set; }
         public string Lfp { get; set; }
 
         public long FrameNumber { get; set; }
@@ -70,13 +70,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         public List<string> Rep_img { get; set; }
         public List<PersonDetails> Fs { get; set; }
         public string ExplainerURL { get; set; }
+        public Dictionary<string, string> args { get; set; }
+        public List<Mtp> Mtp { get; set; }
+        public List<string> Base64 { get; set; }
         public string Hp { get; set; }
-      
+        public Dictionary<string, List<List<PointData>>> Roi_c { get; set; }
+
 
         #region ICloneable Members
-        public object Clone() {
-            using(MemoryStream stream=new MemoryStream()) {
-                if(this.GetType().IsSerializable) {           
+        public object Clone()
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                if (this.GetType().IsSerializable)
+                {
                     /* //BinaryFormatter is obsolete in .net 8
                     BinaryFormatter formatter=new BinaryFormatter();
                     formatter.Serialize(stream,this);
@@ -100,4 +107,4 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         #endregion
     }
 
-  }
+}

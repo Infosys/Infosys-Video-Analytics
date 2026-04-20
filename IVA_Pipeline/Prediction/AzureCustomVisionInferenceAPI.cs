@@ -3,7 +3,7 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,14 +32,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
     public class AzureCustomVisionInferenceAPI : ExecuteBase
     {
         ObjectDetectorAPIResMsg objectDetectorResponse = null;
-        
+
         public override bool InitializeModel()
         {
             return true;
         }
 
 
-        
+
 
         public override string MakePrediction(Stream st, ModelParameters modelParameters)
         {
@@ -59,14 +59,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 string metadata = "";
                 st.Position = 0;
                 byte[] image_byte_array;
-               
+
                 using (MemoryStream memoryStream = new MemoryStream())
                 {
                     st.CopyTo(memoryStream);
                     image_byte_array = memoryStream.ToArray();
                     memoryStream.Dispose();
                 }
-                
+
                 MakePredictionRequestAsync(image_byte_array, modelParameters).GetAwaiter().GetResult();
 
 
@@ -91,10 +91,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 var client = new HttpClient();
                 string response = "";
 
-                
+
                 client.DefaultRequestHeaders.Add("Prediction-Key", predictionKey);
 
-                
+
 
                 HttpResponseMessage httpresponse;
 
@@ -110,7 +110,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 stopWatch.Stop();
                 DateTime etime = DateTime.Now;
 
-                
+
 
                 var azurePredictionModel = (AzurePredictionModel)JsonConvert.DeserializeObject<AzurePredictionModel>(response);
                 ObjectDetectorAPIResMsg result = new ObjectDetectorAPIResMsg();
@@ -159,14 +159,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 mtp.Etime = etime.ToString("HH:mm:ss tt");
                 mtp.Src = "Azure Vision Inference API";
                 result.Mtp.Add(mtp);
-                
+
                 result.Did = modelParameters.deviceId;
-                result.Tid = modelParameters.tId;                
+                result.Tid = modelParameters.tId;
                 result.Fid = modelParameters.Fid;
-                
+
                 result.Ts = modelParameters.Ts;
                 result.Ts_ntp = modelParameters.Ts_ntp;
-                
+
                 result.Msg_ver = modelParameters.Msg_ver;
                 result.Inf_ver = modelParameters.Inf_ver;
                 result.Ad = modelParameters.Ad;

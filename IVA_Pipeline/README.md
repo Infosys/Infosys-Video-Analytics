@@ -2,9 +2,9 @@
 # Infosys Video Analytics
 
 ## Table of Contents
-- [Installation](#-Installation)
-- [Prerequisites](#-Prerequisites)
-- [Build and Test](#-build-and-test)
+- [Installation](#installation)
+- [Prerequisites](#prerequisites)
+- [Build and Test](#build-and-test)
 - [Tests](#tests)
 - [Additional Features](#additional-features)
 
@@ -12,23 +12,22 @@
 
 How to build the project:
 ```shell
-#Open a terminal (Command Prompt or PowerShell for Windows, Terminal for macOS or Linux)
+# Open a terminal (Command Prompt or PowerShell for Windows, Terminal for macOS or Linux)
 
-#Ensure Git is installed
-Visit https://git-scm.com to download and install console Git if not already installed
+# Ensure Git is installed
+# Visit https://git-scm.com to download and install console Git if not already installed
 
 # Clone the Repository
-  git clone link copied from the repo
+git clone https://github.com/Infosys/Infosys-Video-Analytics.git
 
-# Check if .Net is installed
-  dotnet --version  # Check the installed version of .NET SDK (Ensure .NET 6.0 is installed)
-# Visit the official Microsoft website to install or update it if necessary
+# Check if .NET is installed
+dotnet --version  # Ensure .NET 8.0 SDK is installed
 
 # Restore dependencies
-  dotnet restore
+dotnet restore
 
 # Compile the project
-  dotnet build
+dotnet build
 ```
 
 This section guides users through setting up and running the IVA on their system.
@@ -76,7 +75,7 @@ Download the InfosysModelInferenceLibrary folder from the https://github.com/Inf
    - Python >=3.9 (Ensure it is installed on the machine to run Python inference)
 2. Installation Steps:
    - Install Necessary Packages,
-   - Verify installed packages using,
+   - Verify installed packages using pip list OR pip show packages_name,
    - Check the Requirements.txt inside the infosysmodelinferencelibrary folder and
    - Install any missing packages.
    - Check the References folder inside imil folder for deatiled explanation on the infosysmodelinferencelibrary.

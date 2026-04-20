@@ -9,7 +9,7 @@ using System.Net;
 using System.IO;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Drawing;
+using OpenCvSharp;
 using Infosys.IVA.ComputerVisionLib.OCREngine;
 using ComputerVisionLib_Core = Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVisionLib.Core;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVisionLib.Core;
@@ -765,7 +765,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
                     counter--; 
                     
-                    Rectangle searchRegion = Rectangle.Empty;
+                    Rect searchRegion = new Rect();
                     if (parentControl != null && parentControl.ImageReference != null)
                     {
                         ComputerVisionLib_Core.Utilities.ScaleStep = imageMatchScaleStepSize;
@@ -789,9 +789,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         ctl = null;
                     System.Threading.Thread.Sleep(timeGapBetweenTrials);
                 }
-                while ((ctl == null || (ctl != null && ctl.ImageBoundingRectangle == Rectangle.Empty)) && (DateTime.Now - startTime).TotalSeconds <= timeoutInSec);
+                while ((ctl == null || (ctl != null && ctl.ImageBoundingRectangle.Width == 0 && ctl.ImageBoundingRectangle.Height == 0)) && (DateTime.Now - startTime).TotalSeconds <= timeoutInSec);
 
-                if (ctl.ImageBoundingRectangle == Rectangle.Empty)
+                if (ctl.ImageBoundingRectangle.Width == 0 && ctl.ImageBoundingRectangle.Height == 0)
                     ctl = null;
             }
             return ctl;

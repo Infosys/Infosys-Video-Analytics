@@ -149,13 +149,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity
         public string XaiToRun { get; set; }
         public string XaiModel { get; set; }
 
-        public int XaiBatchSize { get; set; }
-
-
-        
+        public int XaiBatchSize { get; set; }      
         public string XaiTemplateName { get; set; }
         public string HyperParameters { get; set; }
         public string ObjectDetectionRendering { get; set; }
+        public double RendererBackgroundTransparency {get;set;}
+        public string SplitScreenRendering { get; set; }
+        public string SplitScreenGrid { get; set; }
+        public bool DisplayPredictionInfo { get; set; }
+        public int EnvironmentAdapterRetryLimit { get; set; }
         public string RenderImageFilePath {get;set;}
         public string RenderImageEnabled {get;set;}
         public string DebugImageFilePath {get;set;}
@@ -186,6 +188,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity
         public string PredictionType {get;set;}
         public string AnalyticsPredictionType {get;set;}
         public bool DBEnabled {get;set;}
+        public string RoiCoordinates {get;set;}
+        public int RoiType {get;set;}
+        public string InputDebugImageFilePath {get;set;}
+        public string RoiDebugImageFilePath {get;set;}
+        public string DBProvider { get; set; }
+        public string DataCollectorFileName { get; set; }
+
+
     }
     
     public class TemplateMatching {
@@ -201,5 +211,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity
         public int TemplateMatchMappingBorderThickness {get;set;}
         public bool MultiRotationTemplateMatching {get;set;}
         public double ImageMatchRotationStepAngle {get;set;}
+ 
+
+
     }
 }

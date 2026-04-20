@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup Label="Globals">
     <SccProjectName>SAK</SccProjectName>
@@ -9,15 +9,17 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <RuntimeIdentifiers>linux-arm64;linux-x64;win-x64</RuntimeIdentifiers>
     <RootNamespace>Infosys.Solutions.Ainauto.VideoAnalytics.Processes</RootNamespace>
     <AssemblyName>Infosys.Solutions.Ainauto.VideoAnalytics.Processes</AssemblyName>
+	<Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Confluent.Kafka" Version="2.0.2" />
     <PackageReference Include="Elastic.CommonSchema.NLog" Version="1.5.3" />
     <PackageReference Include="SharpZipLib" Version="1.3.2" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
   </ItemGroup>
 
   
@@ -26,6 +28,7 @@
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\DataAccess\DataAccess.csproj" />
     <ProjectReference Include="..\DataEntity\DataEntity.csproj" />
+    <ProjectReference Include="..\DataCollector\DataCollector.csproj" />
     <ProjectReference Include="..\Prediction\Prediction.csproj" />
     <ProjectReference Include="..\ProcessScheduler.Framework\ProcessScheduler.Framework.csproj" />
     <ProjectReference Include="..\Renderer\Renderer.csproj" />

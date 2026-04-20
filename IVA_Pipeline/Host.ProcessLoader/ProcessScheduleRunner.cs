@@ -42,7 +42,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.ProcessLoader
                 _LogMessage = "Windows Service Started";
                 LogHandler.LogInfo(_LogMessage, LogHandler.Layer.Business, null);
                 Tasks objTask = new Tasks();
-                objTask.InitialiseComponent(_robotId, _runInstanceId, 1);
+                objTask.InitialiseComponent(_robotId, _runInstanceId, 1,null);
             }
             catch (Exception exProcess)
             {

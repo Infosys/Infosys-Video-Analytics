@@ -1,8 +1,3 @@
-/*=============================================================================================================== *
- * Copyright 2025 Infosys Ltd.                                                                                    *
- * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
- * http://www.apache.org/licenses/                                                                                *
- * ===============================================================================================================*/
 // Copyright 2004, Microsoft Corporation
 // Sample Code - Use restricted to terms of use defined in the accompanying license agreement (EULA.doc)
 
@@ -39,6 +34,11 @@ namespace Infosys.Lif.LegacyIntegratorService
         public string TransportName { get; set; }
         public int DataBlockSizeInKB { get; set; }
         public string DocumentsVirtualDirectoryFromRoot { get; set; }
+        public int WaitTimeForFolderDelete { get; set; } = 30000;
+        public int FileCopyInterval { get; set; } = 30000;
+        public string? TargetRegion { get; set; }
+        public string? LocalPath { get; set; }
+        public string? BlobURL { get; set; }
 
     }
     public class IISDoc
@@ -141,6 +141,7 @@ namespace Infosys.Lif.LegacyIntegratorService
         public AzureIoTAdapter AzureIoTAdapter { get; set; }
         public AzureVault AzureVault { get; set; }
         public AWSSecrets AWSSecrets { get; set; }
+        public Environments Environments { get; set; }
     }
 
     public class Kafka
@@ -300,6 +301,20 @@ namespace Infosys.Lif.LegacyIntegratorService
         public string VersionStage { get; set; }
         public string Region { get;set; }
         public int Retry { get; set; }
+    }
+
+    public class Environments
+    {
+        public string DllPath { get; set; }
+        public string TypeName { get; set; }
+        public IList<EnvironmentDetails> EnvironmentDetails { get; set; }
+    }
+
+    public class EnvironmentDetails
+    {
+        public string TransportName { get; set; }
+        public string EnvironmentName { get; set; }
+        public string EnvironmentTarget { get; set; }
     }
 
 }

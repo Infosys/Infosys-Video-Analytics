@@ -5,17 +5,15 @@
  * ===============================================================================================================*/
 ﻿
 using Infosys.IVA.ComputerVisionLib.OCREngine;
+using OpenCvSharp;
 using System;
 using System.Configuration;
-using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using System.Xml.Linq;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using TesseractSharp;
 using System.Text;
 
@@ -32,75 +30,51 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
         
 
-        public string ReadTextArea(Image image, string filter, float imageResizeCoeff)
+        public string ReadTextArea(Mat image, string filter, float imageResizeCoeff)
         {
-
-
-            
-
-
-
-           
             string text = String.Empty;
-            
 
-           
-            if (imageResizeCoeff  >1 || imageResizeCoeff<-1)
+            Mat processImage = image;
+            if (imageResizeCoeff > 1 || imageResizeCoeff < -1)
+            {
+                int incrWidth;
+                int incrHeight;
+                if (imageResizeCoeff > 1)
                 {
-                  int incrWidth;
-                  int incrHeight;
-                  if(imageResizeCoeff > 1)
-                  { 
                     incrWidth = (int)(image.Width * imageResizeCoeff);
                     incrHeight = (int)(image.Height * imageResizeCoeff);
-                   }
-                  else
-                  {
-                      incrWidth = (int)(image.Width / imageResizeCoeff);
-                      incrHeight = (int)(image.Height / imageResizeCoeff);
-                  }
-
-                  image = ResizeImage(image, incrWidth, incrHeight);
-                  
+                }
+                else
+                {
+                    incrWidth = (int)(image.Width / imageResizeCoeff);
+                    incrHeight = (int)(image.Height / imageResizeCoeff);
                 }
 
-            System.IO.Stream stream = Tesseract.ImageToTxt((Bitmap)image, languages: new[] { Language.English});
-            using (var reader = new StreamReader(stream, Encoding.UTF8))
-            {
-                text = reader.ReadToEnd();
+                processImage = new Mat();
+                Cv2.Resize(image, processImage, new OpenCvSharp.Size(incrWidth, incrHeight), 0, 0, InterpolationFlags.Cubic);
             }
 
-             
-            
+            // Save to temp file for cross-platform Tesseract processing
+            string tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".png");
+            try
+            {
+                Cv2.ImWrite(tempFile, processImage);
+                System.IO.Stream stream = Tesseract.ImageToTxt(tempFile, languages: new[] { Language.English });
+                using (var reader = new StreamReader(stream, Encoding.UTF8))
+                {
+                    text = reader.ReadToEnd();
+                }
+            }
+            finally
+            {
+                if (File.Exists(tempFile))
+                    File.Delete(tempFile);
+                if (processImage != image)
+                    processImage?.Dispose();
+            }
 
             return text.Trim();
         }
-
-       
-    public static Bitmap ResizeImage(Image image, int width, int height)
-    {
-        var destRect = new Rectangle(0, 0, width, height);
-        var destImage = new Bitmap(width, height);
-
-        destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
-
-        using (var graphics = Graphics.FromImage(destImage))
-        {
-            graphics.CompositingMode = CompositingMode.SourceCopy;
-            graphics.CompositingQuality = CompositingQuality.HighQuality;
-            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-            graphics.SmoothingMode = SmoothingMode.HighQuality;
-            graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
-
-            using (var wrapMode = new ImageAttributes())
-            {
-                wrapMode.SetWrapMode(WrapMode.TileFlipXY);
-                graphics.DrawImage(image, destRect, 0, 0, image.Width,image.Height, GraphicsUnit.Pixel, wrapMode);
-            }
-        }
-
-        return destImage;
-    }
         
 
         private bool CheckSaveOCRImages()

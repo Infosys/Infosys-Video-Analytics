@@ -24,9 +24,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCom
         private readonly Thread ClientThread;
         private NetworkStream connectNetStreamGlobal;
         private string _host;
-        public static AppSettings appSettings=Config.AppSettings;
-        public static DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.ClientConnectHost);
-        int waitingTime=deviceDetails.ClientConnectionWaitingTime;
         #region Constructor
         public ClientConnectHost(string Host, int Port)
         {
@@ -36,13 +33,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCom
             else
                 this.Client = new ClientTCPConnect(this.ConnectionHandler);
 
-            this.ClientThread = new Thread(this.Client.Run);
+            this.ClientThread=new Thread(new ParameterizedThreadStart(this.Client.Run));
         }
         #endregion
         #region Public Functions
-        public virtual void RunClientThread()
-        {
-            this.ClientThread.Start();
+        public virtual void RunClientThread(DeviceDetails deviceDetails) {
+            this.ClientThread.Start(deviceDetails);
         }
 
         public virtual void WaitClientThreadToStop()
@@ -53,15 +49,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCom
         }
         #endregion
 
-        public  bool Send(byte[] payload)
-        {
+        public  bool Send(byte[] payload,DeviceDetails deviceDetails) {
          
             if (connectNetStreamGlobal == null)
             {
-                Thread.Sleep(waitingTime);
+                Thread.Sleep(deviceDetails.ClientConnectionWaitingTime);
                 if (connectNetStreamGlobal == null)
                 {
-                    throw new ClientNotConnectedException(String.Format("After wait time {0}, Connection is not established ",waitingTime));
+                    throw new ClientNotConnectedException(String.Format("After wait time {0}, connection is not established",deviceDetails.ClientConnectionWaitingTime));
                 }
             }
 

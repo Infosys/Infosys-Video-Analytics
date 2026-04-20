@@ -11,8 +11,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
-using System.Drawing;
-using System.Drawing.Imaging;
 using SE=Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts;
 using DA=Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess;
 using DE=Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity;
@@ -28,6 +26,7 @@ using System.Runtime.InteropServices;
 using System.Net;
 using System.Net.Security;
 using static Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common.ApplicationConstants;
+using OpenCvSharp;
 using System.Net.Http;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.VideoAnalytics;
 using Nest;
@@ -97,7 +96,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent {
         public static readonly int maxSequenceNumber;
         public static bool cleanUpStreamingFolder=false;
         private static Dictionary<int,string> framesNotSendForRendering=new Dictionary<int,string>();
-        public static DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(tenantId.ToString(),deviceId,CacheConstants.PcdHandlerCode);
+        public static DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(tenantId.ToString(),deviceId,CacheConstants.PcdHandlerCode,PcdHandler.arguments);
         public static readonly int MaxThreadOnPool=deviceDetails.MaxThreadOnPool;
         #endregion
 
@@ -121,8 +120,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent {
                 });
                 /* var uri=String.Format($"{Config.AppSettings.ConfigWebApi}Configuration/GetDeviceAttributes?tid={tenantId}&did={deviceId}");
                 var apiResponse=ServiceCaller.ApiCaller(null,uri,"GET"); */
-                DeviceDetails response=ConfigHelper.SetDeviceDetails(tenantId.ToString(),deviceId,CacheConstants.PcdHandlerCode);
-                if(response==null)
+                DeviceDetails response=ConfigHelper.SetDeviceDetails(tenantId.ToString(),deviceId,CacheConstants.PcdHandlerCode,PcdHandler.arguments);
+                if(PcdHandler.arguments!=null && PcdHandler.arguments.Count>0) {
+                    string type=PcdHandler.arguments[PcdHandler.arguments.Keys.First()];
+                    if(type.ToLower()=="values") {
+                        deviceDetails=response=Helper.UpdateConfigValues(PcdHandler.arguments,response);
+                    }
+                }
+                UpdateEnvironmentVariables();
+                if (response==null)
                     throw new FaceMaskDetectionCriticalException("Failed to get device configuration from services. Response is null.");
                 #if DEBUG
                 LogHandler.LogDebug("The GetDeviceAttributes service is executed successfully to get config details for Tenant Id: {0} and Device Id: {1} at {2}",LogHandler.Layer.PcdHandler,tenantId,deviceId,DateTime.UtcNow.ToLongTimeString());
@@ -447,7 +453,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent {
                     Sbu=storageBaseUrl,
                     Tid=tenantId.ToString(),
                     Mod=modelName,
-                    TE=taskRouter.GetTaskRouteDetails(tenantId.ToString(),deviceId,moduleCode),
+                    TE=taskRouter.GetTaskRouteDetails(tenantId.ToString(),deviceId,moduleCode,deviceDetails),
                     FeedId=MasterId.ToString(),
                     Fp=FrameCount.ToString(),
                     Fids=grabberTimeList,
@@ -473,7 +479,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent {
                 if(TaskRouteConstants.UniquePersonCode==moduleCode) {
                     queueEntity.Mod=UPmodelName;
                 }
-                string response=taskRouter.SendMessageToQueue(tenantId.ToString(),deviceId,moduleCode,queueEntity);
+                string response=taskRouter.SendMessageToQueue(tenantId.ToString(),deviceId,moduleCode,queueEntity,deviceDetails);
                 if(string.IsNullOrEmpty(response)) {
                     if(PushMessageFailureCount>MaxFailureCount) {
                         
@@ -562,9 +568,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent {
             frameInformation.FramesNotSendForRendering=framesNotSendForRendering;
             queueEntity.Data=JsonConvert.SerializeObject(frameInformation);
             var taskList=taskRouter.GetTaskRouteDetails(PcdHandlerHelper.tenantId.ToString(),
-            PcdHandlerHelper.deviceId,TaskRouteConstants.PcdHandlerCode)[TaskRouteConstants.PcdHandlerCode];
+            PcdHandlerHelper.deviceId,TaskRouteConstants.PcdHandlerCode,deviceDetails)[TaskRouteConstants.PcdHandlerCode];
             foreach(string moduleCode in taskList) {
-                taskRouter.SendMessageToQueue(tenantId.ToString(),deviceId,moduleCode,queueEntity);
+                taskRouter.SendMessageToQueue(tenantId.ToString(),deviceId,moduleCode,queueEntity,deviceDetails);
             }
         }
 
@@ -621,7 +627,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent {
                         pcdBytes=File.ReadAllBytes(pcdSource);
                         string Etime;
                         Etime=DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
-                        var taskList=taskRouter.GetTaskRouteDetails(tenantId.ToString(),deviceId,TaskRouteConstants.PcdHandlerCode)[TaskRouteConstants.PcdHandlerCode];
+                        var taskList=taskRouter.GetTaskRouteDetails(tenantId.ToString(),deviceId,TaskRouteConstants.PcdHandlerCode,deviceDetails)[TaskRouteConstants.PcdHandlerCode];
                         foreach(var task in taskList) {
                             PushToQueues(pcdBytes,fileName,task,null,sequenceNumber,frameNumber,Stime,Source,Etime,Ffp,Ltsize,Lfp,videoFileName);
                         }
@@ -642,6 +648,31 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent {
                     LogHandler.Layer.PcdHandler,fileName,ex.Message);
                 }
             }
+        }
+
+        public static void UpdateEnvironmentVariables()
+        {
+            LIFAdapter adapter = new LIFAdapter();
+            Dictionary<string, string?> environmentValues = new Dictionary<string, string?>();
+            int retry = deviceDetails.EnvironmentAdapterRetryLimit;
+            while (retry > 0)
+            {
+                try
+                {
+                    adapter.GetEnvironmentVariables(ApplicationConstants.ENVIRONMENT_REGION, out environmentValues);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    retry--;
+                    LogHandler.LogError("Error while assigning environment variables, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.PcdHandler, ex.Message, ex.InnerException, ex.StackTrace);
+                    if (retry == 0)
+                    {
+                        LogHandler.LogError("Exception in environment adapter, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.PcdHandler, ex.Message, ex.InnerException, ex.StackTrace);
+                    }
+                }
+            }
+            deviceDetails = BusinessComponent.Helper.UpdateConfigValues(environmentValues, deviceDetails);
         }
     }
 }

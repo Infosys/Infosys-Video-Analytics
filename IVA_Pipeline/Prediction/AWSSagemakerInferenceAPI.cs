@@ -3,7 +3,7 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -50,7 +50,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         ObjectDetectorAPIResMsg objectDetectorResponse = null;
         private AmazonSageMakerRuntimeClient smRuntimeClient;
         private AWSCredentials sessionCredentials;
-        
+
         public override bool InitializeModel()
         {
             return true;
@@ -93,28 +93,28 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 if (smRuntimeClient == null || sessionCredentials == null)
                 {
                     Console.WriteLine("Model loading started");
-                    
+
 
                     smRuntimeClient = new
                          AmazonSageMakerRuntimeClient(modelParameters.AWSAccessKey,
                          modelParameters.AWSSecretKey, modelParameters.AWSSessionToken, region);
                     Console.WriteLine("Model loading SageMaker client initiated");
                 }
-                
+
                 var sagemakerClient = new
                            AmazonSageMakerRuntimeClient(modelParameters.AWSAccessKey,
                            modelParameters.AWSSecretKey,
                            modelParameters.AWSSessionToken,
                 region);
 
-                
+
 
                 object json_req = new
                 {
                     base64 = base64
                 };
                 string js = JsonConvert.SerializeObject(json_req);
-                
+
                 var request = new InvokeEndpointRequest
                 {
                     EndpointName = modelParameters.AWSEndpointName,
@@ -122,7 +122,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     Body = new MemoryStream(Encoding.UTF8.GetBytes(js)),
 
                 };
-                
+
                 var apiresponse = await sagemakerClient.InvokeEndpointAsync(request);
                 string result = Encoding.UTF8.GetString(apiresponse.Body.ToArray());
                 response = JsonConvert.DeserializeObject<ObjectDetectorAPIResMsg>(result);
@@ -135,8 +135,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                         response.Mtp[i].Etime = etime;
                     }
                 }
-                string metadata= JsonConvert.SerializeObject(response);
-                
+                string metadata = JsonConvert.SerializeObject(response);
+
                 return metadata;
             }
             catch (Exception ex)
@@ -153,7 +153,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             {
                 stream.CopyTo(memoryStream); // Copy the data from the Stream to the MemoryStream
 
-                
+
                 string base64String = Convert.ToBase64String(memoryStream.ToArray());
                 return base64String;
             }

@@ -57,7 +57,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
         static PromptHandlerHelper()
         {
-            deviceDetails = ConfigHelper.SetDeviceDetails(tenantId.ToString(), deviceId, CacheConstants.PromptHandler);
+            deviceDetails=ConfigHelper.SetDeviceDetails(tenantId.ToString(),deviceId,CacheConstants.PromptHandler,PromptHandler.args);
+            if(PromptHandler.args!=null && PromptHandler.args.Count>0) {
+                string type=PromptHandler.args[PromptHandler.args.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=Helper.UpdateConfigValues(PromptHandler.args,deviceDetails);
+                }
+            }
+            UpdateEnvironmentVariables();
             UpdateModelName(deviceDetails.ModelName);
             promptInputDirectory = deviceDetails.PromptInputDirectory;
             maskInputDirectory = deviceDetails.MaskImageDirectory;
@@ -91,12 +98,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             frameInformation.FramesNotSendForRendering = new Dictionary<int, string>();
             queueEntity.Data = JsonConvert.SerializeObject(frameInformation);
             
-            var taskList = taskRouter.GetTaskRouteDetails(FrameGrabberHelper.tenantId.ToString(),
-                FrameGrabberHelper.deviceId, PromptHandler._taskCode)[PromptHandler._taskCode];
+            var taskList=taskRouter.GetTaskRouteDetails(FrameGrabberHelper.tenantId.ToString(),
+            FrameGrabberHelper.deviceId,PromptHandler._taskCode,deviceDetails)[PromptHandler._taskCode];
 
             foreach (string moduleCode in taskList)
             {
-                taskRouter.SendMessageToQueue(FrameGrabberHelper.tenantId.ToString(), FrameGrabberHelper.deviceId, moduleCode, queueEntity);
+                taskRouter.SendMessageToQueue(FrameGrabberHelper.tenantId.ToString(),FrameGrabberHelper.deviceId,moduleCode,queueEntity,deviceDetails);
             }
         }
 
@@ -124,9 +131,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 {
                     var type = message.GetType();
                     var property = type.GetProperty("TE");
-                    te = taskRouter.GetTaskRouteDetails(tenantId, deviceId, task);
+                    te=taskRouter.GetTaskRouteDetails(tenantId,deviceId,task,deviceDetails);
                     property.SetValue(message, te);
-                    taskRouter.SendMessageToQueueWithTask(TaskRoute.TaskRouteMetaData, PromptHandler._taskCode, message, task);
+                    taskRouter.SendMessageToQueueWithTask(TaskRoute.TaskRouteMetaData(deviceDetails),PromptHandler._taskCode,message,task);
                 }
             }
             return te;
@@ -140,8 +147,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 Did = deviceId,
                 Sbu = FrameGrabberHelper.storageBaseUrl,
                 Tid = tenantId,
-                Mod = deviceDetails.PredictionModel.Contains(PromptHandler._taskCode) ? JsonConvert.DeserializeObject<Dictionary<string, string>>(deviceDetails.PredictionModel).GetValueOrDefault(PromptHandler._taskCode) : JsonConvert.DeserializeObject<Dictionary<string, string>>(deviceDetails.PredictionModel).GetValueOrDefault("default"),
-                TE = taskRouter.GetTaskRouteDetails(appSettings.TenantID.ToString(), appSettings.DeviceID, PromptHandler._taskCode),
+                Mod = deviceDetails.ModelName.Contains(PromptHandler._taskCode) ? JsonConvert.DeserializeObject<Dictionary<string, string>>(deviceDetails.ModelName).GetValueOrDefault(PromptHandler._taskCode) : JsonConvert.DeserializeObject<Dictionary<string, string>>(deviceDetails.ModelName).GetValueOrDefault("default"),
+                TE=taskRouter.GetTaskRouteDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,PromptHandler._taskCode,deviceDetails),
                 FeedId = masterId,
                 Fids = new List<string>(),
                 SequenceNumber = "",
@@ -454,6 +461,31 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             {
                 LogHandler.LogError("Error in getting feed details from DB, Exception: {0}, Inner exception: {1}, Stack trace: {2}", LogHandler.Layer.PromptHandler, ex.Message, ex.InnerException, ex.StackTrace);
             }
+        }
+
+        public static void UpdateEnvironmentVariables()
+        {
+            LIFAdapter adapter = new LIFAdapter();
+            Dictionary<string, string?> environmentValues = new Dictionary<string, string?>();
+            int retry = deviceDetails.EnvironmentAdapterRetryLimit;
+            while (retry > 0)
+            {
+                try
+                {
+                    adapter.GetEnvironmentVariables(ApplicationConstants.ENVIRONMENT_REGION, out environmentValues);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    retry--;
+                    LogHandler.LogError("Error while assigning environment variables, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.PromptHandler, ex.Message, ex.InnerException, ex.StackTrace);
+                    if (retry == 0)
+                    {
+                        LogHandler.LogError("Exception in environment adapter, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.PromptHandler, ex.Message, ex.InnerException, ex.StackTrace);
+                    }
+                }
+            }
+            deviceDetails = BusinessComponent.Helper.UpdateConfigValues(environmentValues, deviceDetails);
         }
 
         public static void UpdateModelName(string modelInfo)

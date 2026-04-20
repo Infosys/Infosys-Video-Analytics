@@ -43,12 +43,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         static private Dictionary<string, int> lastFrameNumberSendForPredictDetails = new Dictionary<string, int>();
         static private Dictionary<string, int> totalFrameCountDetails = new Dictionary<string, int>();
         static private Dictionary<string, int> totalFrameSendForPredictDetails = new Dictionary<string, int>();
+        public static Dictionary<string,string> args;
 
         public string _taskCode;
         public SensorDataCollectorProcess() { }
-        public SensorDataCollectorProcess(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
+        public SensorDataCollectorProcess(string processId,Dictionary<string,string> arguments) {
+            args=arguments;
+            _taskCode=TaskRoute.GetTaskCode(processId,args);
         }
 
         public override void Dump(QueueEntity.SensorMetaData message)
@@ -127,7 +128,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         {
             
             AppSettings appSettings = Config.AppSettings;
-            BE.DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.SensorDataCollectorProcess);
+            BE.DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.SensorDataCollectorProcess,args);
+            if(args!=null && args.Count>0) {
+                string type=args[args.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=Helper.UpdateConfigValues(args,deviceDetails);
+                }
+            }
             if (ConfigurationManager.AppSettings["FrameCacheSlidingExpirationInMins"] != null)
             {
                 frameCacheSlidingExpirationInMins = Convert.ToDouble(System.Configuration.ConfigurationManager.AppSettings["FrameCacheSlidingExpirationInMins"]);

@@ -1,8 +1,3 @@
-/*=============================================================================================================== *
- * Copyright 2025 Infosys Ltd.                                                                                    *
- * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
- * http://www.apache.org/licenses/                                                                                *
- * ===============================================================================================================*/
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -16,7 +11,10 @@ namespace Infosys.Lif.LegacyIntegratorService
     internal class ConfigHandler : ConfigurationSection
     {
 
-       
+        /// <summary>
+        /// Method to call the deserialized 
+        /// </summary>
+        /// <returns></returns>
         protected override object GetRuntimeObject()
         {
             return configurations;

@@ -27,7 +27,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
 {
     public class ServiceCaller
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
+        static AppSettings appSettings = Config.AppSettings;
+
+        private static readonly HttpClient _httpClient = new HttpClient()
+        {
+            Timeout = TimeSpan.FromMinutes(appSettings.HttpTimeout),
+        };
 
         static long framecount = 0;
         

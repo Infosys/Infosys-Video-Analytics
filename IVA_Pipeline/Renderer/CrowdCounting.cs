@@ -3,11 +3,10 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-using OpenCvSharp;
+﻿using OpenCvSharp;
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
-using System.Drawing;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
 {
@@ -17,8 +16,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
         {
             Scalar color = new Scalar();
             #region Added background color from Device.json
-            Color clBgColor = Color.FromName(deviceDetails.BackgroundColor);
-            Color clBgColorPredictCartList = Color.FromName(deviceDetails.RendererPredictCartListBackgroundColor);
+            Scalar clBgColor = ColorHelper.ColorNameToScalar(deviceDetails.BackgroundColor);
+            Scalar clBgColorPredictCartList = ColorHelper.ColorNameToScalar(deviceDetails.RendererPredictCartListBackgroundColor);
             #endregion
             int RendererRectanglePointX = deviceDetails.RendererRectanglePointX;
             int RendererRectanglePointY = deviceDetails.RendererRectanglePointY;
@@ -39,19 +38,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
                     LogHandler.LogInfo(String.Format("v0:{0} v1:{1} v2:{2}", color.Val0,
                         color.Val1, color.Val2), LogHandler.Layer.Business, null);
 #endif
-                    OpenCvSharp.Point point3 = new OpenCvSharp.Point(RendererLabelPointX, RendererLabelPointY);
-                    Color color3 = Color.FromName(deviceDetails.LabelFontColor);
-                    color = new Scalar(color3.B, color3.G, color3.R);
+                    Point point3 = new Point(RendererLabelPointX, RendererLabelPointY);
+                    Scalar color3 = ColorHelper.ColorNameToScalar(deviceDetails.LabelFontColor);
+                    color = color3;
                     Cv2.PutText(image, label, point3, HersheyFonts.HersheySimplex, deviceDetails.RendererFontScale, color, deviceDetails.RendererFontThickness);
 
                     for (var z = 0; z < face.Tpc.Count; z++)
                     {
                         var point1 = Convert.ToInt32(face.Tpc[z][0] * image.Width);
                         var point2 = Convert.ToInt32(face.Tpc[z][1] * image.Height);
-                        Cv2.Circle(image, new OpenCvSharp.Point(point1, point2), 4, new Scalar(0, 0, 255), -1);
+                        Cv2.Circle(image, new Point(point1, point2), 4, new Scalar(0, 0, 255), -1);
 
                     }
-                    string? ext = new ImageFormatConverter().ConvertToString(image.ImEncode(".jpg"));
+                    string? ext = ".jpg";
+                    Cv2.ImEncode(".jpg", image, out byte[] imageBytes);
                 }
                 catch (Exception ex)
                 {

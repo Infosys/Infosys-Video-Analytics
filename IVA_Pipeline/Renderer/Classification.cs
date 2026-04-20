@@ -13,73 +13,102 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
 {
     public class Classification : IRender
     {
+        /// <summary>
+        /// Tracks the last rendered label text so consecutive similar labels
+        /// can be deduplicated. Managed explicitly by the renderer — not shared
+        /// with the TTS SemanticSimilarity instance.
+        /// </summary>
+        private static string? _previousRenderedText;
+        private static readonly object _prevLock = new object();
+
+        // ── Rendering constants ──
+        private const int TextPadX = 6;
+        private const int TextPadY = 4;
+        private const double TextBgOpacity = 0.7;
+        private const int MaxLines = 3;
+        private const double MaxWidthRatio = 0.95;
+
         public Mat RenderFrame(List<Predictions> objectList, Mat image, int frameWidth, int frameHeight, string modelName, string info, DeviceDetails deviceDetails, string Ad, FrameDetails frameDetails)
         {
-            Rect rectangle = new Rect();
-            Scalar color = new Scalar();
-            int RendererRectanglePointX = deviceDetails.RendererRectanglePointX;
-            int RendererRectanglePointY = deviceDetails.RendererRectanglePointY;
-            int RendererLabelPointX = deviceDetails.RendererLabelPointX;
-            int RendererLabelPointY = deviceDetails.RendererLabelPointY;
-            int RendererRectangleHeight = deviceDetails.RendererRectangleHeight;
-            #region Added background color from Device.json
-            Color clBgColor = Color.FromName(deviceDetails.BackgroundColor);
-            Color clBgColorPredictCartList = Color.FromName(deviceDetails.RendererPredictCartListBackgroundColor);
-            #endregion
             if (deviceDetails.ClassificationRendering.Equals("yes", StringComparison.InvariantCultureIgnoreCase))
             {
                 try
                 {
                     if (objectList != null)
                     {
-                        rectangle = new Rect(RendererRectanglePointX, RendererRectanglePointY, frameWidth, RendererRectangleHeight);
-                        color = new Scalar(clBgColor.B, clBgColor.G, clBgColor.R);
-                        Cv2.Rectangle(image, rectangle, color, -1);
-                        Color color3 = Color.FromName(deviceDetails.LabelFontColor);
-                        color = new Scalar(color3.B, color3.G, color3.R);
-                        int x = RendererLabelPointX;
-                        int y = RendererLabelPointY;
-                        double cs;
-                        for (int i = 0; i < objectList.Count; i++)
-                        {
+                        // ── Colors computed once ──
+                        Color clFontColor = Color.FromName(deviceDetails.LabelFontColor);
+                        Scalar fontColor = new Scalar(clFontColor.B, clFontColor.G, clFontColor.R);
+                        Color clLabelBg = Color.FromName(deviceDetails.RendererPredictCartListBackgroundColor);
+                        Scalar labelBgColor = new Scalar(clLabelBg.B, clLabelBg.G, clLabelBg.R);
+                        double fontScale = deviceDetails.RendererFontScale;
+                        int fontThickness = deviceDetails.RendererFontThickness;
+                        int maxTextWidth = (int)(image.Width * MaxWidthRatio) - deviceDetails.RendererLabelPointX;
 
-                            string[] words = objectList[i].Lb.Split(' ');
+                        int x = deviceDetails.RendererLabelPointX;
+                        int y = deviceDetails.RendererLabelPointY;
+                        int lineCount = 0;
+                        bool truncated = false;
+
+                        for (int i = 0; i < objectList.Count && !truncated; i++)
+                        {
+                            // ── Similarity-based label selection when TTS is enabled ──
+                            string labelToRender = objectList[i].Lb ?? "";
+
+                            // ── Append confidence to the label text ──
+                            if (!string.IsNullOrEmpty(objectList[i].Cs)
+                                && double.TryParse(objectList[i].Cs, out double cs))
+                            {
+                                labelToRender = string.Concat(labelToRender, " , ", Math.Round(cs, 2).ToString());
+                            }
+
+                            // ── Word-wrap with 3-line max + truncation ──
+                            string[] words = labelToRender.Split(' ');
                             string currentLine = "";
-                            int baseline = 0;
-                            OpenCvSharp.Size textSize = new OpenCvSharp.Size(0, 0);
-                            //textSize = Cv2.GetTextSize(currentLine, HersheyFonts.HersheySimplex, deviceDetails.RendererFontScale, deviceDetails.RendererFontThickness, out baseline);
+
                             foreach (string word in words)
                             {
-                                baseline = 0;
-                                string tempLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
-                                textSize = Cv2.GetTextSize(tempLine, HersheyFonts.HersheySimplex, deviceDetails.RendererFontScale, deviceDetails.RendererFontThickness, out baseline);
-                                if (textSize.Width < image.Width * 0.8)
+                                if (truncated) break;
+
+                                string candidate = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
+                                var sz = Cv2.GetTextSize(candidate, HersheyFonts.HersheySimplex, fontScale, fontThickness, out _);
+
+                                if (sz.Width <= maxTextWidth || string.IsNullOrEmpty(currentLine))
                                 {
-                                    currentLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
+                                    currentLine = candidate;
                                 }
                                 else
                                 {
-                                    y += textSize.Height;
-                                    OpenCvSharp.Point point = new OpenCvSharp.Point(x, y);
-                                    Cv2.PutText(image, currentLine, point, HersheyFonts.HersheySimplex, deviceDetails.RendererFontScale, color, deviceDetails.RendererFontThickness);
-                                    currentLine = "";
+                                    // Emit the completed line
+                                    lineCount++;
+                                    if (lineCount >= MaxLines)
+                                    {
+                                        currentLine += " ...";
+                                        var szT = Cv2.GetTextSize(currentLine, HersheyFonts.HersheySimplex, fontScale, fontThickness, out _);
+                                        y += szT.Height + TextPadY;
+                                        DrawTextWithBackground(image, currentLine, x, y, fontScale, fontThickness, fontColor, labelBgColor);
+                                        truncated = true;
+                                        break;
+                                    }
+                                    var szL = Cv2.GetTextSize(currentLine, HersheyFonts.HersheySimplex, fontScale, fontThickness, out _);
+                                    y += szL.Height + TextPadY;
+                                    DrawTextWithBackground(image, currentLine, x, y, fontScale, fontThickness, fontColor, labelBgColor);
+                                    currentLine = word;
                                 }
                             }
 
-                            if (objectList[i].Cs != "")
+                            // Emit remaining text on the last partial line
+                            if (!truncated && !string.IsNullOrEmpty(currentLine))
                             {
-                                cs = Convert.ToDouble(objectList[i].Cs);
-                                cs = Math.Round(cs, 2);
-                                y += textSize.Height;
-                                currentLine += " , " + cs.ToString();
-                                OpenCvSharp.Point point = new OpenCvSharp.Point(x, y);
-                                Cv2.PutText(image, currentLine, point, HersheyFonts.HersheySimplex, deviceDetails.RendererFontScale, color, deviceDetails.RendererFontThickness);
-                            }
-                            else
-                            {
-                                y += textSize.Height;
-                                OpenCvSharp.Point point = new OpenCvSharp.Point(x, y);
-                                Cv2.PutText(image, currentLine, point, HersheyFonts.HersheySimplex, deviceDetails.RendererFontScale, color, deviceDetails.RendererFontThickness);
+                                lineCount++;
+                                if (lineCount >= MaxLines)
+                                {
+                                    currentLine += " ...";
+                                    truncated = true;
+                                }
+                                var szR = Cv2.GetTextSize(currentLine, HersheyFonts.HersheySimplex, fontScale, fontThickness, out _);
+                                y += szR.Height + TextPadY;
+                                DrawTextWithBackground(image, currentLine, x, y, fontScale, fontThickness, fontColor, labelBgColor);
                             }
                         }
                     }
@@ -90,20 +119,44 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
                         LogHandler.Layer.FrameRenderer, ex.Message, ex.InnerException, ex.StackTrace);
                 }
             }
-            if(deviceDetails.SpeedDetection.Equals("yes", StringComparison.InvariantCultureIgnoreCase))
+            if (deviceDetails.SpeedDetection != null
+                && deviceDetails.SpeedDetection.Equals("yes", StringComparison.InvariantCultureIgnoreCase)
+                && objectList != null && objectList.Count > 0)
             {
                 Scalar lbColor = new Scalar(255, 255, 255);
-                
-                double fontScale = 1;
-                int thickness = 3;
-
-                
-                OpenCvSharp.Point position = new OpenCvSharp.Point(10, 30);
-
-              
-                Cv2.PutText(image, objectList[0].Lb + "mph", position, HersheyFonts.HersheySimplex, fontScale, lbColor, thickness);
+                DrawTextWithBackground(image, objectList[0].Lb + "mph",
+                    10, 30, 1, 3, lbColor, new Scalar(50, 50, 50));
             }
             return image;
+        }
+
+        /// <summary>
+        /// Draws text with a semi-transparent background rectangle for readability.
+        /// Uses Cv2.AddWeighted on the ROI subMat for an efficient alpha blend.
+        /// </summary>
+        private static void DrawTextWithBackground(
+            Mat image, string text, int x, int y,
+            double fontScale, int thickness,
+            Scalar textColor, Scalar bgColor)
+        {
+            var textSize = Cv2.GetTextSize(text, HersheyFonts.HersheySimplex,
+                                           fontScale, thickness, out int baseline);
+
+            int bgX1 = Math.Max(0, x - TextPadX);
+            int bgY1 = Math.Max(0, y - textSize.Height - TextPadY);
+            int bgX2 = Math.Min(image.Width - 1, x + textSize.Width + TextPadX);
+            int bgY2 = Math.Min(image.Height - 1, y + baseline + TextPadY);
+
+            if (bgX2 > bgX1 && bgY2 > bgY1)
+            {
+                var roi = new Rect(bgX1, bgY1, bgX2 - bgX1, bgY2 - bgY1);
+                using var subMat = new Mat(image, roi);
+                using var overlay = new Mat(subMat.Size(), subMat.Type(), bgColor);
+                Cv2.AddWeighted(subMat, 1.0 - TextBgOpacity, overlay, TextBgOpacity, 0, subMat);
+            }
+
+            Cv2.PutText(image, text, new OpenCvSharp.Point(x, y),
+                        HersheyFonts.HersheySimplex, fontScale, textColor, thickness);
         }
     }
 }

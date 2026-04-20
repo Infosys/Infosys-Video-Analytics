@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DE = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity;
-//using DE1=Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Framedetail;
 using QE = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess;
 using Newtonsoft.Json;

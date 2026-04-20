@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Runtime.InteropServices;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
+using OpenCvSharp;
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent;
-using System.Drawing;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Collections;
@@ -26,13 +26,13 @@ using Newtonsoft.Json;
 using System.Linq;
 using System.Security.Cryptography;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute;
-using OpenCvSharp;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 {
     public static class FrameGrabber
     {
         public static string _taskCode;
+        public static Dictionary<string,string> arguments;
         static double totalTime = 0;
         static double preProcessTime = 0;
         static double grabTotalTime = 0;
@@ -76,6 +76,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         static bool isMemoryDoc = false;
         static int frameGrabRateThrottlingSleepFrameCount = 0;
         static long previousFid = 0;
+        public static DeviceDetails deviceDetails;
         
         static string Stime;
         static string Src = "Grabber";
@@ -94,10 +95,58 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         static int nextframe = 0;
         static bool imageCompleted;
         static bool imageGrabCompleted;
+        /// <summary>
+        /// Detects if running on a Jetson / linux-arm64 device where  we force FFmpeg.
+        /// </summary>
+        static readonly bool _isLinuxArm64 =
+            RuntimeInformation.IsOSPlatform(OSPlatform.Linux) &&
+            RuntimeInformation.ProcessArchitecture == Architecture.Arm64;
+
+        /// <summary>
+        /// Creates a VideoCapture for a video file.
+        /// On Jetson (linux-arm64), explicitly uses the FFmpeg backend
+        /// </summary>
+        static VideoCapture CreateVideoCaptureForFile(string filePath)
+        {
+            if (_isLinuxArm64)
+            {
+                LogHandler.LogInfo($"Jetson/ARM64: Opening file with FFmpeg backend: {filePath}", LogHandler.Layer.FrameGrabber, null);
+                return new VideoCapture(filePath, VideoCaptureAPIs.FFMPEG);
+            }
+            return new VideoCapture(filePath);
+        }
+
+        /// <summary>
+        /// Creates a VideoCapture for a live stream (RTSP URL or camera index).
+        /// On Jetson, uses FFmpeg for RTSP/HTTP streams and V4L2 for local cameras
+        /// to avoid GStreamer backend issues.
+        /// </summary>
+        static VideoCapture CreateVideoCaptureForLive(string cameraURL)
+        {
+            if (cameraURL.All(char.IsDigit))
+            {
+                int cameraId = Int32.Parse(cameraURL);
+                return new VideoCapture(cameraId);
+            }
+
+            if (_isLinuxArm64)
+            {
+                LogHandler.LogInfo($"Opening live stream with FFmpeg backend: {cameraURL}", LogHandler.Layer.FrameGrabber, null);
+                return new VideoCapture(cameraURL, VideoCaptureAPIs.FFMPEG);
+            }
+            return new VideoCapture(cameraURL);
+        }
+
         public static void ReadFromConfig()
         {
             AppSettings appSettings = Config.AppSettings;
-            DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.FrameGrabberCode);
+            deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.FrameGrabberCode,arguments);
+            if(arguments!=null && arguments.Count>0) {
+                string type=arguments[arguments.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=Helper.UpdateConfigValues(arguments,deviceDetails);
+                }
+            }
             
             if(deviceDetails.EmptyFrameProcessInterval>0) {
                 emptyFrameWaitTime=deviceDetails.EmptyFrameProcessInterval;
@@ -146,8 +195,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 throw new FaceMaskDetectionInvalidConfigException("Both DisplayAllFrames and LotsEnable can't be enabled");
             }
             
-            if (taskRouter.AllowTaskRouting(FrameGrabberHelper.tenantId.ToString(), FrameGrabberHelper.deviceId, moduleList))
-            {
+            if(taskRouter.AllowTaskRouting(FrameGrabberHelper.tenantId.ToString(),FrameGrabberHelper.deviceId,moduleList,deviceDetails)) {
 #if DEBUG
                 LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "Main", "FrameGrabber"),
                 LogHandler.Layer.FrameGrabber, null);
@@ -183,10 +231,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
                                         break;
                                     }
-                                    reader = new VideoCapture(file);
-
-                                    //FrameGrabberHelper.currentVideoTotalFrameCount = (int)Math.Floor(reader.GetCaptureProperty(Emgu.CV.CvEnum.CapProp.FrameCount));
-                                    //FrameGrabberHelper.FPS = reader.GetCaptureProperty(Emgu.CV.CvEnum.CapProp.Fps);
+                                    reader = CreateVideoCaptureForFile(file);
 
                                     FrameGrabberHelper.currentVideoTotalFrameCount  = Convert.ToInt32(reader.Get(VideoCaptureProperties.FrameCount));
                                     FrameGrabberHelper.FPS = Convert.ToInt32(reader.Get(VideoCaptureProperties.Fps));
@@ -261,15 +306,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                                 Thread.Sleep(FrameGrabberHelper.IntervalWaitTime * 1000);
                                 break;
                             case "LIVE":
-                                if (FrameGrabberHelper.cameraURL.All(char.IsDigit))
-                                {
-                                    int camera_id = Int32.Parse(FrameGrabberHelper.cameraURL);
-                                    reader = new VideoCapture(camera_id);
-                                }
-                                else
-                                {
-                                    reader = new VideoCapture(FrameGrabberHelper.cameraURL);
-                                }
+                                reader = CreateVideoCaptureForLive(FrameGrabberHelper.cameraURL);
                                 
                                 currentGrabberFrame = 0;
                                 FrameGrabberHelper.TotalFramesGrabbed = 0;
@@ -303,7 +340,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                                         {
                                             break;
                                         }
-                                        reader = new VideoCapture(file);
+                                        reader = CreateVideoCaptureForFile(file);
 
                                         //FrameGrabberHelper.currentVideoTotalFrameCount = (int)Math.Floor(reader.GetCaptureProperty(Emgu.CV.CvEnum.CapProp.FrameCount));
                                         //FrameGrabberHelper.FPS = reader.GetCaptureProperty(Emgu.CV.CvEnum.CapProp.Fps);
@@ -716,7 +753,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                                         if (FrameGrabberHelper.displayAllFrames && TaskRouteDS.IsMemoryDoc())
                                         {
                                             
-                                            var taskList = FrameGrabberHelper.taskRouter.GetTaskRouteDetails(FrameGrabberHelper.tenantId.ToString(), FrameGrabberHelper.deviceId, _taskCode)[_taskCode];
+                                            var taskList=FrameGrabberHelper.taskRouter.GetTaskRouteDetails(FrameGrabberHelper.tenantId.ToString(),FrameGrabberHelper.deviceId,_taskCode,deviceDetails)[_taskCode];
                                             foreach (var task in taskList)
                                             {
                                                 var formattedNow = DateTime.UtcNow.ToString("yyyy-MM-dd,HH:mm:ss.fff tt");
@@ -937,7 +974,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "GrabFrame", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
 #endif
             status = true;
-            Mat mat = new Mat();
+            Mat mat = null;
 
 
             FrameMetaData frameMetaData = new FrameMetaData();
@@ -948,9 +985,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     LogHandler.Layer.FrameGrabber, FrameGrabberHelper.TotalFramesGrabbed);
 #endif
 
-                //mat = reader.QueryFrame();
+                mat = new Mat();
+                if (!reader.Read(mat) || mat.Empty()) { mat = null; }
 
-                if (reader.Read(mat))
+                if (mat != null && !mat.Empty())
                 {
                     currentGrabberFrame++;
                     FrameGrabberHelper.TotalFramesGrabbed++;
@@ -1129,6 +1167,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             try
             {
                 Mat mat = new Mat();
+                if (!liveReader.Read(mat) || mat.Empty()) { mat = null; }
                 
                 double FPS = Convert.ToInt32(liveReader.Get(VideoCaptureProperties.Fps));
 
@@ -1138,9 +1177,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     (long)FPS);
 #endif
 
-                if (reader.Read(mat))
+                if (mat != null && !mat.Empty())
                 {
-                    byte[] image = mat.ImEncode(".jpg");
+                    Cv2.ImEncode(".jpg", mat, out byte[] image);
                     nullQueryFrameCount = 0;
 
 #if DEBUG
@@ -1321,7 +1360,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     try
                     {
                         DateTime frameGrabTime;
-                        Mat frame = new Mat();
+                        Mat frame = null;
 
                         FrameMetaData frameMetaData = null;
                         long Fid = 0;
@@ -1363,10 +1402,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 #if DEBUG
                             LogHandler.LogDebug("StartProcess Method of Frame Grabber and inside isFirstFrame true and Current Frame {0}", LogHandler.Layer.FrameGrabber, FrameGrabberHelper.TotalFramesGrabbed);
 #endif
-                            
-#if DEBUG
-                            
-#endif
                             switch (isFirstFrame)
                             {
                                 case true:
@@ -1385,17 +1420,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                                     videoCompleted = true;
                                     
                                     break;
-                               
-#if DEBUG
-                                
-#endif
-                                
-
-#if DEBUG
-                                
-#endif
-
-
                                 
                                 default:
                                     break;
@@ -1541,8 +1565,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
         private static bool ConsoleCtrlCheck(CtrlTypes ctrlType)
         {
-            ////Console.WriteLine("Inside ConsoleCtrlCheck :" + ctrlType);
-
             if (!isUpdated)
             {
                 if (!FrameGrabberHelper.UpdateFeedDetails(FrameGrabberHelper.MasterId, DateTime.UtcNow.Ticks))
@@ -1560,13 +1582,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 case CtrlTypes.CTRL_C_EVENT:
                     isclosing = true;
                     Dispose();
-                    //Console.WriteLine("Inside CTRL_C_EVENT");
                     Environment.Exit(0);
                     break;
                 case CtrlTypes.CTRL_CLOSE_EVENT:
                     isclosing = true;
                     Dispose();
-                    //Console.WriteLine("Inside CTRL_CLOSE_EVENT");
                     Environment.Exit(0);
                     break;
             }
@@ -1579,7 +1599,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
             totalTime += DateTime.UtcNow.Subtract(ppST).TotalMilliseconds;
 #if DEBUG
-            ////Console.WriteLine($"Total Time :{totalTime}\nPre Process: {preProcessTime}\nTotal Frame Grab Time: {grabTotalTime}\n Frame Grab method : {grabinMethodTime}\nFrame Grab Cycle Time : {grabCycleTotalTime}\nBlob Insertion Time for Image :{FrameGrabberHelper.blobImageTime}\nBlob processing & Insertion Time for Lot :{FrameGrabberHelper.blobZipTime}\nQ Insertion Time:{FrameGrabberHelper.pushQTime}\nCompress Time:{FrameGrabberHelper.compressTime}\nTotal Frames in video :{FrameGrabberHelper.currentVideoTotalFrameCount}\nTotal Frames Grabbed: {FrameGrabberHelper.TotalFramesGrabbed}\nTotal Frames Processed: {FrameGrabberHelper.FrameCount}\nTotal Lots Processed: {FrameGrabberHelper.totalLotCount}\nTotal Images Processed: {FrameGrabberHelper.totalImgCount}\nTotal time to process Image Task: {FrameGrabberHelper.imageTask}\nTotal time to process Lot tasks: {FrameGrabberHelper.lotTask}");
             LogHandler.LogInfo($"Master ID = {FrameGrabberHelper.MasterId}\nTotal Time :{totalTime}\nPre Process: {preProcessTime}\nTotal Frame Grab Time: {grabTotalTime}\n Frame Grab method : {grabinMethodTime}\nFrame Grab Cycle Time : {grabCycleTotalTime}\nBlob Insertion Time for Image :{FrameGrabberHelper.blobImageTime}\nBlob processing & Insertion Time for Lot :{FrameGrabberHelper.blobZipTime}\nQ Insertion Time:{FrameGrabberHelper.pushQTime}\nCompress Time:{FrameGrabberHelper.compressTime}\nTotal Frames in video :{FrameGrabberHelper.currentVideoTotalFrameCount}\nTotal Frames Grabbed: {FrameGrabberHelper.TotalFramesGrabbed}\nTotal Frames Processed: {FrameGrabberHelper.FrameCount}\nTotal Lots Processed: {FrameGrabberHelper.totalLotCount}\nTotal Images Processed: {FrameGrabberHelper.totalImgCount}\nTotal time to process Image Task: {FrameGrabberHelper.imageTask}\nTotal time to process Lot tasks: {FrameGrabberHelper.lotTask}", LogHandler.Layer.FrameGrabber, null);
 #endif
             isclosing = true;

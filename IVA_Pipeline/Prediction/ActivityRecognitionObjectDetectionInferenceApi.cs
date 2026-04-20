@@ -25,7 +25,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
     class ActivityRecognitionObjectDetectionInferenceApi : ExecuteBase
     {
 
-       
+
 
 
 
@@ -34,11 +34,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             return true;
         }
 
-        
+
 
         public override string MakePrediction(Stream st, ModelParameters modelParameters)
         {
-            
+
             ObjectCache cache = MemoryCache.Default;
 
             string sstime = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
@@ -54,13 +54,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 LogHandler.LogUsage(String.Format("TrackingInferenceAPI MakePrediction is getting executed at : {0}", DateTime.UtcNow.ToLongTimeString()), null);
 #endif
                 string metadata = "";
-                
-                string base64_image = "";
-                
+
+                string base64_image = "";
+
                 string Ad = "";
-                
+
                 List<Per> pcart = new List<Per>();
-          
+
                 Per pc2 = new Per();
                 using (MemoryStream memoryStream = new MemoryStream())
                 {
@@ -83,17 +83,17 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     {
                         foreach (var item in result)
                         {
-                            
-                            Ad = item.Value.ToString();                            
+
+                            Ad = item.Value.ToString();
                         }
 
                         foreach (var item1 in respcart)
                         {
                             pc2 = (Per)item1.Value;
 
-                           
+
                             pcart.Add(pc2);
-                            
+
                         }
                     }
 
@@ -114,7 +114,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     Model = modelParameters.ModelName,
                     Per = pcart,
                     Ad = Ad,
-                    Base_64 = base64_image,// for yolov7
+                    //Base_64 = base64_image,// for yolov7  -- commented for ROI updates. Base_64 is updated to list of string
+                    Base_64 = new List<string>() { base64_image }, /* For yolov7 */
                     C_threshold = modelParameters.ConfidenceThreshold, // for yolov7
                     Ffp = modelParameters.Ffp,
                     Ltsize = modelParameters.Ltsize,
@@ -138,25 +139,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
                 ObjectDetectorAPIResMsg response = null;
 
-                
 
-                var apiResponse = ServiceCaller.ApiCaller(reqMsg, modelParameters.BaseUrl + "/" + modelParameters.ModelName, "POST").Result; //close for testing purpose of new response
 
-                #region Testing for New IVA request/response structure
-                /*
-                
-                var apiResponse = "";
-                    using (StreamReader r = new StreamReader(@"D:\\I\\TestProject\\TestControl\\iphone\\ObjectDetectionApi\\api_response.json"))
-                   {
-                        apiResponse = r.ReadToEnd();
-                   }
-                
-                */
-                #endregion
+                var apiResponse = ServiceCaller.ApiCaller(reqMsg, modelParameters.BaseUrl + "/" + modelParameters.ModelName, "POST").Result; 
 
                 if (!string.IsNullOrEmpty(apiResponse))
                 {
-                    
+
                     response = JsonConvert.DeserializeObject<ObjectDetectorAPIResMsg>(apiResponse);
                     string etime = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
                     for (int i = 0; i < response.Mtp.Count; i++)
@@ -171,9 +160,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     {
                         response.Fs[i].TaskType = modelParameters.TaskType;
                     }
-                    
+
                 }
-                
+
 
                 Per pobj = new Per();
                 pobj.Fid = response.Fid;
@@ -206,19 +195,19 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     pobj.Fs[i].Lb = response.Fs[i].Lb;
 
                 }
-                
+
 
                 var cacheItemPolicy = new CacheItemPolicy
                 {
                     AbsoluteExpiration = DateTimeOffset.Now.AddMinutes(1)
                 };
-                cache.Remove(key:"Ad");
+                cache.Remove(key: "Ad");
                 cache.Remove(key: "Per");
                 cache.Add(new CacheItem("Ad", response.Ad), cacheItemPolicy);
-             
+
                 cache.Add(new CacheItem("Per", pobj), cacheItemPolicy);
 
-                
+
                 metadata = JsonConvert.SerializeObject(response);
 #if DEBUG
                 LogHandler.LogUsage(String.Format("TrackingInferenceAPI MakePrediction finished execution at : {0}", DateTime.UtcNow.ToLongTimeString()), null);

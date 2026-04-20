@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <BaseOutputPath>..\bin\</BaseOutputPath>
+	<AssemblyName>Infosys.Lif.EnvironmentAdapter</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LegacyCommon\LegacyCommon.csproj" />
+    <ProjectReference Include="..\LegacyIntegratorService\LegacyIntegratorService.csproj" />
+  </ItemGroup>
+
+</Project>

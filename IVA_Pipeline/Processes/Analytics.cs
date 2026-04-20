@@ -16,7 +16,7 @@ using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent;
 using AI = Infosys.Solutions.Ainauto.VideoAnalytics.AIModels;
 using System.Configuration;
 using Newtonsoft.Json;
-using System.Drawing;
+using OpenCvSharp;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess;
 using System.Threading;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity;
@@ -42,10 +42,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         static string  predictionType = string.Empty;
 
         public string _taskCode;
+        public static Dictionary<string,string> args;
+        public static DeviceDetails deviceDetails;
         public Analytics() { }
-        public Analytics(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
+        public Analytics(string processId,Dictionary<string,string> arguments) {
+            args=arguments;
+            _taskCode=TaskRoute.GetTaskCode(processId,args);
         }
 
         public override void Dump(QueueEntity.PersonCountQueueMsg message)
@@ -123,7 +125,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         private void ReadFromConfig()
         {
             AppSettings appSettings=Config.AppSettings;
-            DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.AnalyticsCode);
+            deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.AnalyticsCode,args);
+            if(args!=null && args.Count>0) {
+                string type=args[args.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=Helper.UpdateConfigValues(args,deviceDetails);
+                }
+            }
             if(deviceDetails.AnalyticsPredictionType!=null) {
                 AnalyticsHelper.predictionType=deviceDetails.AnalyticsPredictionType;
                 predictionType=deviceDetails.AnalyticsPredictionType;
@@ -305,14 +313,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
                                 j++;
                             }
-                            TaskRouteMetadata taskRouteMetadata = taskRouter.GetTaskRouteConfig(frameRendererMetadata.Tid, frameRendererMetadata.Did);
+                            TaskRouteMetadata taskRouteMetadata=taskRouter.GetTaskRouteConfig(frameRendererMetadata.Tid,frameRendererMetadata.Did,deviceDetails);
                             List<string> taskList = message.TE[TaskRouteConstants.AnalyticsCode];
                             if (taskList != null)
                             {
                                 foreach (var task in taskList)
                                 {
                                     Dictionary<string, List<string>> te = new Dictionary<string, List<string>>();
-                                    te = taskRouter.GetTaskRouteDetails(frameRendererMetadata.Tid, frameRendererMetadata.Did, task);
+                                    te=taskRouter.GetTaskRouteDetails(frameRendererMetadata.Tid,frameRendererMetadata.Did,task,deviceDetails);
                                     frameRendererMetadata.TE = te;
                                     taskRouter.SendMessageToQueueWithTask(taskRouteMetadata, TaskRouteConstants.AnalyticsCode, frameRendererMetadata, task);
                                 }
@@ -352,9 +360,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                                                 if (reg?.Region != "")
                                                 {
                                                     var r = JsonConvert.DeserializeObject<QueueEntity.BoundingBox>(reg.Region);
-                                                    float overlapPercent = AI.Helper.IntersectionOverUnion(new RectangleF(float.Parse(r.X), float.Parse(r.Y), float.Parse(r.W), float.Parse(r.H)),
-                                                                                new RectangleF(float.Parse(face.Dm.X), float.Parse(face.Dm.Y), float.Parse(face.Dm.W), float.Parse(face.Dm.H)));
-                                                DeviceDetails configDetails = ConfigHelper.SetDeviceDetails(frameRendererMetadata.Tid, frameRendererMetadata.Did, CacheConstants.AnalyticsCode);
+                                                    float overlapPercent = AI.Helper.IntersectionOverUnion(new Rect2f(float.Parse(r.X), float.Parse(r.Y), float.Parse(r.W), float.Parse(r.H)),
+                                                                                new Rect2f(float.Parse(face.Dm.X), float.Parse(face.Dm.Y), float.Parse(face.Dm.W), float.Parse(face.Dm.H)));
+                                                DeviceDetails configDetails=ConfigHelper.SetDeviceDetails(frameRendererMetadata.Tid,frameRendererMetadata.Did,CacheConstants.AnalyticsCode,args);
+                                                if(args!=null && args.Count>0) {
+                                                    string type=args[args.Keys.First()];
+                                                    if(type.ToLower()=="values") {
+                                                        configDetails=Helper.UpdateConfigValues(args,configDetails);
+                                                    }
+                                                }
 
                                                 var upOverlapThreshold = configDetails.OverlapThreshold;
                                                 

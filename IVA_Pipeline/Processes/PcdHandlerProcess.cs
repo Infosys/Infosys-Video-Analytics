@@ -13,14 +13,15 @@ using System.Configuration;
 using Newtonsoft.Json;
 using PH=Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.PcdHandler;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute;
+using System.Collections.Generic;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes {
     public class PcdHandlerProcess:ProcessHandlerBase<TableDetails> {
         public string _taskCode;
         public PcdHandlerProcess() { }
-        public PcdHandlerProcess(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
+        public PcdHandlerProcess(string processId,Dictionary<string,string> arguments) {
+            _taskCode=TaskRoute.GetTaskCode(processId,arguments);
+            PH.arguments=arguments;
         }
         public override void Dump(TableDetails message) {
         }

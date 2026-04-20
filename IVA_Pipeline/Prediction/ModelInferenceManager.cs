@@ -3,11 +3,11 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-﻿/*
- *© 2019 Infosys Limited, Bangalore, India. All Rights Reserved. Infosys believes the information in this document is accurate as of its publication date; such information is subject to change without notice. Infosys acknowledges the proprietary rights of other companies to the trademarks, product names and such other intellectual property rights mentioned in this document. Except as expressly permitted, neither this document nor any part of it may be reproduced, stored in a retrieval system, or transmitted in any form or by any means, electronic, mechanical, printing, photocopying, recording or otherwise, without the prior permission of Infosys Limited and/or any named intellectual property rights holders under this document.   
- * 
- * © 2019 INFOSYS LIMITED. CONFIDENTIAL AND PROPRIETARY 
- */
+/*
+*© 2019 Infosys Limited, Bangalore, India. All Rights Reserved. Infosys believes the information in this document is accurate as of its publication date; such information is subject to change without notice. Infosys acknowledges the proprietary rights of other companies to the trademarks, product names and such other intellectual property rights mentioned in this document. Except as expressly permitted, neither this document nor any part of it may be reproduced, stored in a retrieval system, or transmitted in any form or by any means, electronic, mechanical, printing, photocopying, recording or otherwise, without the prior permission of Infosys Limited and/or any named intellectual property rights holders under this document.   
+* 
+* © 2019 INFOSYS LIMITED. CONFIDENTIAL AND PROPRIETARY 
+*/
 
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using System;
@@ -26,57 +26,65 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
         private static AppSettings appSettings = Config.AppSettings;
 
-        
-        public static string ModelInference(ModelParameters modeltoInfer,Stream st) {
-            #if DEBUG
-            using(LogHandler.TraceOperations("ModelInferenceManager:ModelInference",LogHandler.Layer.MaskPrediction,Guid.NewGuid(),null)) {
-                #endif
-                
-                string metadata=string.Empty;
-                bool status=true;
-                ExecuteBase client=null;
-                
-                modeltoInfer.ModelType=GetModelType(modeltoInfer.ModelName);
-                modeltoInfer.PredictionKey=GetPredictionKey(modeltoInfer.ModelName);
-                modeltoInfer.AuthenticationUrl=GetAuthenticationUrl(modeltoInfer.ModelName);
+
+        public static string ModelInference(ModelParameters modeltoInfer, Stream st)
+        {
+#if DEBUG
+            using (LogHandler.TraceOperations("ModelInferenceManager:ModelInference", LogHandler.Layer.MaskPrediction, Guid.NewGuid(), null))
+            {
+#endif
+
+                string metadata = string.Empty;
+                bool status = true;
+                ExecuteBase client = null;
+
+                modeltoInfer.ModelType = GetModelType(modeltoInfer.ModelName);
+                modeltoInfer.PredictionKey = GetPredictionKey(modeltoInfer.ModelName);
+                modeltoInfer.AuthenticationUrl = GetAuthenticationUrl(modeltoInfer.ModelName);
                 modeltoInfer.TaskType = GetTaskType(modeltoInfer.ModelName);
-                modeltoInfer.Host=GetHost(modeltoInfer.ModelName);
-                modeltoInfer.BaseUrl=GetModelUrl(modeltoInfer.ModelName);
-                modeltoInfer.ModelPath=GetModelPath(modeltoInfer.ModelName);
-                modeltoInfer.ModelLabelPath=GetModelLabelPath(modeltoInfer.ModelName);
-                modeltoInfer.CanonicalPath=GetCanonicalPath(modeltoInfer.ModelName);
-                modeltoInfer.ImagePixelExtractionOrder=GetImagePixelExtractionOrder(modeltoInfer.ModelName);
-                modeltoInfer.GPUDeviceId=GetGPUDevceId(modeltoInfer.ModelName);
-                modeltoInfer.CPUFallbackValue=GetCPUFallbackValue(modeltoInfer.ModelName);
-                modeltoInfer.ExplainerURL= GetModelUrl(modeltoInfer.ExplainerURL);
-                
-                var awsDetails=GetAWSDetails(modeltoInfer.ModelName);
-                if(awsDetails.Count>0) {
-                    modeltoInfer.AWSEndpointName=awsDetails[0];
-                    modeltoInfer.AWSAccessKey=awsDetails[1];
-                    modeltoInfer.AWSSecretKey=awsDetails[2];
-                    modeltoInfer.AWSSessionToken=awsDetails[3];
-                    modeltoInfer.AWSRegionName=awsDetails[4];
+                modeltoInfer.Host = GetHost(modeltoInfer.ModelName);
+                modeltoInfer.BaseUrl = GetModelUrl(modeltoInfer.ModelName);
+                modeltoInfer.ModelPath = GetModelPath(modeltoInfer.ModelName);
+                modeltoInfer.ModelLabelPath = GetModelLabelPath(modeltoInfer.ModelName);
+                modeltoInfer.CanonicalPath = GetCanonicalPath(modeltoInfer.ModelName);
+                modeltoInfer.ImagePixelExtractionOrder = GetImagePixelExtractionOrder(modeltoInfer.ModelName);
+                modeltoInfer.GPUDeviceId = GetGPUDevceId(modeltoInfer.ModelName);
+                modeltoInfer.CPUFallbackValue = GetCPUFallbackValue(modeltoInfer.ModelName);
+                modeltoInfer.ExplainerURL = GetModelUrl(modeltoInfer.ExplainerURL);
+
+                var awsDetails = GetAWSDetails(modeltoInfer.ModelName);
+                if (awsDetails.Count > 0)
+                {
+                    modeltoInfer.AWSEndpointName = awsDetails[0];
+                    modeltoInfer.AWSAccessKey = awsDetails[1];
+                    modeltoInfer.AWSSecretKey = awsDetails[2];
+                    modeltoInfer.AWSSessionToken = awsDetails[3];
+                    modeltoInfer.AWSRegionName = awsDetails[4];
                 }
-                if(!String.IsNullOrEmpty(modeltoInfer.ModelType)) {
-                    modeltoInfer.ModelType="Infosys.Solutions.Ainauto.VideoAnalytics.AIModels"+"."+modeltoInfer.ModelType;
-                    client=(ExecuteBase)Activator.CreateInstance(Type.GetType(modeltoInfer.ModelType));
+                if (!String.IsNullOrEmpty(modeltoInfer.ModelType))
+                {
+                    modeltoInfer.ModelType = "Infosys.Solutions.Ainauto.VideoAnalytics.AIModels" + "." + modeltoInfer.ModelType;
+                    client = (ExecuteBase)Activator.CreateInstance(Type.GetType(modeltoInfer.ModelType));
                 }
                 else
                     throw new NullReferenceException();
-                if(client != null) {
-                    
-                    if(!(string.IsNullOrEmpty(modeltoInfer.ModelLabelPath) && string.IsNullOrEmpty(modeltoInfer.ModelPath))) {
-                          status=client.InitializeModel(modeltoInfer);
-                         
+                if (client != null)
+                {
+
+                    if (!(string.IsNullOrEmpty(modeltoInfer.ModelLabelPath) && string.IsNullOrEmpty(modeltoInfer.ModelPath)))
+                    {
+                        status = client.InitializeModel(modeltoInfer);
+
                     }
-                    else {
-                        
-                        status=client.InitializeModel();
+                    else
+                    {
+
+                        status = client.InitializeModel();
                     }
-                   
-                    if(status) {
-                        metadata=client.MakePrediction(st,modeltoInfer);
+
+                    if (status)
+                    {
+                        metadata = client.MakePrediction(st, modeltoInfer);
                         #region Commenting old cod for IVA new request/response structure
                         /*
                         if (!string.IsNullOrEmpty(modeltoInfer.PredictionKey))
@@ -120,13 +128,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 else
                     throw new NullReferenceException();
                 return metadata;
-                #if DEBUG
+#if DEBUG
             }
-            #endif
+#endif
         }
 
 
-        
+
         private static string GetModelType(string modelType)
         {
 #if DEBUG
@@ -430,7 +438,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 XElement root = XElement.Load(AppDomain.CurrentDomain.BaseDirectory + GetModelXmlPath());
 
                 var objModelUrl = from modeltype in root.Elements("Type")
-                where modeltype.Attribute("key").Value.ToLower().Equals(modelName.ToLower())
+                                  where modeltype.Attribute("key").Value.ToLower().Equals(modelName.ToLower())
                                   select modeltype.Attribute("taskType")?.Value;
 
                 if (objModelUrl.FirstOrDefault() != null)
@@ -442,7 +450,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 #endif
         }
 
-        
+
         public static string ModelInference(ModelParameters modeltoInfer, string st)
         {
 #if DEBUG
@@ -457,13 +465,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
                 ExecuteBase client = null;
 
-                
+
                 modelName = modeltoInfer.ModelName;
                 modelType = GetModelType(modelName);
 
                 baseUrl = GetModelUrl(modelName);
-                
-                
+
+
                 if (!String.IsNullOrEmpty(modelType))
                 {
                     modelType = "Infosys.Solutions.Ainauto.VideoAnalytics.AIModels" + "." + modelType;
@@ -474,7 +482,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
                 if (client != null)
                 {
-                   
+
                     status = client.InitializeModel();
 
                     if (status)
@@ -506,7 +514,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 string authenticationUrl = "";
                 ExecuteBase client = null;
 
-                
+
 
                 modelName = modeltoInfer.ModelName = modeltoInfer.ModelName;
                 modelType = GetModelType(modelName);
@@ -518,7 +526,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 string confidenceThreshold = modeltoInfer.ConfidenceThreshold.ToString();
                 float overlapThreshold = modeltoInfer.OverlapThreshold;
 
-                
+
                 /// 
                 if (!String.IsNullOrEmpty(modelType))
                 {
@@ -530,9 +538,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
                 if (client != null)
                 {
-                    
+
                     status = client.InitializeModel();
-                    
+
                     if (status)
                     {
                         #region Commented Old Code for IVA New Request/Response
@@ -567,7 +575,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         }
 
 
-        
+
         private static string GetModelXmlPath()
         {
             string xmlFilePath = "";
@@ -589,7 +597,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             {
 #endif
                 List<string> attribute_values = new List<string>();
-                
+
 
                 XElement root = XElement.Load(AppDomain.CurrentDomain.BaseDirectory + GetModelXmlPath());
 

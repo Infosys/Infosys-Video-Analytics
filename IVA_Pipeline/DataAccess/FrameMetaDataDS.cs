@@ -225,6 +225,38 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess
             }
             return entity;
         }
+        public FrameMetadatum UpdateExplainerMetadata(FrameMetadatum entity)
+        {
+            using (dbCon = new framedetailsNewContext())
+            {
+                string username = UserDetails.userName;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    username = System.Security.Principal.WindowsIdentity.GetCurrent().Name;
+                }
+                var e = (from s in dbCon.FrameMetadata
+                         where s.ResourceId == entity.ResourceId
+                         && s.FrameId == entity.FrameId
+                         && s.TenantId == entity.TenantId
+                         select s).FirstOrDefault();
+                if (e != null)
+                {
+                    e.MetaData = entity.MetaData;
+                    e.ModifiedBy = username;
+                    e.ModifiedDate = DateTime.UtcNow;
+                    dbCon.SaveChanges();
+                    return e;
+                }
+                else
+                {
+                    entity.CreatedBy = username;
+                    entity.CreatedDate = DateTime.UtcNow;
+                    dbCon.FrameMetadata.Add(entity);
+                    dbCon.SaveChanges();
+                }
+                return null;
+            }
+        }
         public FrameMetadatum UpdateFrameMetadata(FrameMetadatum entity)
         {
             using (dbCon = new framedetailsNewContext())

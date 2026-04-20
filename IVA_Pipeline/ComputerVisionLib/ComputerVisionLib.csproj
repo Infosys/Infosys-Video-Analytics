@@ -1,4 +1,4 @@
-﻿
+
 <!--<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">-->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -6,6 +6,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RuntimeIdentifiers>linux-arm64;linux-x64;win-x64</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Views\Highlighter.cs" />
@@ -16,12 +17,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NETCore.App" Version="2.2.8" />
     <PackageReference Include="OpenCvSharp4" Version="4.11.0.20250507" />
-    <PackageReference Include="OpenCvSharp4.Extensions" Version="4.11.0.20250507" />
+    <!-- Windows runtime -->
+	  <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.11.0.20250507" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
+	  <!-- x64 Linux runtime (for development on x64; ARM64 uses manually built libOpenCvSharpExtern.so) -->
+	  <PackageReference Include="OpenCvSharp4.runtime.ubuntu.22.04-x64" Version="4.11.0.20250507" Condition="$([MSBuild]::IsOSPlatform('Linux')) AND '$(RuntimeIdentifier)' != 'linux-arm64'" />
+    <PackageReference Include="Microsoft.NETCore.App" Version="2.2.8" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
     <PackageReference Include="System.Runtime.WindowsRuntime" Version="4.7.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>

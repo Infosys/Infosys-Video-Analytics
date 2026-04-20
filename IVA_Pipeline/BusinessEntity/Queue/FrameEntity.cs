@@ -24,25 +24,25 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue
 
     public class FrameProcessorMetaData
     {
-        public string Tid { get; set; } 
-        public string Did { get; set; } 
-        public string Fid { get; set; } 
-        public string Sbu { get; set; } 
-        public string Mod { get; set; } 
-        public string Que { get; set; } 
-        public string FeedId { get; set; } 
-        public Dictionary<string,  List<string>> TE { get; set; } 
-        public List<string> Fids { get; set; } 
-        public string SequenceNumber { get; set; } 
-        public string FrameNumber { get; set; } 
+        public string Tid { get; set; }
+        public string Did { get; set; }
+        public string Fid { get; set; }
+        public string Sbu { get; set; }
+        public string Mod { get; set; }
+        public string Que { get; set; }
+        public string FeedId { get; set; }
+        public Dictionary<string, List<string>> TE { get; set; }
+        public List<string> Fids { get; set; }
+        public string SequenceNumber { get; set; }
+        public string FrameNumber { get; set; }
         public string Etime { get; set; }
         public string Src { get; set; }
-        public string Mtp { get; set; }
+        public List<SE.Mtp> Mtp { get; set; }
         public string Stime { get; set; }
 
-        public string Ffp { get; set; } 
+        public string Ffp { get; set; }
 
-        public string Ltsize { get; set; } 
+        public string Ltsize { get; set; }
 
         public string Lfp { get; set; }
 
@@ -53,6 +53,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue
         public byte[] Pcd { get; set; }
         public List<PersonDetails> Fs { get; set; }
         public string Hp { get; set; }
+        public List<string> Base64 {get;set;}
     }
 
     public class FrameCollectorMetadata {
@@ -300,26 +301,26 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue
     }
     public class FrameExplainerModeMetaData
     {
-        public string Tid { get; set; } 
-        public string Did { get; set; } 
-        public string Fid { get; set; } 
-        public string Pts { get; set; }  
-        public string Class { get; set; } 
-        public string Np { get; set; } 
-        public Predictions[] Fs { get; set; } 
-        public string FeedId { get; set; } 
-        public Dictionary<string, List<string>> TE { get; set; } 
-        public List<string> Fids { get; set; } 
-        public string Status { get; set; } 
-        public string SequenceNumber { get; set; } 
+        public string Tid { get; set; }
+        public string Did { get; set; }
+        public string Fid { get; set; }
+        public string Pts { get; set; }
+        public string Class { get; set; }
+        public string Np { get; set; }
+        public Predictions[] Fs { get; set; }
+        public string FeedId { get; set; }
+        public Dictionary<string, List<string>> TE { get; set; }
+        public List<string> Fids { get; set; }
+        public string Status { get; set; }
+        public string SequenceNumber { get; set; }
 
-        public string FrameNumber { get; set; } 
+        public string FrameNumber { get; set; }
 
         public string videoFileName { get; set; }
 
         public List<SE.Mtp> Mtp { get; set; }
 
-        public string Ad { get; set; } 
+        public string Ad { get; set; }
         public List<string> ExpToRun { get; set; }
 
         public string I_Fn { get; set; }
@@ -328,8 +329,56 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity.Queue
 
         public List<string> Obase_64 { get; set; }
         public List<string> Img_url { get; set; }
-        public List<List<string>> Prompt { get; set; }
+        public List<string> Prompt { get; set; }
         public List<Dictionary<string, Dictionary<string, string>>> Explainer_Metadata { get; set; }
+
+        public string PredictionType { get; set; } /* Predicted Type */
+
+        public string FileName { get; set; }
+
+        public string Hp { get; set; }
+
+    }
+
+    public class FrameExplainerModeMetaDataByFrameId
+    {
+        public string Tid { get; set; }
+        public string Did { get; set; }
+        public string Fid { get; set; }
+        public string Pts { get; set; }
+        public string Class { get; set; }
+        public string Np { get; set; }
+        public Predictions[] Fs { get; set; }
+        public string FeedId { get; set; }
+        public Dictionary<string, List<string>> TE { get; set; }
+        //public List<string> Fids { get; set; }
+        public List<string> Fids { get; set; }
+        public string Status { get; set; }
+        public string SequenceNumber { get; set; }
+
+        public string FrameNumber { get; set; }
+
+        public string videoFileName { get; set; }
+
+        public List<SE.Mtp> Mtp { get; set; }
+
+        public string Ad { get; set; }
+        public List<string> ExpToRun { get; set; }
+
+        // public string I_Fn { get; set; }
+        public string ExpVer { get; set; }
+        public string ModelName { get; set; }
+
+        public List<string> Obase_64 { get; set; }
+        public List<string> Img_url { get; set; }
+        public List<string> Prompt { get; set; }
+        public Dictionary<string, Dictionary<string, string>> Explainer_Metadata { get; set; }
+
+        //  public string PredictionType { get; set; } /* Predicted Type */
+
+        public string FileName { get; set; }
+
+        public string Hp { get; set; }
 
     }
 }

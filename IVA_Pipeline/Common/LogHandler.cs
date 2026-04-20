@@ -52,7 +52,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             PromptHandler = 514,
             PromptInjector = 515,
             PcdHandler=516,
-            DataAggregator=517
+            DataAggregator=517,
+            ROIProcessor=518
         }
 
 

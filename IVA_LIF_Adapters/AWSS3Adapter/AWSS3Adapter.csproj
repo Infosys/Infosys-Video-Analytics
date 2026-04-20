@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Infosys.Lif</RootNamespace>
+    <AssemblyName>Infosys.Lif.AWSS3Adapter</AssemblyName>
+    <BaseOutputPath>..\bin\</BaseOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.Core" Version="4.0.0.13" />
+    <PackageReference Include="AWSSDK.S3" Version="4.0.2.1" />
+    <PackageReference Include="AWSSDK.SecurityToken" Version="4.0.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>    
+    <ProjectReference Include="..\LegacyCommon\LegacyCommon.csproj" />
+    <ProjectReference Include="..\LegacyIntegratorService\LegacyIntegratorService.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -3,7 +3,7 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-﻿#region namespace
+#region namespace
 using System;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessScheduler.Framework;
 using QueueEntity = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
@@ -32,6 +32,8 @@ using System.Reflection;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
 using DataAccess;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.VideoAnalytics;
+using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent;
+//using Google.Protobuf.WellKnownTypes;
 #endregion
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
@@ -39,8 +41,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
     public class FrameExplainerProcess : ProcessHandlerBase<QueueEntity.FrameExplainerModeMetaData>
     {
         ObjectCache cache = MemoryCache.Default;
+        public static Dictionary<string,string> args;
+        public static DeviceDetails deviceDetails;
         CacheItemPolicy policy = new CacheItemPolicy();
-        double cacheExpiration = 1.0; 
+        double cacheExpiration = 1.0;
         Stopwatch processStopWatch = new Stopwatch();
         string counterInstanceName = "";
         static string predictionType = "";
@@ -55,21 +59,21 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         static private string explainerToRun;
         AppSettings appSettings = Config.AppSettings;
         static private string explainerUrl;
-      static  List<string> imageList = new List<string>();
+        static List<string> imageList = new List<string>();
         static int batchSize;
         static private string blobUrl;
         static List<string> frameIdList = new List<string>();
         static private string templateName;
         static public bool xaiStatus = false;
         List<bool> xaiResults = new List<bool>();
-        static int batchcount=0;
+        static int batchcount = 0;
         TaskRoute taskRouter = new TaskRoute();
 
         public string _taskCode;
         public FrameExplainerProcess() { }
-        public FrameExplainerProcess(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
+        public FrameExplainerProcess(string processId,Dictionary<string,string> arguments) {
+            args=arguments;
+            _taskCode=TaskRoute.GetTaskCode(processId,args);
         }
 
         public override void Dump(QueueEntity.FrameExplainerModeMetaData message)
@@ -131,20 +135,33 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         private void ReadFromConfig()
         {
-            
-            DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.FrameExplainer);
-           
-            elasticStoreIndexName=deviceDetails.ElasticStoreIndexName;
+
+            deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.FrameExplainer,args);
+            if(args!=null && args.Count>0) {
+                string type=args[args.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=Helper.UpdateConfigValues(args,deviceDetails);
+                }
+            }
+
+            elasticStoreIndexName = deviceDetails.ElasticStoreIndexName;
             if (ConfigurationManager.AppSettings["FrameCacheSlidingExpirationInMins"] != null)
             {
                 frameCacheSlidingExpirationInMins = Convert.ToDouble(System.Configuration.ConfigurationManager.AppSettings["FrameCacheSlidingExpirationInMins"]);
             }
-           
-            if(deviceDetails.PredictionType!=null) {
-                
-                predictionType=deviceDetails.PredictionType;
+
+            if (deviceDetails.PredictionType != null)
+            {
+
+                predictionType = deviceDetails.PredictionType;
             }
-            DeviceDetails response = ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(), appSettings.DeviceID, CacheConstants.FrameGrabberCode);
+            DeviceDetails response=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.FrameGrabberCode,args);
+            if(args!=null && args.Count>0) {
+                string type=args[args.Keys.First()];
+                if(type.ToLower()=="values") {
+                    response=Helper.UpdateConfigValues(args,response);
+                }
+            }
             explainerApiVersion = response.XaiApiVersion;
             explainerToRun = response.XaiToRun;
             explainerUrl = response.XaiModel;
@@ -168,11 +185,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         }
         public override bool Process(QueueEntity.FrameExplainerModeMetaData message, int robotId, int runInstanceId, int robotTaskMapId)
-        {    
+        {
             processStopWatch.Reset();
             processStopWatch.Start();
             counterInstanceName = message.Tid + "_" + message.Did;
-            string metadata = string.Empty;      
+            string metadata = string.Empty;
 
             TaskRoute taskRouter = new TaskRoute();
 #if DEBUG
@@ -259,7 +276,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     {
                         Type type = typeof(QueueEntity.FrameExplainerModeMetaData);
                         PropertyInfo propertyName = type.GetProperty(item.AttributeName);
-                        compareValue = (string)propertyName.GetValue(item.AttributeName);
+                        compareValue = "";
+                        //(string)propertyName.GetValue(item.AttributeName);
                         string Name = propertyName.Name;
                         TemplateAttributes data = new TemplateAttributes
                         {
@@ -280,9 +298,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
                 string sstime = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
 
-                Double ccScore = Convert.ToDouble(message.Fs[0].Cs);
+                Double ccScore = Convert.ToDouble(message.Fs[0].Cs); //Not used anywhere , need to remove
                 string explainerURL = GetModelUrl(explainerUrl);
-                string blobUrlFullPath = blobUrl + "Documents" + "/" + message.Tid + "_" + message.Did + "/" + message.Fid + ".jpg";
+                string blobUrlFullPath = blobUrl + "/" + "Documents" + "/" + message.Tid + "_" + message.Did + "/" + message.Fid + ".jpg";
                 List<SE.Message.Mtp> MtpData = new List<SE.Message.Mtp>();
                 List<string> ExplainerToRun = new List<string>();
 
@@ -291,11 +309,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 {
                     ExplainerToRun.Add(Convert.ToString(ename));
                 }
-                foreach (var item in message.Mtp)
+                if (message.Mtp != null)
                 {
-                    MtpData.Add(new SE.Message.Mtp() { Etime = item.Etime, Src = item.Src, Stime = item.Stime });
-                };
+                    foreach (var item in message.Mtp)
+                    {
+                        MtpData.Add(new SE.Message.Mtp() { Etime = item.Etime, Src = item.Src, Stime = item.Stime });
+                    };
+                }
 
+
+
+
+                //Ends
                 if (attributeComparisonEnabled == true)
                 {
                     foreach (var item in xai_ConditionMapping)
@@ -306,7 +331,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             xaiResults.Add(attributeComparisonEnabled);
 
                         }
-                        
+
                         else if (item.AttributeName == XaiConstantsAttributes.Did.ToString())
                         {
                             attributeComparisonEnabled = EqualMapping(message, item.AttributeCondition, item.AttributeValue, imageList, frameIdList, blobUrlFullPath, message.Did);
@@ -322,23 +347,33 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         else if (item.AttributeName == XaiConstantsAttributes.Cs.ToString())
                         {
                             for (int i = 0; i < message.Fs.Count(); i++)
+                            //  for (int i = 0; i < Fs1.Count(); i++)
                             {
                                 attributeComparisonEnabled = Mapping(message, item.AttributeCondition, item.AttributeValue, imageList, frameIdList, blobUrlFullPath, message.Fs[i].Cs);
-                            }
-                            bool alreadyExists = xaiResults.Any(x => x == attributeComparisonEnabled);
-                            if (!alreadyExists == true)
+                                //   if (!xaiResults.Contains(attributeComparisonEnabled))
+                                //   {
                                 xaiResults.Add(attributeComparisonEnabled);
-                          
+                                //  }
+                            }
+                            //bool alreadyExists = xaiResults.Any(x => x == attributeComparisonEnabled);
+                            //if (!alreadyExists == true)
+                            //    xaiResults.Add(attributeComparisonEnabled);
+
                         }
                         else if (item.AttributeName == XaiConstantsAttributes.Lb.ToString())
                         {
                             for (int i = 0; i < message.Fs.Count(); i++)
+                            //       for (int i = 0; i < Fs1.Count(); i++)
                             {
                                 attributeComparisonEnabled = EqualMapping(message, item.AttributeCondition, item.AttributeValue, imageList, frameIdList, blobUrlFullPath, message.Fs[i].Lb);
-                            }
-                            bool alreadyExists = xaiResults.Any(x => x == attributeComparisonEnabled);
-                            if (!alreadyExists == true)
+                                //    if (!xaiResults[i].Contains(attributeComparisonEnabled))
+                                // {
                                 xaiResults.Add(attributeComparisonEnabled);
+                                //}
+                            }
+                            //bool alreadyExists = xaiResults.Any(x => x == attributeComparisonEnabled);
+                            //if (!alreadyExists == true)
+                            //    xaiResults.Add(attributeComparisonEnabled);
 
                         }
                     }
@@ -346,15 +381,30 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     switch (attributeComparisonValue)
                     {
                         case "||":
-                            if (xaiResults[0] || xaiResults[1])
+                            if (xaiResults.Count > 1)
                             {
-                                xaiStatus = true;
+                                if (xaiResults[0] || xaiResults[1])
+                                {
+                                    xaiStatus = true;
+                                }
+                                else
+                                {
+                                    xaiStatus = false;
+                                }
+                            }
+                            else
+                            {
+                                xaiStatus = xaiResults[0];
                             }
                             break;
                         case "&&":
                             if (xaiResults[0] && xaiResults[1])
                             {
                                 xaiStatus = true;
+                            }
+                            else
+                            {
+                                xaiStatus = false;
                             }
                             break;
                     }
@@ -369,7 +419,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             xaiStatus = EqualMapping(message, item.AttributeCondition, item.AttributeValue, imageList, frameIdList, blobUrlFullPath, message.Ad);
 
                         }
-                       
+
                         else if (item.AttributeName == XaiConstantsAttributes.Did.ToString())
                         {
                             xaiStatus = EqualMapping(message, item.AttributeCondition, item.AttributeValue, imageList, frameIdList, blobUrlFullPath, message.Did);
@@ -402,24 +452,84 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 if (xaiStatus == true)
                 {
                     AddImagetolist(message.Fid, imageList, frameIdList, blobUrlFullPath);
-                   
+
                     string estime = DateTime.UtcNow.ToString("yyy-MM-dd,HH:mm:ss.fff tt");
                     MtpData.Add(new SE.Message.Mtp() { Etime = estime, Src = "Explainer Node", Stime = sstime });
+                    xaiResults = new List<bool>();
+                }
+                else
+                {
+                    LogHandler.LogError("Frame Not Sent for Explainability : {0}",
+              LogHandler.Layer.Business, message.Fid);
+                    xaiResults = new List<bool>();
+                    xaiStatus = false;
                 }
                 if (imageList.Count == batchSize)
                 {
                     batchcount += 1;
 
 #if DEBUG
-   
+
                     LogHandler.LogDebug("counterInstanceName in Frame Explainer Process Started Processing Frames: {0}", LogHandler.Layer.Business, counterInstanceName);
                     LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "Process", "FrameexplainerProcess"), LogHandler.Layer.Business, null);
                     LogHandler.LogDebug(String.Format("The Process Method of FrameExplainerProcess Started Sending batch of messages to Kafaka :  message={0}; robotId={1};runInstanceId={2}; robotTaskMapId={3}", JsonConvert.SerializeObject(batchcount), robotId, runInstanceId, robotTaskMapId),
                     LogHandler.Layer.Business, null);
 #endif
+                    string result = string.Join(",", datalist);
+                    string templateserialize = string.Join(", ", datalist.ConvertAll(TemplateDetails => $"({TemplateDetails.AttributeName} {TemplateDetails.Operator} {TemplateDetails.AttributeValue} )"));
                     SE.Message.ObjectDetectorAPIReqMsgExp reqMsg = new SE.Message.ObjectDetectorAPIReqMsgExp()
-                  
+
                     {
+                        Did = message.Did,
+                        Fid = frameIdList,
+                        Mtp = MtpData,
+                        Tid = message.Tid,
+                        Ts = DateTime.UtcNow.ToString("yyyy-MM-dd,HH:mm:ss.fff tt"),
+                        Ts_ntp = DateTime.UtcNow.ToString("yyyyMMddHHmmss"),
+                        Msg_ver = "",
+                        Inf_ver = "",
+                        Model = explainerUrl,
+                        Per = null,
+                        //   Ad = JsonConvert.SerializeObject(datalist),
+                        Ad = templateserialize,
+                        Base_64 = imageList,
+                        C_threshold = message.Fs[0].Cs,
+                        Ffp = message.Ffp,
+                        Ltsize = "",
+                        Lfp = message.Lfp,
+                        Exp_api_ver = explainerApiVersion,
+                        Explainers_to_run = ExplainerToRun,
+                        I_fn = message.videoFileName,
+                        Msk_img = new List<string>(),
+                        Rep_img = new List<string>(),
+                        Prompt = new List<List<string>>(),
+                        Explainer_url = explainerURL
+                    };
+
+
+                    reqMsg.FeedId = message.FeedId;
+                    var input = JsonConvert.SerializeObject(reqMsg);
+
+                    sendMessage(reqMsg, input);
+#if DEBUG
+                    LogHandler.LogDebug("counterInstanceName in Frame Explainer Process Started Processing Frames: {0}", LogHandler.Layer.Business, counterInstanceName);
+                    LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "Process", "FrameexplainerProcess"), LogHandler.Layer.Business, null);
+                    LogHandler.LogDebug(String.Format("The Process Method of FrameExplainerProcess is Last Frame :  message={0}; robotId={1};runInstanceId={2}; robotTaskMapId={3}", JsonConvert.SerializeObject(message.Lfp), robotId, runInstanceId, robotTaskMapId),
+                    LogHandler.Layer.Business, null);
+#endif
+
+                    imageList = new List<string>();
+                    frameIdList = new List<string>();
+                }
+                else if (message.Lfp == "1")
+                {
+
+                    batchcount += 1;
+
+                    SE.Message.ObjectDetectorAPIReqMsgExp reqMsg = new SE.Message.ObjectDetectorAPIReqMsgExp()
+
+                    {
+
                         Did = message.Did,
                         Fid = frameIdList,
                         Mtp = MtpData,
@@ -442,58 +552,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                         Msk_img = new List<string>(),
                         Rep_img = new List<string>(),
                         Prompt = new List<List<string>>(),
-                        Explainer_url = message.Ad
-                    };
-
-
-
-                    var input = JsonConvert.SerializeObject(reqMsg);
-
-                    sendMessage(reqMsg, input);
-#if DEBUG
-                    LogHandler.LogDebug("counterInstanceName in Frame Explainer Process Started Processing Frames: {0}", LogHandler.Layer.Business, counterInstanceName);
-                    LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "Process", "FrameexplainerProcess"), LogHandler.Layer.Business, null);
-                    LogHandler.LogDebug(String.Format("The Process Method of FrameExplainerProcess is Last Frame :  message={0}; robotId={1};runInstanceId={2}; robotTaskMapId={3}", JsonConvert.SerializeObject(message.Lfp), robotId, runInstanceId, robotTaskMapId),
-                    LogHandler.Layer.Business, null);
-#endif
-
-                    imageList = new List<string>();
-                    frameIdList = new List<string>();
-                }
-                else if (message.Lfp == "1")
-                {
-                    
-                    batchcount += 1;
-                    
-                    SE.Message.ObjectDetectorAPIReqMsgExp reqMsg = new SE.Message.ObjectDetectorAPIReqMsgExp()
-                  
-                    {
-                        
-                        Did = message.Did,
-                        Fid = frameIdList, 
-                        Mtp = MtpData,
-                        Tid = message.Tid,
-                        Ts = DateTime.UtcNow.ToString("yyyy-MM-dd,HH:mm:ss.fff tt"),
-                        Ts_ntp = DateTime.UtcNow.ToString("yyyyMMddHHmmss"),
-                        Msg_ver = "",
-                        Inf_ver = "",
-                        Model = explainerUrl,
-                        Per = null, 
-                        Ad = "",
-                        Base_64 = imageList,
-                        C_threshold = message.Fs[0].Cs,
-                        Ffp = message.Ffp,
-                        Ltsize = "",
-                        Lfp = message.Lfp,
-                        Exp_api_ver = explainerApiVersion,
-                        Explainers_to_run = ExplainerToRun,
-                        I_fn = message.videoFileName,
-                        Msk_img = new List<string>(),
-                        Rep_img = new List<string>(),
-                        Prompt = new List<List<string>>(),
-                        Explainer_url = message.Ad
+                        Explainer_url = explainerURL
 
                     };
+                    reqMsg.FeedId = message.FeedId;
                     var input = JsonConvert.SerializeObject(reqMsg);
                     ObjectDetectorAPIResMsgExp response = null;
                     DE.Queue.FrameExplainerModeMetaData deReceivedPersonCountMessage = new DE.Queue.FrameExplainerModeMetaData();
@@ -509,16 +571,53 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     imageList = new List<string>();
                     frameIdList = new List<string>();
                 }
+                return true;
             }
-            catch (Exception ex)
+            catch (DuplicateRecordException DuplicateEx)
             {
-                LogHandler.LogError(String.Format(ErrorMessages.Exception_Failed, "Process", "FrameExplainerProcess"),
-
-                        LogHandler.Layer.Business, null);
-                LogHandler.LogError(String.Format("Exception Occured while handling an exception in FrameExplainerProcess in Process method. error message: {0}", ex.Message), LogHandler.Layer.Business, null);
+#if DEBUG
+                LogHandler.LogDebug("Duplicate Key in frame_metadata for deviceID:{0}, FrameId: {1}. message :{2}", LogHandler.Layer.Business, message.Did, message.Fid, DuplicateEx.Message);
+#endif
+                return true;
             }
 
-            return true;
+            catch (Exception exMP)
+            {
+                LogHandler.LogError("Exception in FrameExplainerProcess : {0}, inner exception: {1}, stack trace: {2}",
+                    LogHandler.Layer.Business, exMP.Message, exMP.InnerException, exMP.StackTrace);
+
+                bool failureLogged = false;
+
+
+                try
+                {
+                    Exception ex = new Exception();
+                    bool rethrow = ExceptionHandler.HandleException(exMP, ApplicationConstants.WORKER_EXCEPTION_HANDLING_POLICY, out ex);
+                    failureLogged = true;
+                    if (rethrow)
+                    {
+                        throw ex;
+                    }
+                    else
+                    {
+
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogHandler.LogError(String.Format(ErrorMessages.Exception_Failed, "Process", "FrameExplainerProcess"),
+                            LogHandler.Layer.Business, null);
+
+                    if (!failureLogged)
+                    {
+                        LogHandler.LogError(String.Format("Exception Occured while handling an exception in FrameExplainerProcess in Process method. error message: {0}", ex.Message), LogHandler.Layer.Business, null);
+                    }
+
+                    return false;
+                }
+            }
+
         }
         public static bool EqualMapping(QueueEntity.FrameExplainerModeMetaData message, string Condition, string value, List<string> imageList, List<string> frameIdList, string blobpath, string leftValue)
         {
@@ -528,7 +627,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 case "=":
                     if (leftValue == value)
                     {
-                        frameCondition = true;         
+                        frameCondition = true;
+                    }
+                    else
+                    {
+                        frameCondition = false;
                     }
                     break;
                 case "&&":
@@ -547,7 +650,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
                     if (frameCondition)
                     {
-                        frameCondition = true;     
+                        frameCondition = true;
                     }
                     break;
                 case "||":
@@ -565,7 +668,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     }
                     if (frameCondition)
                     {
-                        frameCondition = true;                       
+                        frameCondition = true;
                     }
                     break;
 
@@ -577,7 +680,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         public static bool AddImagetolist(string Fid, List<string> imageList, List<string> frameIdList, string blobpath)
         {
             if (imageList.Count < batchSize)
-            {             
+            {
                 imageList.Add(blobpath);
                 frameIdList.Add(Fid);
             }
@@ -606,23 +709,35 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     Double equalOperatorRightValue = Convert.ToDouble(value);
                     if (equalOperatorLeftValue == equalOperatorRightValue)
                     {
-                        frameCondition = true;                      
-                    }                 
+                        frameCondition = true;
+                    }
+                    else
+                    {
+                        frameCondition = false;
+                    }
                     break;
                 case ">":
                     Double greaterThanOperatorLeftValue = Convert.ToDouble(Lvalue);
                     Double greaterThanOperatorRightValue = Convert.ToDouble(value);
                     if (greaterThanOperatorLeftValue > greaterThanOperatorRightValue)
                     {
-                        frameCondition = true;                        
-                    }   
+                        frameCondition = true;
+                    }
+                    else
+                    {
+                        frameCondition = false;
+                    }
                     break;
                 case "<":
                     Double lessThanOperatorLeftValue = Convert.ToDouble(Lvalue);
                     Double lessThanOperatorRightValue = Convert.ToDouble(value);
                     if (lessThanOperatorLeftValue < lessThanOperatorRightValue)
                     {
-                        frameCondition = true;                        
+                        frameCondition = true;
+                    }
+                    else
+                    {
+                        frameCondition = false;
                     }
                     break;
                 case "&&":
@@ -641,7 +756,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
                     if (frameCondition)
                     {
-                        frameCondition = true;                       
+                        frameCondition = true;
                     }
                     break;
                 case "||":
@@ -660,6 +775,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     {
                         frameCondition = true;
                     }
+                    else
+                    {
+                        frameCondition = false;
+                    }
                     break;
             }
             return frameCondition;
@@ -676,7 +795,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     if (equalOperatorLeftValue == equalOperatorRightValue)
                     {
                         if (imageList.Count < batchSize)
-                        {                        
+                        {
                             imageList.Add(blobpath);
                             frameIdList.Add(message.Fid);
                         }
@@ -696,7 +815,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     if (greaterThanOperatorLeftValue > greaterThanOperatorRightValue)
                     {
                         if (imageList.Count < batchSize)
-                        {   
+                        {
                             imageList.Add(blobpath);
                             frameIdList.Add(message.Fid);
                         }
@@ -808,7 +927,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                             if (message != null)
                             {
 
-                               
+
                                 HandleStartOfFile(message);
 
 
@@ -829,14 +948,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             return true;
         }
 
-        
+
         private void HandleStartOfFile(QueueEntity.MaintenanceMetaData message)
         {
             QueueEntity.FrameInformation frameInformation = JsonConvert.DeserializeObject<QueueEntity.FrameInformation>(message.Data);
             if (frameInformation != null)
             {
                 string feedKey = frameInformation.TID + FrameRendererKey.UnderScore + frameInformation.DID + FrameRendererKey.UnderScore + frameInformation.FeedId;
-               
+
                 receivedFrameCountDetails.Add(feedKey, 0);
                 allFrameReceived.Add(feedKey, false);
 
@@ -876,22 +995,22 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         private void HandleEndOfFile(int feedId)
         {
-           
+
             FeedProcessorMasterDS feedProcessorMasterDS = new FeedProcessorMasterDS();
-           
+
             FeedRequestDS feedRequestDS = new FeedRequestDS();
             var feedRequest = feedRequestDS.GetOneWithMasterId(feedId);
             if (feedRequest != null)
             {
-              
+
                 if (feedRequest.LastFrameId != null && feedRequest.LastFrameGrabbedTime != null && feedRequest.LastFrameProcessedTime != null)
                 {
                     feedRequest.Status = ProcessingStatus.inProgressStatus;
-                   
+
 
 
                     feedRequestDS.Update(feedRequest);
-                   
+
                     var feedProcessorMaster = feedProcessorMasterDS.GetOneWithMasterId(feedId);
                     FrameMasterDS frameMasterDs = new FrameMasterDS();
                     feedProcessorMaster.FeedProcessorMasterId = feedId;
@@ -905,7 +1024,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             }
         }
 
-      
+
 
         private string GetModelUrl(string modelType)
         {
@@ -944,11 +1063,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             }
             return xmlFilePath;
         }
-  
-      private void sendMessage(ObjectDetectorAPIReqMsgExp deReceivedPersonCountMessage,string input)
+
+        private void sendMessage(ObjectDetectorAPIReqMsgExp deReceivedPersonCountMessage, string input)
         {
-            
-            TaskRouteMetadata taskRouteMetadata = taskRouter.GetTaskRouteConfig(deReceivedPersonCountMessage.Tid, deReceivedPersonCountMessage.Did);
+
+            TaskRouteMetadata taskRouteMetadata=taskRouter.GetTaskRouteConfig(deReceivedPersonCountMessage.Tid,deReceivedPersonCountMessage.Did,deviceDetails);
             string task = TaskRouteConstants.ExplainerModelPredictor;
             taskRouter.SendMessageToQueueWithTask(taskRouteMetadata, TaskRouteConstants.FrameExplainerNode, input, task);
         }

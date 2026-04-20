@@ -3,7 +3,7 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-﻿
+
 
 using Newtonsoft.Json;
 using System;
@@ -16,7 +16,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
 {
     public static class Utility
     {
-        
+
         public static string SerialiseToJSON(this object objectToSerialize)
         {
             string serializedString = string.Empty;
@@ -34,23 +34,23 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
                         serializedString = reader.ReadToEnd();
                     }
                 }
-               
+
 
             }
-            catch (Exception  ex )
+            catch (Exception ex)
             {
                 LogHandler.LogError("Exception in SerialiseToJSON while serialising obj : {0} , message : {1} , stack trace :{2}," +
-                    "innerexception : {3}", LogHandler.Layer.Business , JsonConvert.SerializeObject(objectToSerialize),
-                    ex.Message,ex.StackTrace,ex.InnerException);
+                    "innerexception : {3}", LogHandler.Layer.Business, JsonConvert.SerializeObject(objectToSerialize),
+                    ex.Message, ex.StackTrace, ex.InnerException);
             }
             return serializedString;
         }
 
-        
+
 
         public static T DeserializeFromJSON<T>(this string serializedString)
         {
-           
+
             if (string.IsNullOrWhiteSpace(serializedString))
             {
                 return default(T);
@@ -58,7 +58,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
 
             try
             {
-                if (serializedString.Contains(XaiConstantsAttributes.Explainer_Metadata.ToString()))
+                if (serializedString.Contains(XaiConstantsAttributes.Xai_metadata.ToString()))
                 {
                     using (System.IO.MemoryStream ms = new System.IO.MemoryStream(Encoding.Unicode.GetBytes(serializedString)))
                     {
@@ -72,19 +72,19 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
                 }
                 else
                 {
-                    
+
                     using (System.IO.MemoryStream ms = new System.IO.MemoryStream(Encoding.Unicode.GetBytes(serializedString)))
                     {
                         DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(T));
-                       
+
                         return (T)serializer.ReadObject(ms);
                     }
                 }
-                
+
             }
             catch (Exception ex)
             {
-                
+
                 LogHandler.LogError("Exception while deserializing the event message. Exception: {0}, Inner exception: {1}, Stack Trace: {2}",
                     LogHandler.Layer.TCPChannelCommunication, ex.Message, ex.InnerException, ex.StackTrace);
                 return default(T);
@@ -93,7 +93,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
 
         public static FrameCollectorMetadata DeserializeFromJSON1<FrameCollectorMetadata>(this string serializedString)
         {
-            
+
             if (string.IsNullOrWhiteSpace(serializedString))
             {
                 return default(FrameCollectorMetadata);
@@ -103,7 +103,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             {
 
 
-               
+
                 using (System.IO.MemoryStream ms = new System.IO.MemoryStream(Encoding.Unicode.GetBytes(serializedString)))
                 {
 
@@ -113,11 +113,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
                     });
                     return (FrameCollectorMetadata)serializer.ReadObject(ms);
                 }
-                
+
             }
             catch (Exception)
             {
-               
+
                 return default(FrameCollectorMetadata);
             }
         }

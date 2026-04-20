@@ -69,7 +69,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     Model = modelParameters.ModelName,
                     Per = null,
                     Ad = " ",
-                    Base_64 = base64_image,// for yolov7
+                    Base_64 = new List<string>() { base64_image },// for yolov7
                     C_threshold = modelParameters.ConfidenceThreshold, // for yolov7
 
                          Ffp = modelParameters.Ffp,
@@ -91,33 +91,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     reqMsg.Prompt.Add(list);
                 }
 
-                
-
-                #region  Commenting old request part for testing new response structure
-                /*
-                string methodName = "Get" + modelName;
-                var apiResponse = ServiceCaller.ApiCaller(reqMsg, baseUrl + "/" + modelName,"POST");
-                var response = JsonConvert.DeserializeObject<SE.Message.ObjectDetectorAPIResMsg>(apiResponse);
-                //var response = Helper.GetMaskPrediction_API(reqMsg, baseUrl + "/" + modelName);
-                metadata = JsonConvert.SerializeObject(Helper.RemoveDuplicateRegionsAPI(response, overlapThreshold));\
-                */
-                #endregion
-
                 string methodName = "Get" + modelParameters.ModelName;
                 var apiResponse = ServiceCaller.ApiCaller(reqMsg, modelParameters.BaseUrl + "/" + modelParameters.ModelName, "POST").Result;
 
                 ObjectDetectorAPIResMsg response = null;
-
-                #region Testing for new changes for IVA request/response structure
-                /*
-                var apiResponse = "";
-                using (StreamReader r = new StreamReader(@"D:\\I\\TestProject\\TestControl\\iphone\\ObjectDetectionApi\\api_response.json"))
-                {
-                    apiResponse = r.ReadToEnd();
-                }
-                */
-                #endregion
-
 
                 if (!string.IsNullOrEmpty(apiResponse))
                 {

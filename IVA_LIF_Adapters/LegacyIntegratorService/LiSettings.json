@@ -52,7 +52,7 @@
       ]
     },
     "MSMQ": {
-      "DllPath": "D:\\Dot Net\\DotnetCore\\LIF_CORE\\MSMQAdapter\\bin\\Debug\\net5.0\\MSMQAdapter.dll",
+      "DllPath": "D:\\TFS Workspace\\ManaExpertServices\\Solutions\\FaceMaskDetection\\Source Code\\Dot Net\\DotnetCore\\LIF_CORE\\MSMQAdapter\\bin\\Debug\\net5.0\\MSMQAdapter.dll",
       "TypeName": "Infosys.Lif.Ext.MSMQAdapterExtenstion",
       "MSMQDetails": [
         {
@@ -98,7 +98,7 @@
       ]
     },
     "MemoryQueue": {
-      "DllPath": "D:\\Dot Net\\DotnetCore\\LIF_CORE\\MemoryQueueAdapter\\bin\\Debug\\net5.0\\MemoryQueueAdapter.dll",
+      "DllPath": "D:\\TFS Workspace\\ManaExpertServices\\Solutions\\FaceMaskDetection\\Source Code\\Dot Net\\DotnetCore\\LIF_CORE\\MemoryQueueAdapter\\bin\\Debug\\net5.0\\MemoryQueueAdapter.dll",
       "TypeName": "Infosys.Lif.MemoryQueueAdapter",
       "MemoryQueueDetails": [
         {

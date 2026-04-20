@@ -1,8 +1,26 @@
 # LIF
-# Introduction 📚
-- This project provides a set of adapters for integrating various messaging systems with our core application. The adapters include implementations for Kafka, RabbitMQ, MSMQ, and more. Each adapter is designed to facilitate seamless communication between the core application and the respective messaging system, ensuring reliable and efficient message handling.
 
-- The primary objective of this project is to offer a flexible and extensible solution for integrating different messaging systems, making it easier for developers to work with multiple message brokers without having to deal with the complexities of each system individually.
+## Introduction
+This project provides a set of adapters for integrating various messaging and storage systems with the IVA core application. Each adapter facilitates seamless communication between the core pipeline and the respective external system.
 
-- Secret Configurations: 
-IVA configurations which are sensitive or need to be secured can be stored in Azure or AWS services. These stored configurations or information can be retrieved using LIF adapters which include the support for both Azure and AWS. 
+## Adapters
+
+| Adapter | Description |
+|---------|-------------|
+| **Kafka** | Open-source message/event streaming platform for inter-component communication. |
+| **RabbitMQ** | Open-source message broker for reliable message delivery. |
+| **MSMQ** | Microsoft Message Queuing (Windows only). |
+| **Azure IoT** | Azure IoT Hub integration for message ingestion and Azure Queue access. |
+| **AWS S3** | Amazon S3 document storage adapter. |
+| **AWS Secrets Manager** | Retrieves sensitive configuration from AWS Secrets Manager. |
+| **Azure Key Vault** | Retrieves secrets and configuration from Azure Key Vault. |
+| **Environment Adapter** | Injects environment variables as configuration into the pipeline. |
+| **Memory Doc Adapter** | In-memory document cache adapter. |
+| **Memory Queue Adapter** | In-memory queue adapter for local/testing scenarios. |
+
+## Secret Management
+IVA configurations that are sensitive or need to be secured can be stored in cloud services:
+- **Azure Key Vault** — via `AzureVaultAdapter`
+- **AWS Secrets Manager** — via `AWSSecretsAdapter`
+
+These adapters retrieve stored secrets at runtime, aligning with enterprise best practices for credential management.

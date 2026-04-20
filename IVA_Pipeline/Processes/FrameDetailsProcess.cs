@@ -3,7 +3,8 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-﻿using System;
+﻿
+using System;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessScheduler.Framework;
 using QueueEntity = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess;
@@ -44,12 +45,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         static private Dictionary<string, int> totalFrameCountDetails = new Dictionary<string, int>();
         static private Dictionary<string, int> totalFrameSendForPredictDetails = new Dictionary<string, int>();
         public string _taskCode;
+        public Dictionary<string,string> args;
 
         public FrameDetailsProcess() { }
 
-        public FrameDetailsProcess(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
+        public FrameDetailsProcess(string processId,Dictionary<string,string> arguments) {
+            args=arguments;
+            _taskCode=TaskRoute.GetTaskCode(processId,args);
         }
 
         public override void Dump(QueueEntity.FrameCollectorMetadata message)
@@ -128,7 +130,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         {
             
             AppSettings appSettings = Config.AppSettings;
-            BE.DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.FrameCollectorCode);
+            BE.DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.FrameCollectorCode,args);
+            if(args!=null && args.Count>0) {
+                string type=args[args.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=Helper.UpdateConfigValues(args,deviceDetails);
+                }
+            }
             if (ConfigurationManager.AppSettings["FrameCacheSlidingExpirationInMins"] != null)
             {
                 frameCacheSlidingExpirationInMins = Convert.ToDouble(System.Configuration.ConfigurationManager.AppSettings["FrameCacheSlidingExpirationInMins"]);

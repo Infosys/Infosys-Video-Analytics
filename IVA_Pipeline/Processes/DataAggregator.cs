@@ -27,12 +27,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         string _taskCode;
         static Dictionary<string, List<FrameRendererMetadata>> messageAggregator = new Dictionary<string, List<FrameRendererMetadata>>();
         static TaskRoute taskRouter = new TaskRoute();
+        public static Dictionary<string,string> args;
 
         public DataAggregator() { }
-        public DataAggregator(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
-            Dictionary<string, object> taskRouteInfo = TaskRoute.TaskRouteMetaData.TasksRoute.ToObject<Dictionary<string, object>>();
+        public DataAggregator(string processId,Dictionary<string,string> arguments) {
+            args=arguments;
+            _taskCode=TaskRoute.GetTaskCode(processId,args);
+            deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,_taskCode,args);
+            if(args!=null && args.Count>0) {
+                string type=args[args.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=BusinessComponent.Helper.UpdateConfigValues(args,deviceDetails);
+                }
+            }
+            Dictionary<string,object> taskRouteInfo=TaskRoute.TaskRouteMetaData(deviceDetails).TasksRoute.ToObject<Dictionary<string,object>>();
             routes = taskRouteInfo.Values.Count(value => value.ToString().Contains(TaskRouteConstants.DataAggregatorCode));
         }
 
@@ -114,7 +122,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         private void ReadFromConfig()
         {
             appSettings = Config.AppSettings;
-            deviceDetails = ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(), appSettings.DeviceID, TaskRouteConstants.DataAggregatorCode);
+            deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,TaskRouteConstants.DataAggregatorCode,args);
+            if(args!=null && args.Count>0) {
+                string type=args[args.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=BusinessComponent.Helper.UpdateConfigValues(args,deviceDetails);
+                }
+            }
+            UpdateEnvironmentVariables();
         }
 
         public override bool Process(QueueEntity.FrameRendererMetadata message, int robotId, int runInstanceId, int robotTaskMapId)
@@ -132,7 +147,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 if (!exist)
                 {
                     messageToAggregate = new List<FrameRendererMetadata>();
-                    messageAggregator.Add(message.Fid, messageToAggregate);
+                    //messageAggregator.Add(message.Fid, messageToAggregate);
+                    messageAggregator[message.Fid] = messageToAggregate;
                 }
                 messageToAggregate.Add(message);
                 if (messageToAggregate.Count == routes)
@@ -170,8 +186,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         private void sendEventMessage(QueueEntity.MaintenanceMetaData message)
         {
-            TaskRouteMetadata taskRouteMetadata = taskRouter.GetTaskRouteConfig(message.Tid, message.Did);
-            var taskList = taskRouter.GetTaskRouteDetails(message.Tid, message.Did, _taskCode)[_taskCode];
+            TaskRouteMetadata taskRouteMetadata=taskRouter.GetTaskRouteConfig(message.Tid,message.Did,deviceDetails);
+            var taskList=taskRouter.GetTaskRouteDetails(message.Tid,message.Did,_taskCode,deviceDetails)[_taskCode];
             if (taskList != null)
             {
                 foreach (var task in taskList)
@@ -251,9 +267,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 {
                     var type = deReceivedPersonCountMessage.GetType();
                     var property = type.GetProperty("TE");
-                    te = taskRouter.GetTaskRouteDetails(tenantId, deviceId, task);
+                    te=taskRouter.GetTaskRouteDetails(tenantId,deviceId,task,deviceDetails);
                     property.SetValue(deReceivedPersonCountMessage, te);
-                    string response = taskRouter.SendMessageToQueueWithTask(TaskRoute.TaskRouteMetaData, _taskCode, deReceivedPersonCountMessage, task);
+                    string response=taskRouter.SendMessageToQueueWithTask(TaskRoute.TaskRouteMetaData(deviceDetails),_taskCode,deReceivedPersonCountMessage,task);
                     if (response.Contains("Success"))
                     {
                         result = true;
@@ -261,6 +277,31 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 }
             }
             return result;
+        }
+
+        public static void UpdateEnvironmentVariables()
+        {
+            LIFAdapter adapter = new LIFAdapter();
+            Dictionary<string, string?> environmentValues = new Dictionary<string, string?>();
+            int retry = deviceDetails.EnvironmentAdapterRetryLimit;
+            while (retry > 0)
+            {
+                try
+                {
+                    adapter.GetEnvironmentVariables(ApplicationConstants.ENVIRONMENT_REGION, out environmentValues);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    retry--;
+                    LogHandler.LogError("Error while assigning environment variables, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.DataAggregator, ex.Message, ex.InnerException, ex.StackTrace);
+                    if (retry == 0)
+                    {
+                        LogHandler.LogError("Exception in environment adapter, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.DataAggregator, ex.Message, ex.InnerException, ex.StackTrace);
+                    }
+                }
+            }
+            deviceDetails = BusinessComponent.Helper.UpdateConfigValues(environmentValues, deviceDetails);
         }
     }
 }

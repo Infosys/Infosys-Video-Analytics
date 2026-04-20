@@ -19,17 +19,19 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using QueueEntity = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
+using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 {
     internal class PromptInjector : ProcessHandlerBase<QueueEntity.PromptInjectorMetaData>
     {
         AppSettings appSettings = Config.AppSettings;
+        public static Dictionary<string,string> args;
         public string _taskCode;
         public PromptInjector() { }
-        public PromptInjector(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
+        public PromptInjector(string processId,Dictionary<string,string> arguments) {
+            args=arguments;
+            _taskCode=TaskRoute.GetTaskCode(processId,args);
         }
 
         public override void Dump(QueueEntity.PromptInjectorMetaData message)
@@ -55,10 +57,17 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     Hp = message.HyperParameters,
                 };
                 TaskRoute taskRoute = new TaskRoute();
-                var taskList = taskRoute.GetTaskRouteDetails(appSettings.TenantID.ToString(), appSettings.DeviceID, _taskCode)[_taskCode];
+                DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,TaskRouteConstants.DataAggregatorCode,args);
+                if(args!=null && args.Count>0) {
+                    string type=args[args.Keys.First()];
+                    if(type.ToLower()=="values") {
+                        deviceDetails=Helper.UpdateConfigValues(args,deviceDetails);
+                    }
+                }
+                var taskList=taskRoute.GetTaskRouteDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,_taskCode,deviceDetails)[_taskCode];
                 foreach (string moduleCode in taskList)
                 {
-                    taskRoute.SendMessageToQueue(Config.AppSettings.TenantID.ToString(), Config.AppSettings.DeviceID, moduleCode, promptData);
+                    taskRoute.SendMessageToQueue(Config.AppSettings.TenantID.ToString(), Config.AppSettings.DeviceID, moduleCode, promptData, deviceDetails);
                 }
             }
             catch (Exception e)

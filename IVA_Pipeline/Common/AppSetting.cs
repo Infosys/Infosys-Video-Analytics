@@ -3,7 +3,7 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,12 +30,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
             {
                 lock (lockObj)
                 {
-                    RefreshConfig(); 
+                    RefreshConfig();
                     return _appSettings;
                 }
             }
             set { _appSettings = value; }
-        } 
+        }
         public static DeviceConfig DeviceConfig
         {
             get
@@ -70,7 +70,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
                 }
                 config.Bind("DeviceConfiguration", _deviceConfig);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 LogHandler.LogError($"Error while reading the configuration files", LogHandler.Layer.Resource);
             }
@@ -97,7 +97,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         public int TenantID { get; set; }
         public string DeviceID { get; set; }
         public string ConfigWebApi { get; set; }
-        
+
         public string MetricIngestorJobName { get; set; }
         public string ConfigSource { get; set; }
         public string ConfigFilePath { get; set; }
@@ -111,16 +111,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common
         public string Resources { get; set; }
 
 
-        
+
         public string ElasticsearchUrl { get; set; }
 
-        
-        
-        
+
+
+
         public string DBProvider { get; set; }
         public string ConfigurationManagement { get; set; }
         public string FrameDetailStore { get; set; }
         public string FaceMaskDetectionEntities { get; set; }
-
+        public int HttpTimeout { get; set; } = 2;
     }
 }

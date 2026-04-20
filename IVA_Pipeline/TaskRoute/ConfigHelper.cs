@@ -28,7 +28,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
         public static ObjectCache Cache;
         public static string DeviceDetailsCacheKey;
 
-        public static DeviceDetails SetDeviceDetails(string tId,string deviceId,string keyPrefix) {
+        public static DeviceDetails SetDeviceDetails(string tId,string deviceId,string keyPrefix,Dictionary<string,string> arguments) {
             DeviceDetails deviceDetails=null;
             Cache=MemoryCache.Default;
             CacheItemPolicy policy=new CacheItemPolicy();
@@ -45,11 +45,17 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                 string responseString=string.Empty;
                 if(deviceDetails==null) {
                     if(configSource=="file") {
-                        string configFilePath=appSettings.ConfigFilePath;
-                        
-                        using(StreamReader r=new StreamReader(configFilePath)) {
-                            responseString=r.ReadToEnd();
-                            
+                        if(arguments!=null && arguments.Count>0 && arguments[arguments.Keys.First()].ToLower()=="path") {
+                            Dictionary<string,string> args=new Dictionary<string,string>(arguments);
+                            string key=arguments.Keys.First();
+                            args.Remove(key);
+                            responseString=ReadConfigFile(args);
+                        }
+                        else {
+                            string configFilePath=appSettings.ConfigFilePath;
+                            using(StreamReader r=new StreamReader(configFilePath)) {
+                                responseString=r.ReadToEnd();                                
+                            }
                         }
                     }
                     else {
@@ -183,6 +189,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                     deviceDetails.PredictionType=response.PredictionType;
                     deviceDetails.AnalyticsPredictionType=response.AnalyticsPredictionType;
                     deviceDetails.DBEnabled=response.DBEnabled;
+                    deviceDetails.RendererBackgroundTransparency=response.RendererBackgroundTransparency;
+                    deviceDetails.RoiCoordinates=response.RoiCoordinates;
+                    deviceDetails.RoiType=response.RoiType;
+                    deviceDetails.InputDebugImageFilePath=response.InputDebugImageFilePath;
+                    deviceDetails.RoiDebugImageFilePath=response.RoiDebugImageFilePath;
                     deviceDetails.TemplateMatching=new TemplateMatching();
                     deviceDetails.TemplateMatching.FindControlInMultipleControlStates=response.TemplateMatching.FindControlInMultipleControlStates;
                     deviceDetails.TemplateMatching.ImageRecognitionTimeout=response.TemplateMatching.ImageRecognitionTimeout;
@@ -204,6 +215,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                     deviceDetails.XaiTemplateName = response.XaiTemplateName;
                     deviceDetails.HyperParameters = response.HyperParameters;
                     deviceDetails.ObjectDetectionRendering = response.ObjectDetectionRendering;
+                    deviceDetails.SplitScreenRendering = response.SplitScreenRendering;
+                    deviceDetails.SplitScreenGrid = response.SplitScreenGrid;
+                    deviceDetails.DisplayPredictionInfo = response.DisplayPredictionInfo;
+                    deviceDetails.EnvironmentAdapterRetryLimit = response.EnvironmentAdapterRetryLimit;
+                    deviceDetails.DBProvider=response.DBProvider;
+                    deviceDetails.DataCollectorFileName=response.DataCollectorFileName;
                     if (response.LotSize>1 && response.EnableLots) {
                         deviceDetails.DownLoadLot=true;
                     }
@@ -216,7 +233,22 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
             return deviceDetails;
         }
 
-        public static DeviceDetails AssignConfigValues(AttributeDetailsResMsg objSE) {
+        public static string ReadConfigFile(Dictionary<string,string> arguments) {
+            string responseString=string.Empty;
+            if(arguments!=null && arguments.Count>0) {
+                string argsType=arguments.Keys.First();
+                if(argsType.ToLower()=="local") {
+                    string configFilePath=arguments[argsType];
+                    using(StreamReader r=new StreamReader(configFilePath)) {
+                        responseString=r.ReadToEnd();                                
+                    }
+                }
+            }
+            return responseString;
+        }
+
+        public static DeviceDetails AssignConfigValues(AttributeDetailsResMsg objSE) 
+        {
             LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start,"AssignConfigValues","FrameGrabber"),LogHandler.Layer.FrameGrabber,null);
             DeviceDetails retObj=new DeviceDetails();
             
@@ -511,6 +543,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                         case "PCD_DIRECTORY":
                             retObj.PcdDirectory=obj.AttributeValue;
                             break;
+                        case "RENDERER_BACKGROUND_TRANSPARENCY":
+                            retObj.RendererBackgroundTransparency=Convert.ToDouble(obj.AttributeValue);
+                            break;
                         case "CVPREDICT_MULTI_ROTATION_TEMPLATE_MATCHING":
                             retObj.TemplateMatching.MultiRotationTemplateMatching=obj.AttributeValue.Equals("Yes",StringComparison.InvariantCultureIgnoreCase)?true:false;
                             break;
@@ -622,13 +657,45 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute
                         case "PREDICTION_TYPE":
                             retObj.PredictionType=obj.AttributeValue;
                             break;
+                        case "ROI_COORDINATES":
+                            retObj.RoiCoordinates=obj.AttributeValue;
+                            break;
+                        case "ROI_TYPE":
+                            retObj.RoiType=Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        case "INPUT_DEBUG_IMAGE_FILE_PATH":
+                            retObj.InputDebugImageFilePath=obj.AttributeValue;
+                            break;
+                        case "ROI_DEBUG_IMAGE_FILE_PATH":
+                            retObj.RoiDebugImageFilePath=obj.AttributeValue;
+                            break;
+                        case "SPLIT_SCREEN_RENDERING":
+                            retObj.SplitScreenRendering = obj.AttributeValue;
+                            break;
+                        case "SPLIT_SCREEN_GRID":
+                            retObj.SplitScreenGrid = obj.AttributeValue;
+                            break;
+                        case "DISPLAY_PREDICTION_INFO":
+                            retObj.DisplayPredictionInfo = obj.AttributeValue == "yes" ? true : false;
+                            break;
+                        case "ENVIRONMENT_ADAPTER_RETRY_LIMIT":
+                            retObj.EnvironmentAdapterRetryLimit = Convert.ToInt32(obj.AttributeValue);
+                            break;
+                        /* This attribute is used in Demo Portal hence is not being set here
+                        case "MEDIA_STREAMING_URL":
+                            break;
                         case "ANALYTICS_PREDICTION_TYPE":
                             retObj.AnalyticsPredictionType=obj.AttributeValue;
                             break;
                         case "DB_ENABLED":
                             retObj.DBEnabled=Convert.ToBoolean(obj.AttributeValue);
+                            break; */
+                        case "DBPROVIDER":
+                            retObj.DBProvider = obj.AttributeValue;
                             break;
-                        
+                        case "DATACOLLECTOR_FILENAME":
+                            retObj.DataCollectorFileName = obj.AttributeValue;
+                            break;
                         default:
                             break;
                     }

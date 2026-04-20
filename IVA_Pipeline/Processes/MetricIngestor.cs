@@ -31,9 +31,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
     {
         public string _taskCode;
         public MetricIngestor() { }
-        public MetricIngestor(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
+        public MetricIngestor(string processId,Dictionary<string,string> arguments) {
+            _taskCode=TaskRoute.GetTaskCode(processId,arguments);
         }
         public override void Dump(QueueEntity.MetricIngestorMetadata message)
         {

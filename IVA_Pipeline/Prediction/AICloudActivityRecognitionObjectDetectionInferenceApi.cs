@@ -3,7 +3,7 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +23,7 @@ using System.Threading;
 //using Infosys.Solutions.Ainauto.VideoAnalytics.Entity;
 using System.Diagnostics;
 using System.Runtime.Caching;
+using System.Security.Permissions;
 //using static Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common.ExtentionMethodsClass;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
@@ -40,7 +41,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             return true;
         }
 
-       
+
 
         public override string MakePrediction(Stream stream, ModelParameters modelParameters)
         {
@@ -56,9 +57,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             LogHandler.LogUsage(String.Format("TrackingInferenceAPI MakePrediction is getting executed at : {0}", DateTime.UtcNow.ToLongTimeString()), null);
 #endif
             string metadata = "";
-            
-            string base64_image = "";
-            
+
+            string base64_image = "";
+
             using (MemoryStream memoryStream = new MemoryStream())
             {
                 stream.CopyTo(memoryStream);
@@ -79,9 +80,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                 Model = modelParameters.ModelName,
                 Per = null,
                 Ad = " ",
-                Base_64 = base64_image,// for yolov7
+                //Base_64 = base64_image,// for yolov7
+                Base_64 = new List<string>() { base64_image },// for yolov7, ROI changes BASE_64 to list of string
                 C_threshold = modelParameters.ConfidenceThreshold, // for yolov7
-                     Ffp = modelParameters.Ffp,
+                Ffp = modelParameters.Ffp,
                 Ltsize = modelParameters.Ltsize,
                 Lfp = modelParameters.Lfp,
                 Msk_img = modelParameters.Msk_img == null ? new List<string>() : modelParameters.Msk_img,
@@ -103,7 +105,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             var response = MakePredictionRequestAsync(reqMsg, Convert.ToDouble(modelParameters.ConfidenceThreshold), modelParameters.BaseUrl, modelParameters.AuthenticationUrl, modelParameters.TokenCacheExpirationTime).GetAwaiter().GetResult();
             return response;
         }
-        
+
         public async Task<string> MakePredictionRequestAsync(ObjectDetectorAPIReqMsg objectDetectorAPIReqMsgAICloud,
             double confidenceThreshold, string baseUrl, string authenticationUrl, double tokenCacheExpirationTime)
         {
@@ -136,7 +138,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     httpresponse = await client.PostAsync(baseUrl, content);
                     response = await httpresponse.Content.ReadAsStringAsync();
                     return response;
-                    
+
                 }
             }
             catch (Exception ex)
@@ -162,13 +164,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     string response = "";
 
                     HttpResponseMessage httpresponse;
-                    
+
                     client.DefaultRequestHeaders
               .Accept
               .Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     httpresponse = await client.PostAsync(authenticationUrl, null);
                     response = await httpresponse.Content.ReadAsStringAsync();
-                   
+
 
                     return response;
                 }

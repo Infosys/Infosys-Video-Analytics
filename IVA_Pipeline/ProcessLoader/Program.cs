@@ -9,6 +9,8 @@ using NLog.Targets;
 using NLog;
 using System;
 using NLog.Config;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace ProcessLoader
 {
@@ -18,8 +20,17 @@ namespace ProcessLoader
         {  
 
             Console.WriteLine("Initiating Process Loader");
+            Dictionary<string,string> dict=null;
+            if(args.Length>0) {
+                dict=JsonConvert.DeserializeObject<Dictionary<string,string>>(args[0]);
+                if(dict!=null) {
+                    foreach(var pair in dict) {
+                        Console.WriteLine(pair.Key+": "+pair.Value);
+                    }
+                }
+            }
             Tasks objTask = new Tasks();
-            objTask.InitialiseComponent(1, 1, 1);
+            objTask.InitialiseComponent(1,1,1,dict);
             Console.WriteLine("Completed Process Loader");
         }
     }

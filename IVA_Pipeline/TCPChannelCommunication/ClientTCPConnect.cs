@@ -21,9 +21,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCom
         protected readonly string Host;
         protected readonly int Port;
         public TcpClient ClientConnect;
-        public static AppSettings appSettings=Config.AppSettings;
-        public static DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.ClientTCPConnect);
-        string dataStreamTimeOut=deviceDetails.DataStreamTimeOut;
 
         private volatile bool _ExitSignal;
         public bool ExitSignal
@@ -46,8 +43,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCom
         }
 
 
-        public virtual void Run()
-        {
+        public virtual void Run(object deviceDetails) {
             if (this.IsRunning)
                 return; 
 
@@ -55,13 +51,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCom
             this.ExitSignal = false;
 
             while (!this.ExitSignal)
-                this.ConnectionLoop();
+                this.ConnectionLoop((DeviceDetails)deviceDetails);
 
             this.IsRunning = false;
         }
 
-        protected virtual void ConnectionLoop()
-        {
+        protected virtual void ConnectionLoop(DeviceDetails deviceDetails) {
 
             using (var Client = new TcpClient())
             {
@@ -83,9 +78,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TCPSChannelCom
                 using (var netstreamClient = Client.GetStream())
                 {
                     int timeOut = 5000;
-                    if (dataStreamTimeOut != null)
-                    {
-                        timeOut = int.Parse(dataStreamTimeOut);
+                    if(deviceDetails.DataStreamTimeOut!=null) {
+                        timeOut=int.Parse(deviceDetails.DataStreamTimeOut);
                     }
                     netstreamClient.ReadTimeout = timeOut;
                     netstreamClient.WriteTimeout = timeOut;

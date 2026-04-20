@@ -30,29 +30,29 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue
 
     public class FrameProcessorMetaData
     {
-        public string Tid { get; set; } 
-        public string Did { get; set; } 
-        public string Fid { get; set; } 
-        public string Sbu { get; set; } 
+        public string Tid { get; set; }
+        public string Did { get; set; }
+        public string Fid { get; set; }
+        public string Sbu { get; set; }
         public string Mod { get; set; }
-        public string FeedId { get; set; } 
-        public string Fp { get; set; } 
-        public Dictionary<string, List<string>> TE { get; set; } 
-        public List<string> Fids { get; set; } 
-        public string SequenceNumber { get; set; } 
-        public string FrameNumber { get; set; } 
+        public string FeedId { get; set; }
+        public string Fp { get; set; }
+        public Dictionary<string, List<string>> TE { get; set; }
+        public List<string> Fids { get; set; }
+        public string SequenceNumber { get; set; }
+        public string FrameNumber { get; set; }
         public string Src { get; set; }
-        public List<Mtp> Mtp { get; set; }
+        public List<SE.Mtp> Mtp { get; set; }
         public string Stime { get; set; }
         public string Etime { get; set; }
 
-        public string Ffp { get; set; } 
+        public string Ffp { get; set; }
 
         public string Ltsize { get; set; }
 
         public string Lfp { get; set; }
 
-        public string LastFrame { get; set; } 
+        public string LastFrame { get; set; }
 
         public string Ad { get; set; }
 
@@ -61,8 +61,41 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue
         public List<string> Msk_img { get; set; }
         public List<string> Rep_img { get; set; }
         public byte[] Pcd { get; set; }
-        public List<PersonDetails> Fs { get; set; } 
+        public List<PersonDetails> Fs { get; set; }
         public string Hp { get; set; }
+        public List<string> Base64 {get;set;}
+        public int FrameHeight {get;set;}
+        public int FrameWidth {get;set;}
+    }
+    
+    public class ROIProcessorMetaData {
+        public string Tid {get;set;} 
+        public string Did {get;set;} 
+        public string Fid {get;set;} 
+        public string Sbu {get;set;} 
+        public string Mod {get;set;}
+        public string FeedId {get;set;} 
+        public string Fp {get;set;} 
+        public Dictionary<string,List<string>> TE {get;set;} 
+        public List<string> Fids {get;set;} 
+        public string SequenceNumber {get;set;} 
+        public string FrameNumber {get;set;} 
+        public string Src {get;set;}
+        public List<SE.Mtp> Mtp {get;set;}
+        public string Stime {get;set;}
+        public string Etime {get;set;}
+        public string Ffp {get;set;} 
+        public string Ltsize {get;set;}
+        public string Lfp {get;set;}
+        public string LastFrame {get;set;} 
+        public string Ad {get;set;}
+        public string videoFileName {get;set;}
+        public string Prompt {get;set;}
+        public List<string> Msk_img {get;set;}
+        public List<string> Rep_img {get;set;}
+        public byte[] Pcd {get;set;}
+        public List<PersonDetails> Fs {get;set;} 
+        public string Hp {get;set;}
     }
 
     public class AzureCustomVisionMetaData
@@ -165,7 +198,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue
 
         public string videoFileName { get; set; }
 
-        public List<Queue.Mtp> Mtp { get; set; }
+        public List<SE.Mtp> Mtp { get; set; }
 
         public List<string> Obase_64 { get; set; }
         public List<string> Img_url { get; set; }
@@ -173,6 +206,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue
         public string Sbu { get; set; } 
         public string Fp { get; set; } 
         public string Hp { get; set; }
+        public int FrameHeight {get;set;}
+        public int FrameWidth {get;set;}
 
     }
 
@@ -205,7 +240,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue
         [DataMember]
         public List<PersonDetails> Fs {get;set;}
         [DataMember]
-        public List<Mtp> Mtp {get;set;}
+        public List<SE.Mtp> Mtp {get;set;}
         [DataMember]
         public string I_fn {get;set;}
         #endregion
@@ -623,7 +658,36 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue
         public Double Temperature { get; set; }
     }
 
-    
+        public class FrameExplainerCollectorMetadata
+    {
+        public string Tid { get; set; }
+        public string Did { get; set; }
+        public string Fid { get; set; }
+        public string Pts { get; set; }
+        public string Class { get; set; }
+        public string Np { get; set; }
+        public List<Predictions> Fs { get; set; }
+        public string FeedId { get; set; }
+        public Dictionary<string, List<string>> TE { get; set; }
+        public List<string> Fids { get; set; }
+        public string Status { get; set; }
+        public string SequenceNumber { get; set; }
+        public string FrameNumber { get; set; }
+        public string videoFileName { get; set; }
+        public List<string> Obase_64 { get; set; }
+        public List<string> Img_url { get; set; }
+        public string Prompt { get; set; }
+        public List<Dictionary<string, Dictionary<string, string>>> Explainer_Metadata { get; set; }
+        public string Ad { get; set; }
+        public List<SE.Mtp> Mtp { get; set; }
+        public string ModelName { get; set; }
+        public List<string> ExpToRun { get; set; }
+        public string ExpVer { get; set; }
+        public string Ffp { get; set; }
+        public string Lfp { get; set; }
+        public string Hp { get; set; }
+        public string I_fn { get; set; }
+    }
 
 
 

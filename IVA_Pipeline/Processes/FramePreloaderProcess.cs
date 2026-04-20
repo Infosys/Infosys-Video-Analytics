@@ -25,6 +25,7 @@ using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.Message;
 using ICSharpCode.SharpZipLib.Zip;
 using ICSharpCode.SharpZipLib.Core;
+using System.Linq;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
@@ -33,6 +34,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
     {
 
         ObjectCache cache = MemoryCache.Default;
+        public static Dictionary<string,string> args;
         CacheItemPolicy policy = new CacheItemPolicy();
         CacheItemPolicy framePolicy = new CacheItemPolicy();
         SC.MaskDetector maskDetector = new SC.MaskDetector();
@@ -40,9 +42,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         public string _taskCode;
         public FramePreloaderProcess() { }
-        public FramePreloaderProcess(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
+        public FramePreloaderProcess(string processId,Dictionary<string,string> arguments) {
+            args=arguments;
+            _taskCode=TaskRoute.GetTaskCode(processId,args);
         }
 
         public override void Dump(QueueEntity.FramePreloaderMetadata message)
@@ -154,9 +156,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     FrameRendererEntityTranslator entityTranslator = new FrameRendererEntityTranslator();
                     BE.FramePreloaderData framePreLoaderData = entityTranslator.FramePreLoaderTranslator(message);
                     string deviceId = framePreLoaderData.DID;
-                    DeviceDetails deviceDetails = ConfigHelper.SetDeviceDetails(framePreLoaderData.TID, deviceId, CacheConstants.FramePreloaderCode);
-                  
-                   
+                    DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(framePreLoaderData.TID,deviceId,CacheConstants.FramePreloaderCode,args);
+                    if(args!=null && args.Count>0) {
+                        string type=args[args.Keys.First()];
+                        if(type.ToLower()=="values") {
+                            deviceDetails=Helper.UpdateConfigValues(args,deviceDetails);
+                        }
+                    }
+                    UpdateEnvironmentVariables(deviceDetails);
                     bool downLoadLot = deviceDetails.DownLoadLot;
                     string baseUrl = deviceDetails.BaseUrl;
 
@@ -291,7 +298,33 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
             return result;
         }
-                                    
+
+        public static DeviceDetails UpdateEnvironmentVariables(DeviceDetails deviceDetails)
+        {
+            LIFAdapter adapter = new LIFAdapter();
+            Dictionary<string, string?> environmentValues = new Dictionary<string, string?>();
+            int retry = deviceDetails.EnvironmentAdapterRetryLimit;
+            while (retry > 0)
+            {
+                try
+                {
+                    adapter.GetEnvironmentVariables(ApplicationConstants.ENVIRONMENT_REGION, out environmentValues);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    retry--;
+                    LogHandler.LogError("Error while assigning environment variables, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.Infrastructure, ex.Message, ex.InnerException, ex.StackTrace);
+                    if (retry == 0)
+                    {
+                        LogHandler.LogError("Exception in environment adapter, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.Infrastructure, ex.Message, ex.InnerException, ex.StackTrace);
+                    }
+                }
+            }
+            deviceDetails = BusinessComponent.Helper.UpdateConfigValues(environmentValues, deviceDetails);
+            return deviceDetails;
+        }
+
     }
 
 }

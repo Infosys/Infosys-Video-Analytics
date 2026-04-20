@@ -115,7 +115,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.Translator
                     frameElasticSearch.Status = message.Status;
                     frameElasticSearch.FrameNumber = message.FrameNumber;
                     frameElasticSearch.FileName = message.videoFileName;
-                    frameElasticSearch.Mtp = MtpData;//message.Mtp;
+                    frameElasticSearch.Mtp = MtpData;
                     frameElasticSearch.Raw_base64_image = Raw_base64_image;
                     frameElasticSearch.Rendered_base64_image = Rendered_base64_image;
                     if (message.Fs != null)

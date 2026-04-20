@@ -219,6 +219,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contrac
     }
 
     [DataContract]
+    public class PointData {
+        [DataMember]
+        public int X {get;set;} 
+        [DataMember]
+        public int Y {get;set;} 
+        [DataMember]
+        public int R {get;set;}  
+    }
+
+    [DataContract]
     public class ObjectDetectorAPIResMsgExp
     {
         

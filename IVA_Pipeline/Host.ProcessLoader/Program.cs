@@ -35,7 +35,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.ProcessLoader
             //ServiceBase.Run(ServicesToRun);
 
             Tasks objTask = new Tasks();
-            objTask.InitialiseComponent(1, 1, 1);
+            objTask.InitialiseComponent(1, 1, 1, null);
         }
     }
 }

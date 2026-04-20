@@ -3,15 +3,15 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-﻿/*
- *© 2019 Infosys Limited, Bangalore, India. All Rights Reserved. Infosys believes the information in this document is accurate as of its publication date; such information is subject to change without notice. Infosys acknowledges the proprietary rights of other companies to the trademarks, product names and such other intellectual property rights mentioned in this document. Except as expressly permitted, neither this document nor any part of it may be reproduced, stored in a retrieval system, or transmitted in any form or by any means, electronic, mechanical, printing, photocopying, recording or otherwise, without the prior permission of Infosys Limited and/or any named intellectual property rights holders under this document.   
- * 
- * © 2019 INFOSYS LIMITED. CONFIDENTIAL AND PROPRIETARY 
- */
+/*
+*© 2019 Infosys Limited, Bangalore, India. All Rights Reserved. Infosys believes the information in this document is accurate as of its publication date; such information is subject to change without notice. Infosys acknowledges the proprietary rights of other companies to the trademarks, product names and such other intellectual property rights mentioned in this document. Except as expressly permitted, neither this document nor any part of it may be reproduced, stored in a retrieval system, or transmitted in any form or by any means, electronic, mechanical, printing, photocopying, recording or otherwise, without the prior permission of Infosys Limited and/or any named intellectual property rights holders under this document.   
+* 
+* © 2019 INFOSYS LIMITED. CONFIDENTIAL AND PROPRIETARY 
+*/
 
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using OpenCvSharp;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -25,6 +25,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 {
     public class Helper
     {
+        private static bool RectsIntersect(Rect2f a, Rect2f b)
+        {
+            return a.X < b.X + b.Width && a.X + a.Width > b.X &&
+                   a.Y < b.Y + b.Height && a.Y + a.Height > b.Y;
+        }
 
         public static List<BoundingBox> RemoveDuplicateRegions(List<BoundingBox> boundingBoxes, float overlapThreshold)
         {
@@ -48,10 +53,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     if (boundingBoxesA[i].Cs != boundingBoxesA[j].Cs)
                     {
 
-                        RectangleF rectangleA = new RectangleF((boundingBoxesA[i]).Dm.X, (boundingBoxesA[i]).Dm.Y, (boundingBoxesA[i]).Dm.H, (boundingBoxesA[i]).Dm.W);
-                        RectangleF rectangleB = new RectangleF((boundingBoxesA[j]).Dm.X, (boundingBoxesA[j]).Dm.Y, (boundingBoxesA[j]).Dm.H, (boundingBoxesA[j]).Dm.W);
+                        Rect2f rectangleA = new Rect2f((boundingBoxesA[i]).Dm.X, (boundingBoxesA[i]).Dm.Y, (boundingBoxesA[i]).Dm.H, (boundingBoxesA[i]).Dm.W);
+                        Rect2f rectangleB = new Rect2f((boundingBoxesA[j]).Dm.X, (boundingBoxesA[j]).Dm.Y, (boundingBoxesA[j]).Dm.H, (boundingBoxesA[j]).Dm.W);
 
-                        if (rectangleA.IntersectsWith(rectangleB))
+                        if (RectsIntersect(rectangleA, rectangleB))
                         {
                             var overlapp = IntersectionOverUnion(rectangleA, rectangleB);
 
@@ -119,10 +124,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                             if (boundingBoxesA[i].Cs != boundingBoxesA[j].Cs)
                             {
 
-                                RectangleF rectangleA = new RectangleF(float.Parse(boundingBoxesA[i].Dm.X), float.Parse(boundingBoxesA[i].Dm.Y), float.Parse(boundingBoxesA[i].Dm.H), float.Parse(boundingBoxesA[i].Dm.W));
-                                RectangleF rectangleB = new RectangleF(float.Parse(boundingBoxesA[j].Dm.X), float.Parse(boundingBoxesA[j].Dm.Y), float.Parse(boundingBoxesA[j].Dm.H), float.Parse(boundingBoxesA[j].Dm.W));
+                                Rect2f rectangleA = new Rect2f(float.Parse(boundingBoxesA[i].Dm.X), float.Parse(boundingBoxesA[i].Dm.Y), float.Parse(boundingBoxesA[i].Dm.H), float.Parse(boundingBoxesA[i].Dm.W));
+                                Rect2f rectangleB = new Rect2f(float.Parse(boundingBoxesA[j].Dm.X), float.Parse(boundingBoxesA[j].Dm.Y), float.Parse(boundingBoxesA[j].Dm.H), float.Parse(boundingBoxesA[j].Dm.W));
 
-                                if (rectangleA.IntersectsWith(rectangleB))
+                                if (RectsIntersect(rectangleA, rectangleB))
                                 {
                                     var overlapp = IntersectionOverUnion(rectangleA, rectangleB);
 
@@ -156,7 +161,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
         }
 
 
-        public static float IntersectionOverUnion(RectangleF rectangleA, RectangleF rectangleB)
+        public static float IntersectionOverUnion(Rect2f rectangleA, Rect2f rectangleB)
         {
 
 
@@ -219,16 +224,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
             request.Method = "POST";
 
-        
+
             string postData = jsonString;
             byte[] byteArray = Encoding.UTF8.GetBytes(postData);
 
 
             request.ContentType = "application/json";
 
-            request.ContentLength = byteArray.Length; 
+            request.ContentLength = byteArray.Length;
 
-            
+
             Stream dataStream = request.GetRequestStream();
 
             dataStream.Write(byteArray, 0, byteArray.Length);
@@ -264,7 +269,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             System.Net.Http.HttpResponseMessage respon = await objClient.PostAsync(requestUri, new StringContent(json, System.Text.Encoding.UTF8, "application/json"));
             string responJsonText = await respon.Content.ReadAsStringAsync();
         }
-    
+
 
 
     }

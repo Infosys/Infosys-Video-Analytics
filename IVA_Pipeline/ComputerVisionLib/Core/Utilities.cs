@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 
-using System.Drawing;
+using OpenCvSharp;
 
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using System.Diagnostics;
@@ -20,9 +20,6 @@ using System.Reflection;
 using System.IO;
 using Microsoft.Practices.EnterpriseLibrary.Common.Utility;
 using Unity.Interception.Utilities;
-using OpenCvSharp;
-using Point = OpenCvSharp.Point;
-using OpenCvSharp.Extensions;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVisionLib.Core
 {
@@ -126,7 +123,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         }
 
         
-        private static Rectangle firstControl = Rectangle.Empty;
+        private static Rect firstControl = new Rect();
         private static Control controlToTrack = null;
         private static bool firstChanceDone = false;
         private static int maxLoopCount = 50;
@@ -205,7 +202,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
         public static ControlImageReference GetBoundingRectangle(ControlImageReference imageRef, bool ifImageThenOriginalScale = false, bool ifImageThenWaitIdenfForTemp = false, bool useTrueColorTemplateMatching = false, object searchRegion = null, string atrFolder = "", Stream sourceImageToMatch = null)
         {
-            Rectangle rect = Rectangle.Empty;
+            Rect rect = new Rect();
             imageRef.CurrentBoundingRectangle = rect;
             bool requestedWaitforeverFlag = ifImageThenWaitIdenfForTemp;
            
@@ -232,7 +229,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                             else
                                 rect = FindElement(item.ImagePath, DEFAULT_TIMEOUT, DEFAULT_CONFIDENCE, !ifImageThenOriginalScale, searchRegion, sourceImageToMatch);
                         }
-                        if (rect != Rectangle.Empty)
+                        if (rect.Width > 0 || rect.Height > 0)
                         {
                             imageRef.CurrentState = item.State;
                             imageRef.CurrentBoundingRectangle = rect;
@@ -240,21 +237,21 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         }
                     }
                 }
-                while (requestedWaitforeverFlag && imageRef.CurrentBoundingRectangle == Rectangle.Empty);
+                while (requestedWaitforeverFlag && imageRef.CurrentBoundingRectangle.Width == 0 && imageRef.CurrentBoundingRectangle.Height == 0);
             }
 
             return imageRef;
         }
 
        
-        public static Rectangle FindElement(string filename, int timeout = DEFAULT_TIMEOUT, double confidence = 80, bool multipleScaleMatching = true, object searchRegion = null, Stream sourceImageToMatch = null)
+        public static Rect FindElement(string filename, int timeout = DEFAULT_TIMEOUT, double confidence = 80, bool multipleScaleMatching = true, object searchRegion = null, Stream sourceImageToMatch = null)
         {
             if (Core.Utilities.IsStopRequested())
                 throw new Core.CVExceptions.StopRequested();
 
 
-            Rectangle elementRectTemp = Rectangle.Empty;
-            Rectangle searchRect = Rectangle.Empty;
+            Rect elementRectTemp = new Rect();
+            Rect searchRect = new Rect();
             DateTime startTime = DateTime.Now;
             try
             {
@@ -262,29 +259,27 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     timeout = DEFAULT_TIMEOUT; 
                 if (System.IO.File.Exists(filename) || (IapwPackage != null && IapwPackage.Length > 0))
                 {
-                    Mat template = new Mat();
-
+                    Mat template = null;
+                   
                     if (IapwPackage == null)
-                        template = new Mat(filename, ImreadModes.Color);
+                        template = Cv2.ImRead(filename, ImreadModes.Grayscale);
                     else
                     {
-
+                       
                         Stream templateStream = Packaging.ExtractFile(IapwPackage, filename);
-                        var bmp = new Bitmap(templateStream);
+                        using (var ms = new MemoryStream()) { templateStream.CopyTo(ms); template = Cv2.ImDecode(ms.ToArray(), ImreadModes.Grayscale); }
 
-                        template = BitmapConverter.ToMat(bmp);
-
-
+                       
                         Packaging.ClosePackage();
                     }
                     bool backgroundProcessing = false;
-                    while ((System.DateTime.Now - startTime).TotalMilliseconds <= timeout * 1000 && elementRectTemp == Rectangle.Empty)
+                    while ((System.DateTime.Now - startTime).TotalMilliseconds <= timeout * 1000 && elementRectTemp.Width == 0 && elementRectTemp.Height == 0)
                     {
-                        if (searchRegion != null && (Rectangle)searchRegion != Rectangle.Empty)
+                        if (searchRegion != null && ((Rect)searchRegion).Width > 0)
                         {
-                            searchRect = (Rectangle)searchRegion;
+                            searchRect = (Rect)searchRegion;
                         }
-                        Mat source = new Mat();
+                        Mat source = null;
                         if (sourceImageToMatch != null)
                         {
                             
@@ -304,7 +299,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                 if (templateTemp != null)
                                 {
                                     elementRectTemp = FindRectangle(source, templateTemp, confidence);
-                                    if (elementRectTemp != Rectangle.Empty)
+                                    if (elementRectTemp.Width > 0 || elementRectTemp.Height > 0)
                                     {
                                         break;
                                     }
@@ -316,7 +311,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                 if (templateTemp != null)
                                 {
                                     elementRectTemp = FindRectangle(source, templateTemp, confidence);
-                                    if (elementRectTemp != Rectangle.Empty)
+                                    if (elementRectTemp.Width > 0 || elementRectTemp.Height > 0)
                                     {
                                         break;
                                     }
@@ -326,7 +321,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         else
                         {
                             elementRectTemp = FindRectangle(source, template, confidence);
-                            if (elementRectTemp != Rectangle.Empty)
+                            if (elementRectTemp.Width > 0 || elementRectTemp.Height > 0)
                             {
                                 break;
                             }
@@ -336,7 +331,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 }
                 else
                     throw new System.IO.FileNotFoundException("Image Template " + filename + " not found");
-                if (elementRectTemp == Rectangle.Empty)
+                if (elementRectTemp.Width == 0 && elementRectTemp.Height == 0)
                     throw new Exception("Could not match the template provided in this trial. Probably in the subsequent trial, the template would be matched.");
             }
             catch (System.IO.FileNotFoundException ex)
@@ -357,7 +352,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
 
             
-            if (searchRegion != null && searchRect != Rectangle.Empty)
+            if (searchRegion != null && (searchRect.Width > 0 || searchRect.Height > 0))
             {
                 elementRectTemp.X += searchRect.X;
                 elementRectTemp.Y += searchRect.Y;
@@ -366,14 +361,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         }
 
         
-        public static Rectangle FindElementInTrueColor(string filename, int timeout = DEFAULT_TIMEOUT, double confidence = 80, bool multipleScaleMatching = true, object searchRegion = null, Stream sourceImageToMatch = null)
+        public static Rect FindElementInTrueColor(string filename, int timeout = DEFAULT_TIMEOUT, double confidence = 80, bool multipleScaleMatching = true, object searchRegion = null, Stream sourceImageToMatch = null)
         {
             
             if (Core.Utilities.IsStopRequested())
                 throw new CVExceptions.StopRequested();
 
-            Rectangle elementRectTemp = Rectangle.Empty;
-            Rectangle searchRect = Rectangle.Empty;
+            Rect elementRectTemp = new Rect();
+            Rect searchRect = new Rect();
             DateTime startTime = DateTime.Now;
             try
             {
@@ -381,32 +376,30 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     timeout = DEFAULT_TIMEOUT; 
                 if (System.IO.File.Exists(filename) || (IapwPackage != null && IapwPackage.Length > 0))
                 {
-                    Mat template = new Mat();
-
+                    Mat template = null;
+                    
                     if (IapwPackage == null)
-                        template = new Mat(filename, ImreadModes.Color);
+                        template = Cv2.ImRead(filename, ImreadModes.Color);
                     else
                     {
-
+                       
                         Stream templateStream = Packaging.ExtractFile(IapwPackage, filename);
-                        var bmp = new Bitmap(templateStream);
-                        template = BitmapConverter.ToMat(bmp);
-
+                        using (var ms = new MemoryStream()) { templateStream.CopyTo(ms); template = Cv2.ImDecode(ms.ToArray(), ImreadModes.Color); }
+                                               
                         Packaging.ClosePackage();
                     }
                     bool backgroundProcessing = false;
-                    while ((System.DateTime.Now - startTime).TotalMilliseconds <= timeout * 1000 && elementRectTemp == Rectangle.Empty)
+                    while ((System.DateTime.Now - startTime).TotalMilliseconds <= timeout * 1000 && elementRectTemp.Width == 0 && elementRectTemp.Height == 0)
                     {
-                        if (searchRegion != null && (Rectangle)searchRegion != Rectangle.Empty)
+                        if (searchRegion != null && ((Rect)searchRegion).Width > 0)
                         {
-                            searchRect = (Rectangle)searchRegion;
+                            searchRect = (Rect)searchRegion;
                         }
-                        Mat source = new Mat();
+                        Mat source = null;
                         if (sourceImageToMatch != null)
                         {
-                            
-                            var bmp = new Bitmap(sourceImageToMatch);
-                            source = BitmapConverter.ToMat(bmp);
+                            sourceImageToMatch.Position = 0;
+                            using (var ms = new MemoryStream()) { sourceImageToMatch.CopyTo(ms); source = Cv2.ImDecode(ms.ToArray(), ImreadModes.Color); }
                             backgroundProcessing = true;
                         }
                         
@@ -422,7 +415,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                 if (templateTemp != null)
                                 {
                                     elementRectTemp = FindRectangleInTrueColor(source, templateTemp, confidence);
-                                    if (elementRectTemp != Rectangle.Empty)
+                                    if (elementRectTemp.Width > 0 || elementRectTemp.Height > 0)
                                     {
                                         break;
                                     }
@@ -434,7 +427,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                 if (templateTemp != null)
                                 {
                                     elementRectTemp = FindRectangleInTrueColor(source, templateTemp, confidence);
-                                    if (elementRectTemp != Rectangle.Empty)
+                                    if (elementRectTemp.Width > 0 || elementRectTemp.Height > 0)
                                     {
                                         break;
                                     }
@@ -444,7 +437,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         else
                         {
                             elementRectTemp = FindRectangleInTrueColor(source, template, confidence);
-                            if (elementRectTemp != Rectangle.Empty)
+                            if (elementRectTemp.Width > 0 || elementRectTemp.Height > 0)
                             {
                                 break;
                             }
@@ -455,7 +448,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 else
                     throw new System.IO.FileNotFoundException("Image Template " + filename + " not found");
 
-                if (elementRectTemp == Rectangle.Empty)
+                if (elementRectTemp.Width == 0 && elementRectTemp.Height == 0)
                     throw new Exception("Could not match the template provided in this trial. Probably in the subsequent trial, the template would be matched.");
             }
             catch (System.IO.FileNotFoundException ex)
@@ -476,7 +469,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
 
            
-            if (searchRegion != null && searchRect != Rectangle.Empty)
+            if (searchRegion != null && (searchRect.Width > 0 || searchRect.Height > 0))
             {
                 elementRectTemp.X += searchRect.X;
                 elementRectTemp.Y += searchRect.Y;
@@ -484,10 +477,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             return elementRectTemp;
         }
 
-        public static Rectangle WaitForElement(string filename, bool templateMachingInOriginalScale = false, bool useTrueColorTemplateMatching = false, object searchRegion = null, Stream sourceImageToMatch = null)
+        public static Rect WaitForElement(string filename, bool templateMachingInOriginalScale = false, bool useTrueColorTemplateMatching = false, object searchRegion = null, Stream sourceImageToMatch = null)
         {
-            Rectangle elementRectTemp = Rectangle.Empty;
-            while (elementRectTemp == Rectangle.Empty)
+            Rect elementRectTemp = new Rect();
+            while (elementRectTemp.Width == 0 && elementRectTemp.Height == 0)
             {
                 try
                 {
@@ -522,7 +515,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             bool forever=false;
             TemplateMatching[] elementRectTemp;
             DateTime startTime=DateTime.Now;
-            Mat sourceMatches = new Mat();
+            Mat sourceMatches=null;
             angle=0;
             try
             {
@@ -532,7 +525,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     forever = true;
                 if (System.IO.File.Exists(filename))
                 {
-                    Mat template = new Mat(filename, ImreadModes.Color);
+                    Mat template = Cv2.ImRead(filename, ImreadModes.Grayscale);
                    
                     bool backgroundProcessing = false;
                    
@@ -541,12 +534,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         currentCount = rects.Count;
                         if (currentCount > 0)
                             forever = false;
-                        Mat source = new Mat();
+                        Mat source = null;
                         if (sourceImageToMatch != null)
                         {
-                            
-                            var bmp = new Bitmap(sourceImageToMatch);
-                            source = BitmapConverter.ToMat(bmp);
+                            sourceImageToMatch.Position = 0;
+                            using (var ms = new MemoryStream()) { sourceImageToMatch.CopyTo(ms); source = Cv2.ImDecode(ms.ToArray(), ImreadModes.Grayscale); }
 
                             backgroundProcessing = true;
                             if (enableTemplateMatchMap)
@@ -555,14 +547,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                 {
 
                                    
-                                    var btmp = new Bitmap(new MemoryStream(templateMatchMapScreen));
-                                    sourceMatches = BitmapConverter.ToMat(btmp);
+                                    sourceMatches = Cv2.ImDecode(templateMatchMapScreen, ImreadModes.Color);
                                 }
                                 else
                                 {
                                    
-                                    var btmp = new Bitmap(sourceImageToMatch);
-                                    sourceMatches = BitmapConverter.ToMat(btmp);
+                                    sourceImageToMatch.Position = 0;
+                                    using (var ms2 = new MemoryStream()) { sourceImageToMatch.CopyTo(ms2); sourceMatches = Cv2.ImDecode(ms2.ToArray(), ImreadModes.Color); }
 
                                 }
                             }
@@ -572,18 +563,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         {
                             boxes.ForEach(b =>
                             {
-                                //source.FillConvexPoly(b, new Gray(0));
-                                source.FillConvexPoly(b, new Scalar(0, 0, 0));
+                                Cv2.FillConvexPoly(source, b, new Scalar(0));
                             });
-                            Cv2.Polylines(source, boxes, true, new Scalar(TemplateMatchMapBorderColor.Blue, TemplateMatchMapBorderColor.Green, TemplateMatchMapBorderColor.Red), TemplateMatchMapBorderThickness);
-                            //boxes.ForEach(b =>
-                            //{
+                            boxes.ForEach(b =>
+                            {
 
-                            //    sourceMatches.DrawPolyline(b, true,
-                            //        new Bgr(TemplateMatchMapBorderColor.Blue, TemplateMatchMapBorderColor.Green, TemplateMatchMapBorderColor.Red),
-                            //        TemplateMatchMapBorderThickness);
+                                Cv2.Polylines(sourceMatches, new[]{b}, true,
+                                    new Scalar(TemplateMatchMapBorderColor.Blue, TemplateMatchMapBorderColor.Green, TemplateMatchMapBorderColor.Red),
+                                    TemplateMatchMapBorderThickness);
 
-                            //});
+                            });
 
                         }
                         if(multipleScaleMatching && multiRotationMatching) {
@@ -899,7 +888,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             if (enableTemplateMatchMap)
             {
                 if (sourceMatches != null)
-                    templateMatchMapScreen = sourceMatches.ImEncode(".jpg");
+                {
+                    Cv2.ImEncode(".jpg", sourceMatches, out byte[] encoded);
+                    templateMatchMapScreen = encoded;
+                }
             }
             return rects;
         }
@@ -913,7 +905,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             bool forever=false;
             
             TemplateMatching[] elementRectTemp;
-            Mat sourceMatches = new Mat();
+            Mat sourceMatches=null;
             DateTime startTime=DateTime.Now;
             angle=0;
             try
@@ -925,7 +917,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     forever = true;
                 if (System.IO.File.Exists(filename))
                 {
-                    Mat template = new Mat(filename, ImreadModes.Color);
+                    Mat template = Cv2.ImRead(filename, ImreadModes.Color);
                     bool backgroundProcessing = false;
 
                     
@@ -937,12 +929,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         if (currentCount > 0)
                             forever = false;
 
-                        Mat source = new Mat();
+                        Mat source = null;
                         if (sourceImageToMatch != null)
                         {
-                            
-                            var bmp = new Bitmap(sourceImageToMatch);
-                            source = BitmapConverter.ToMat(bmp);
+                            sourceImageToMatch.Position = 0;
+                            using (var ms = new MemoryStream()) { sourceImageToMatch.CopyTo(ms); source = Cv2.ImDecode(ms.ToArray(), ImreadModes.Color); }
                             backgroundProcessing = true;
                         }
                         
@@ -952,15 +943,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                             {
 
                                 
-                                var btmp = new Bitmap(new MemoryStream(templateMatchMapScreen));
-                                sourceMatches = BitmapConverter.ToMat(btmp);
+                                sourceMatches = Cv2.ImDecode(templateMatchMapScreen, ImreadModes.Color);
                             }
                             else
                             {
 
                               
-                                var btmp = source.ToBitmap();
-                                sourceMatches = BitmapConverter.ToMat(btmp);
+                                sourceMatches = source.Clone();
                             }
 
                         }
@@ -969,20 +958,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         {
                             boxes.ForEach(b =>
                             {
-                                //source.FillConvexPoly(b, new Bgr(Color.Black));
                                 Cv2.FillConvexPoly(source, b, new Scalar(0, 0, 0));
                             });
-                            Cv2.Polylines(source, boxes, true, new Scalar(TemplateMatchMapBorderColor.Blue, TemplateMatchMapBorderColor.Green, TemplateMatchMapBorderColor.Red),
-                                    TemplateMatchMapBorderThickness);
-                            
-                            //boxes.ForEach(b =>
-                            //{
-                                
-                            //    sourceMatches.DrawPolyline(b, true,
-                            //        new Bgr(TemplateMatchMapBorderColor.Blue, TemplateMatchMapBorderColor.Green, TemplateMatchMapBorderColor.Red),
-                            //        TemplateMatchMapBorderThickness);
 
-                            //});
+                            
+                            boxes.ForEach(b =>
+                            {
+                                
+                                Cv2.Polylines(sourceMatches, new[]{b}, true,
+                                    new Scalar(TemplateMatchMapBorderColor.Blue, TemplateMatchMapBorderColor.Green, TemplateMatchMapBorderColor.Red),
+                                    TemplateMatchMapBorderThickness);
+
+                            });
                         }
                         if(multipleScaleMatching && multiRotationMatching) {
                             
@@ -1318,7 +1305,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             if (enableTemplateMatchMap)
             {
                 if (sourceMatches != null)
-                    templateMatchMapScreen = sourceMatches.ImEncode(".jpg");
+                {
+                    Cv2.ImEncode(".jpg", sourceMatches, out byte[] encoded);
+                    templateMatchMapScreen = encoded;
+                }
             }
             return rects;
         }
@@ -1329,11 +1319,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
         public static void SaveImageGray(Mat image, string filePathToSave)
         {
-            image.ImWrite(filePathToSave);
+            Cv2.ImWrite(filePathToSave, image);
         }
         public static void SaveImageTrueColor(Mat image, string filePathToSave)
         {
-            image.ImWrite(filePathToSave);
+            Cv2.ImWrite(filePathToSave, image);
         }
 
        
@@ -1342,7 +1332,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
         private static Mat ResizeTemplate(Mat template, double scale)
         {
-            Mat resizedTemplate = new Mat();
+            Mat resizedTemplate = null;
             try
             {
                 if (scale == 0)
@@ -1350,7 +1340,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     return null;
                 else if (scale < 0)
                 {
-                    scale = 1 / (scale);
+                    scale = 1 / (scale);  
+                                        
                 }
                 if (scale < 0.5) 
                     return null;
@@ -1358,7 +1349,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 if (template.Width * template.Height < 250)
                     return template;
 
-                resizedTemplate = template.Resize(new OpenCvSharp.Size(), scale, scale, InterpolationFlags.Lanczos4);
+                resizedTemplate = new Mat();
+                Cv2.Resize(template, resizedTemplate, new OpenCvSharp.Size(0, 0), scale, scale, InterpolationFlags.Lanczos4);
 
                 if (resizedTemplate.Width * resizedTemplate.Height < 250)
                     return null;
@@ -1388,7 +1380,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 }
                 if (scale < 0.5) 
                     return null;
-                resizedTemplate = template.Resize(new OpenCvSharp.Size(), scale, scale, InterpolationFlags.Lanczos4);
+                resizedTemplate = new Mat();
+                Cv2.Resize(template, resizedTemplate, new OpenCvSharp.Size(0, 0), scale, scale, InterpolationFlags.Lanczos4);
             }
             catch
             {
@@ -1398,11 +1391,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         }
 
         private static Mat RotateImageInTrueColor(Mat image,double angle) {
-            Mat rotatedImage = new Mat();
+            Mat rotatedImage=null;
             try {
-                Point2f center = new Point2f(image.Width / 2.0f, image.Height / 2.0f);
-                InputArray rotationMatrix = Cv2.GetRotationMatrix2D(center, angle, 1.0);
-                Cv2.WarpAffine(image, rotatedImage, rotationMatrix, image.Size(), InterpolationFlags.Linear, BorderTypes.Constant, new Scalar(255, 255, 255));
+                OpenCvSharp.Point2f center = new OpenCvSharp.Point2f(image.Width / 2f, image.Height / 2f);
+                Mat rotMat = Cv2.GetRotationMatrix2D(center, angle, 1.0);
+                rotatedImage = new Mat();
+                Cv2.WarpAffine(image, rotatedImage, rotMat, image.Size(), InterpolationFlags.Linear, BorderTypes.Constant, new Scalar(255,255,255));
             }
             catch {
                 
@@ -1411,11 +1405,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
         }
 
         private static Mat RotateImage(Mat image,double angle) {
-            Mat rotatedImage = new Mat();
+            Mat rotatedImage=null;
             try {
-                Point2f center = new Point2f(image.Width / 2.0f, image.Height / 2.0f);
-                InputArray rotationMatrix = Cv2.GetRotationMatrix2D(center, angle, 1.0);
-                Cv2.WarpAffine(image, rotatedImage, rotationMatrix, image.Size(), InterpolationFlags.Linear, BorderTypes.Constant, new Scalar(255, 255, 255));
+                OpenCvSharp.Point2f center = new OpenCvSharp.Point2f(image.Width / 2f, image.Height / 2f);
+                Mat rotMat = Cv2.GetRotationMatrix2D(center, angle, 1.0);
+                rotatedImage = new Mat();
+                Cv2.WarpAffine(image, rotatedImage, rotMat, image.Size(), InterpolationFlags.Linear, BorderTypes.Constant, new Scalar(1));
             }
             catch {
                
@@ -1423,22 +1418,21 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             return rotatedImage;
         }
 
-        private static Rectangle FindRectangle(Mat source, Mat template, double confidence)
+        private static Rect FindRectangle(Mat source, Mat template, double confidence)
         {
-            Rectangle rect = Rectangle.Empty;
+            Rect rect = new Rect();
             try
             {
-                confidence = confidence / 100;
-                using (Mat result = source.MatchTemplate(template, TemplateMatchModes.CCoeffNormed))
+                confidence = confidence / 100; 
+                using (Mat result = new Mat())
                 {
-                    double minValues, maxValues;
-                    Point minLocations, maxLocations;
-                    result.MinMaxLoc(out minValues, out maxValues, out minLocations, out maxLocations);
+                    Cv2.MatchTemplate(source, template, result, TemplateMatchModes.CCoeffNormed);
+                    Cv2.MinMaxLoc(result, out double minValue, out double maxValue, out Point minLocation, out Point maxLocation);
 
-                    if ((maxValues <= 1.0) && (maxValues >= confidence))
-                    {
-
-                        rect = new Rectangle(maxLocations.X, maxLocations.Y, template.Size().Width, template.Size().Height);
+                    if ((maxValue <= 1.0) && (maxValue >= confidence))
+                    {    
+                        
+                        rect = new Rect(maxLocation.X, maxLocation.Y, template.Width, template.Height);
 
                     }
                 }
@@ -1457,25 +1451,26 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             TemplateMatching[] objTemplates = null;
             try
             {
-                confidence = confidence / 100;
-
-                using (Mat result = source.MatchTemplate(template, TemplateMatchModes.CCorrNormed))
+                confidence = confidence / 100; 
+                
+                using (Mat result = new Mat())
                 {
-                    double minValues, maxValues;
-                    Point minLocations, maxLocations;
-                    result.MinMaxLoc(out minValues, out maxValues, out minLocations, out maxLocations);
+                    Cv2.MatchTemplate(source, template, result, TemplateMatchModes.CCoeffNormed);
+                    Cv2.MinMaxLoc(result, out double minValue, out double maxValue, out Point minLocation, out Point maxLocation);
+                    double[] maxValues = new[] { maxValue };
+                    Point[] maxLocations = new[] { maxLocation };
 
-
-                    objTemplates = new TemplateMatching[1];
-                    for (int iCount = 0; iCount < maxValues; iCount++)
+                    
+                    objTemplates = new TemplateMatching[maxValues.Count()];
+                    for (int iCount = 0; iCount < maxValues.Count(); iCount++)
                     {
 
-                        if ((maxValues <= 1.0) && (maxValues >= confidence))
-                        {
-                            Rectangle rect = new Rectangle(maxLocations.X, maxLocations.Y, template.Size().Width, template.Size().Height);
+                        if ((maxValues[iCount] <= 1.0) && (maxValues[iCount] >= confidence))
+                        {    
+                            Rect rect = new Rect(maxLocations[0].X, maxLocations[0].Y, template.Width, template.Height);
                             TemplateMatching objTemplate = new TemplateMatching();
                             objTemplate.BoundingBox = rect;
-                            objTemplate.ConfidenceScore = maxValues;
+                            objTemplate.ConfidenceScore = maxValues[iCount];
                             objTemplates.SetValue(objTemplate, iCount);
                         }
                     }
@@ -1489,20 +1484,19 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             }
             return objTemplates;
         }
-        private static Rectangle FindRectangleInTrueColor(Mat source, Mat template, double confidence)
+        private static Rect FindRectangleInTrueColor(Mat source, Mat template, double confidence)
         {
-            Rectangle rect = Rectangle.Empty;
+            Rect rect = new Rect();
             try
             {
-                confidence = confidence / 100;
-                using (Mat result = source.MatchTemplate(template, TemplateMatchModes.CCoeffNormed))
+                confidence = confidence / 100; 
+                using (Mat result = new Mat())
                 {
-                    double minValues, maxValues;
-                    Point minLocations, maxLocations;
-                    result.MinMaxLoc(out minValues, out maxValues, out minLocations, out maxLocations);
-                    if ((maxValues <= 1.0) && (maxValues >= confidence))
-                    {
-                        rect = new Rectangle(maxLocations.X, maxLocations.Y, template.Size().Width, template.Size().Height);
+                    Cv2.MatchTemplate(source, template, result, TemplateMatchModes.CCoeffNormed);
+                    Cv2.MinMaxLoc(result, out double minValue, out double maxValue, out Point minLocation, out Point maxLocation);
+                    if ((maxValue <= 1.0) && (maxValue >= confidence))
+                    {   
+                        rect = new Rect(maxLocation.X, maxLocation.Y, template.Width, template.Height);
                     }
                 }
             }
@@ -1523,28 +1517,33 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
             try
             {
-                confidence = confidence / 100;
-                using (Mat result = source.MatchTemplate(template, TemplateMatchModes.CCoeffNormed))
+                confidence = confidence / 100; 
+                using (Mat result = new Mat())
                 {
-                    double minValues, maxValues, imgMatchConfidenceScores;
-                    Point minLocations, maxLocations;
-                    result.MinMaxLoc(out minValues, out maxValues, out minLocations, out maxLocations);
-
-                    objTemplates = new TemplateMatching[1];
-
-
-
-                    if ((maxValues <= 1.0) && (maxValues >= confidence))
+                    Cv2.MatchTemplate(source, template, result, TemplateMatchModes.CCoeffNormed);
+                    Cv2.MinMaxLoc(result, out double minValue, out double maxValue, out Point minLocation, out Point maxLocation);
+                    double[] maxValues = new[] { maxValue };
+                    Point[] maxLocations = new[] { maxLocation };
+                    
+                    objTemplates = new TemplateMatching[maxValues.Count()];
+                    
+                    for (int iCount = 0; iCount < maxValues.Count(); iCount++)
                     {
 
-                        Rectangle rect = new Rectangle(maxLocations.X, maxLocations.Y, template.Size().Width, template.Size().Height);
-                        TemplateMatching objTemplate = new TemplateMatching();
-                        objTemplate.BoundingBox = rect;
-                        objTemplate.ConfidenceScore = maxValues;
+                        if ((maxValues[iCount] <= 1.0) && (maxValues[iCount] >= confidence))
+                        {   
 
+                            Rect rect = new Rect(maxLocations[iCount].X, maxLocations[iCount].Y, template.Width, template.Height);
+                            TemplateMatching objTemplate = new TemplateMatching();
+                            objTemplate.BoundingBox = rect;
+                            objTemplate.ConfidenceScore = maxValues[iCount];
 
-                        objTemplates.SetValue(objTemplate, 0);
+                            
+                            objTemplates.SetValue(objTemplate, iCount);
+                        }
+
                     }
+
                 }
             }
             catch (Exception ex)
@@ -1556,13 +1555,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             return objTemplates;
         }
 
-        private static Point[] RectToBox(Rectangle rectangle)
+        private static Point[] RectToBox(Rect rectangle)
         {
             Point[] box = null;
-            if (rectangle != Rectangle.Empty)
+            if (rectangle.Width > 0 || rectangle.Height > 0)
             {
-                Point topLeft = new Point((int)rectangle.X, (int)rectangle.Y);
-                Point bottomRight = new Point(topLeft.X + (int)rectangle.Width, topLeft.Y + (int)rectangle.Height);
+                Point topLeft = new Point(rectangle.X, rectangle.Y);
+                Point bottomRight = new Point(topLeft.X + rectangle.Width, topLeft.Y + rectangle.Height);
                 Point topRight = new Point(bottomRight.X, topLeft.Y);
                 Point bottomLeft = new Point(topLeft.X, bottomRight.Y);
                 box = new Point[] { topRight, topLeft, bottomLeft, bottomRight };

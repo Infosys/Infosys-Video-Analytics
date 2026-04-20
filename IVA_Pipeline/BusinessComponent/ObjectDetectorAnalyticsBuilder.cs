@@ -21,7 +21,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
     public class ObjectDetectorAnalyticsBuilder
     {
         private static AppSettings appSettings = Config.AppSettings;
-        public static DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.ObjectDetectorAnalytics);
+        public static DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.ObjectDetectorAnalytics,null);
         string predictionType=deviceDetails.PredictionType;
         public List<ObjectDetectorAnalyticsRes> GetLocationBasedCount(ObjectDetectorAnalytics inpObj)
         {

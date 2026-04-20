@@ -27,6 +27,7 @@ using static Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common.Appl
 using System.Threading;
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using Nest;
+using System.Linq;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 {
@@ -42,15 +43,21 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         
         static Queue personCountQueue = (Queue)cache.Get(cacheKey);
         TaskRoute taskRouter = new TaskRoute();
-        DeviceDetails deviceDetails;
+        static DeviceDetails deviceDetails;
         AppSettings appSettings = Config.AppSettings;
 
         public string _taskCode;
         public PersonTracking() { }
-        public PersonTracking(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
-            deviceDetails = ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(), appSettings.DeviceID, "PT");
+        public PersonTracking(string processId,Dictionary<string,string> arguments) {
+            deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,"PT",arguments);
+            if(arguments!=null && arguments.Count>0) {
+                string type=arguments[arguments.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=BusinessComponent.Helper.UpdateConfigValues(arguments,deviceDetails);
+                }
+            }
+            _taskCode=TaskRoute.GetTaskCode(processId,arguments);
+            UpdateEnvironmentVariables();
         }
 
         public override void Dump(QueueEntity.PersonCountMetaData message)
@@ -149,7 +156,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     }
                     BE.Queue.PersonCountMetaData beReceivedMessage = new BE.Queue.PersonCountMetaData();
                     beReceivedMessage = BE.FaceMaskTranslator.PersonCountDEToBE(message);
-                    DeviceDetails deviceDetails = ConfigHelper.SetDeviceDetails(beReceivedMessage.Tid, beReceivedMessage.Did, "PT");
+                    //DeviceDetails deviceDetails = ConfigHelper.SetDeviceDetails(beReceivedMessage.Tid, beReceivedMessage.Did, "PT");
 
                     if (beReceivedMessage.Fid != null & beReceivedMessage.Fid != "")
                     {
@@ -197,41 +204,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                           
                         }
 
-                        #region  Commenting old request part for testing new response structure
-                        /*
-                       if (personCountQueue.Count > 0)
-                       {
-                           BE.Queue.PersonCount[] boundingboxblank = new BE.Queue.PersonCount[personCountQueue.Count];
-                           int i = 0;
-                           foreach (BE.Queue.PersonCount[] ele in personCountQueue)
-                           {
-                               boundingboxblank[i] = ele[0];
-                               i = i + 1;
-                           }
-                           payload.Tid = message.Tid;
-                           payload.Did = message.Did;
-                           payload.Fid = message.Fid;
-                           
-                           payload.Cs = deviceDetails.SimilarityThreshold;
-                           payload.Per = boundingboxblank;
-                       }
-                       else
-                       {
-                           var boundingboxblank = JsonConvert.DeserializeObject<BE.Queue.PersonCount[]>("[]");
-                           payload.Tid = message.Tid;
-                           payload.Did = message.Did;
-                           payload.Fid = message.Fid;
-                          
-                           payload.Cs = deviceDetails.SimilarityThreshold;
-                           payload.Per = boundingboxblank;
-
-                       }
-                       var input = JsonConvert.SerializeObject(payload);
-                       */
-                        #endregion
-
-
-                       
                         var blobImage = VideoAnalytics.BusinessComponent.Helper.DownloadBlob(beReceivedMessage.Did, beReceivedMessage.Fid, beReceivedMessage.Tid, deviceDetails.StorageBaseUrl, ".jpg");
                         if (deviceDetails.SharedBlobStorage)
                         {
@@ -382,14 +354,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         private void sendMessage(DE.Queue.FrameRendererMetadata deReceivedFrameRendererMessage, QueueEntity.PersonCountMetaData message)
         {
-            TaskRouteMetadata taskRouteMetadata = taskRouter.GetTaskRouteConfig(deReceivedFrameRendererMessage.Tid, deReceivedFrameRendererMessage.Did);
+            TaskRouteMetadata taskRouteMetadata=taskRouter.GetTaskRouteConfig(deReceivedFrameRendererMessage.Tid,deReceivedFrameRendererMessage.Did,deviceDetails);
             List<string> taskList = message.TE[TaskRouteConstants.UniquePersonCode];
             if (taskList != null)
             {
                 foreach (var task in taskList)
                 {
                     Dictionary<string, List<string>> te = new Dictionary<string, List<string>>();
-                    te = taskRouter.GetTaskRouteDetails(deReceivedFrameRendererMessage.Tid, deReceivedFrameRendererMessage.Did, task);
+                    te=taskRouter.GetTaskRouteDetails(deReceivedFrameRendererMessage.Tid,deReceivedFrameRendererMessage.Did,task,deviceDetails);
                     deReceivedFrameRendererMessage.TE = te;
                     taskRouter.SendMessageToQueueWithTask(taskRouteMetadata, TaskRouteConstants.UniquePersonCode, deReceivedFrameRendererMessage, task);
                 }
@@ -398,14 +370,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         private void sendMessage(DE.Queue.FrameRendererMetadata deReceivedFrameRendererMessage)
         {
-            TaskRouteMetadata taskRouteMetadata = taskRouter.GetTaskRouteConfig(deReceivedFrameRendererMessage.Tid, deReceivedFrameRendererMessage.Did);
+            TaskRouteMetadata taskRouteMetadata=taskRouter.GetTaskRouteConfig(deReceivedFrameRendererMessage.Tid,deReceivedFrameRendererMessage.Did,deviceDetails);
             List<string> taskList = deReceivedFrameRendererMessage.TE[TaskRouteConstants.UniquePersonCode];
             if (taskList != null)
             {
                 foreach (var task in taskList)
                 {
                     Dictionary<string, List<string>> te = new Dictionary<string, List<string>>();
-                    te = taskRouter.GetTaskRouteDetails(deReceivedFrameRendererMessage.Tid, deReceivedFrameRendererMessage.Did, task);
+                    te=taskRouter.GetTaskRouteDetails(deReceivedFrameRendererMessage.Tid,deReceivedFrameRendererMessage.Did,task,deviceDetails);
                     deReceivedFrameRendererMessage.TE = te;
                     taskRouter.SendMessageToQueueWithTask(taskRouteMetadata, TaskRouteConstants.UniquePersonCode, deReceivedFrameRendererMessage, task);
                 }
@@ -414,8 +386,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
 
         private void sendEventMessage(QueueEntity.MaintenanceMetaData message)
         {
-            TaskRouteMetadata taskRouteMetadata = taskRouter.GetTaskRouteConfig(message.Tid, message.Did);
-            var taskList = taskRouter.GetTaskRouteDetails(message.Tid, message.Did, TaskRouteConstants.UniquePersonCode)[TaskRouteConstants.UniquePersonCode];
+            TaskRouteMetadata taskRouteMetadata=taskRouter.GetTaskRouteConfig(message.Tid,message.Did,deviceDetails);
+            var taskList=taskRouter.GetTaskRouteDetails(message.Tid,message.Did,TaskRouteConstants.UniquePersonCode,deviceDetails)[TaskRouteConstants.UniquePersonCode];
             if (taskList != null)
             {
                 foreach (var task in taskList)
@@ -443,7 +415,30 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             return true;
         }
 
-
+        public static void UpdateEnvironmentVariables()
+        {
+            LIFAdapter adapter = new LIFAdapter();
+            Dictionary<string, string?> environmentValues = new Dictionary<string, string?>();
+            int retry = deviceDetails.EnvironmentAdapterRetryLimit;
+            while (retry > 0)
+            {
+                try
+                {
+                    adapter.GetEnvironmentVariables(ApplicationConstants.ENVIRONMENT_REGION, out environmentValues);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    retry--;
+                    LogHandler.LogError("Error while assigning environment variables, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.FrameProcessor, ex.Message, ex.InnerException, ex.StackTrace);
+                    if (retry == 0)
+                    {
+                        LogHandler.LogError("Exception in environment adapter, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.FrameProcessor, ex.Message, ex.InnerException, ex.StackTrace);
+                    }
+                }
+            }
+            deviceDetails = BusinessComponent.Helper.UpdateConfigValues(environmentValues, deviceDetails);
+        }
 
     }
 }

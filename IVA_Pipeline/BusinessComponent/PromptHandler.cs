@@ -16,6 +16,7 @@ using System.Runtime.Caching;
 using BE = Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
+using System.Linq;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 {
@@ -26,14 +27,23 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         public static string _taskCode;
 
         public static Dictionary<string, List<string>> targetTaskRoute;
+        public static Dictionary<string,string> args;
+        public static DeviceDetails deviceDetails;
 
         public PromptHandler() { }
 
-        public PromptHandler(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
+        public PromptHandler(string processId,Dictionary<string,string> arguments) {
+            args=arguments;
+            _taskCode=TaskRoute.GetTaskCode(processId,args);
+            deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.PromptHandler,args);
+            if(args!=null && args.Count>0) {
+                string type=args[args.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=Helper.UpdateConfigValues(args,deviceDetails);
+                }
+            }
             PromptHandlerHelper._taskCode = _taskCode;
-            targetTaskRoute = new TaskRoute().GetTaskRouteDetails(appSettings.TenantID.ToString(), appSettings.DeviceID, _taskCode);
+            targetTaskRoute=new TaskRoute().GetTaskRouteDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,_taskCode,deviceDetails);
         }
         
         private static string Hp;
@@ -47,7 +57,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         {
             if (message == null)
             {
-                ReadFromConfig();
+                /* ReadFromConfig(); */
             }
             else
             {
@@ -223,8 +233,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
         private void sendEventMessage(QueueEntity.MaintenanceMetaData message)
         {
-            TaskRouteMetadata taskRouteMetadata = new TaskRoute().GetTaskRouteConfig(message.Tid, message.Did);
-            var taskList = new TaskRoute().GetTaskRouteDetails(message.Tid, message.Did, _taskCode)[_taskCode];
+            TaskRouteMetadata taskRouteMetadata=new TaskRoute().GetTaskRouteConfig(message.Tid,message.Did,deviceDetails);
+            var taskList=new TaskRoute().GetTaskRouteDetails(message.Tid,message.Did,_taskCode,deviceDetails)[_taskCode];
             if (taskList != null)
             {
                 foreach (var task in taskList)

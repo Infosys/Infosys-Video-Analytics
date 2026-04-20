@@ -51,12 +51,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         static private Dictionary<string, int> lastFrameNumberSendForPredictDetails = new Dictionary<string, int>();
         static private Dictionary<string, int> totalFrameCountDetails = new Dictionary<string, int>();
         static private Dictionary<string, int> totalFrameSendForPredictDetails = new Dictionary<string, int>();
+        static DeviceDetails deviceDetails;
 
         public string _taskCode;
+        public static Dictionary<string,string> args;
         public FrameElasticSearchProcess() { }
-        public FrameElasticSearchProcess(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
+        public FrameElasticSearchProcess(string processId,Dictionary<string,string> arguments) {
+            args=arguments;
+            _taskCode=TaskRoute.GetTaskCode(processId,args);
         }
 
         public override void Dump(QueueEntity.FrameElasticSearchMetaData message)
@@ -120,9 +122,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         {
             
             AppSettings appSettings = Config.AppSettings;
-            DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.FrameElasticSearch);
+            deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.FrameElasticSearch,args);
+            if(args!=null && args.Count>0) {
+                string type=args[args.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=Helper.UpdateConfigValues(args,deviceDetails);
+                }
+            }
             /* Added to read elastic store index name from Device.json */
-            elasticStoreIndexName=deviceDetails.ElasticStoreIndexName;
+                elasticStoreIndexName =deviceDetails.ElasticStoreIndexName;
             if (ConfigurationManager.AppSettings["FrameCacheSlidingExpirationInMins"] != null)
             {
                 frameCacheSlidingExpirationInMins = Convert.ToDouble(System.Configuration.ConfigurationManager.AppSettings["FrameCacheSlidingExpirationInMins"]);
@@ -132,7 +140,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                 
                 predictionType=deviceDetails.PredictionType;
             }
-
+            deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.FrameElasticSearch,args);
+            if(args!=null && args.Count>0) {
+                string type=args[args.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=Helper.UpdateConfigValues(args,deviceDetails);
+                }
+            }
         }
 
         private void CacheCleanUp(string[] resourceIdList)
@@ -155,7 +169,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
             processStopWatch.Reset();
             processStopWatch.Start();
             counterInstanceName = message.Tid + "_" + message.Did;
-            DeviceDetails response = ConfigHelper.SetDeviceDetails(message.Tid, message.Did, CacheConstants.FrameElasticSearch);
+            //DeviceDetails response = ConfigHelper.SetDeviceDetails(message.Tid, message.Did, CacheConstants.FrameElasticSearch);
 
             TaskRoute taskRouter = new TaskRoute();
 #if DEBUG
@@ -235,7 +249,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
                     {
                         return true;
                     }
-                    if (response.EnableElasticStore.ToLower() == "no")
+                    if (deviceDetails.EnableElasticStore.ToLower() == "no")
                     {
                         ElasticSearchEntityTranslator elasticSearchCollectorEntityTranslator = new ElasticSearchEntityTranslator();
                         DE.FrameElasticSearchMetadata frameElasticSearch = elasticSearchCollectorEntityTranslator.DataCollectorTranslator(message);

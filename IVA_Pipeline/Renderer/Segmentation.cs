@@ -3,10 +3,9 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-using OpenCvSharp;
+﻿using OpenCvSharp;
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using Newtonsoft.Json;
-using System.Drawing;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
@@ -34,6 +33,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
                     List<List<float>> tpc = objectList[obj].Tpc;
                     int h = image.Height;
                     int w = image.Width;
+                    Mat overlay = image.Clone();
 
                     if (deviceDetails.PanopticSegmentation.Equals("yes", StringComparison.InvariantCultureIgnoreCase))
                     {
@@ -42,9 +42,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
                             int x = (int)Math.Round(tpc[i][0] * w);
                             int y = (int)Math.Round(tpc[i][1] * h);
                             string pickColor = segmentColors[(obj + 1).ToString()];
-                            Color objectColor = System.Drawing.Color.FromName(pickColor);
-                            tpcColor = new Vec3b(objectColor.B, objectColor.G, objectColor.R);
-                            image.Set<Vec3b>(y, x, tpcColor);
+                            Scalar objectColor = ColorHelper.ColorNameToScalar(pickColor);
+                            tpcColor = new Vec3b((byte)objectColor.Val0, (byte)objectColor.Val1, (byte)objectColor.Val2);
+                            image.Set(y,x,tpcColor);
                         }
                     }
                     else
@@ -55,9 +55,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
                             int y = (int)Math.Round(tpc[i][1] * h);
                            
                             string pickColor = labelColors[objectList[obj].Lb];
-                            Color objectColor = System.Drawing.Color.FromName(pickColor);
-                            tpcColor = new Vec3b(objectColor.B, objectColor.G, objectColor.R);
-                            image.Set<Vec3b>(y, x, tpcColor);
+                            Scalar objectColor = ColorHelper.ColorNameToScalar(pickColor);
+                            tpcColor = new Vec3b((byte)objectColor.Val0, (byte)objectColor.Val1, (byte)objectColor.Val2);
+                            image.Set(y,x,tpcColor);
                         }
                     }
                     for (int i = 0; i < bpc.Count; i++)
@@ -65,9 +65,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
                         int x = (int)Math.Round(bpc[i][0] * w);
                         int y = (int)Math.Round(bpc[i][1] * h);
                         bpcColor = image.At<Vec3b>(y, x);
-                        bpcColor.Item2 = 255;
-                        image.Set<Vec3b>(y, x, bpcColor);
+                        bpcColor[2] = 255;
+                        image.Set(y,x,bpcColor);
                     }
+                    double alpha=deviceDetails.RendererBackgroundTransparency;
+                    if(alpha!=0) {
+                        Cv2.AddWeighted(image,alpha,overlay,1-alpha,0,image);
+                    }
+                    overlay.Dispose();
                 }
             }
             return image;

@@ -3,12 +3,11 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-using OpenCvSharp;
+﻿using OpenCvSharp;
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
 using Newtonsoft.Json.Linq;
-using System.Drawing;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
 {
@@ -19,8 +18,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
             Rect rectangle = new Rect();
             Scalar color = new Scalar();
             #region Added background color from Device.json
-            Color clBgColor = Color.FromName(deviceDetails.BackgroundColor);
-            Color clBgColorPredictCartList = Color.FromName(deviceDetails.RendererPredictCartListBackgroundColor);
+            Scalar clBgColor = ColorHelper.ColorNameToScalar(deviceDetails.BackgroundColor);
+            Scalar clBgColorPredictCartList = ColorHelper.ColorNameToScalar(deviceDetails.RendererPredictCartListBackgroundColor);
             #endregion
             if (deviceDetails.SharedBlobStorage && deviceDetails.PredictCart.Equals("yes", StringComparison.InvariantCultureIgnoreCase))
             {
@@ -33,18 +32,22 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
                         var outCome = jObjects["Outcome"].ToString();
                         var Obj = jObjects["Obj"].ToString();
                         #endregion
-                        rectangle = new Rect(10, 10, 700, 35);
-
-                        color = new Scalar(clBgColor.R, clBgColor.G, clBgColor.B);
-                        Cv2.Rectangle(image, rectangle, color, deviceDetails.PenThickness);
-                        Cv2.Rectangle(image, rectangle, color, -1);
-                        rectangle = new Rect(10, 50, 200, 115);
-
-                        color = new Scalar(clBgColorPredictCartList.R, clBgColorPredictCartList.G, clBgColorPredictCartList.B);
-                        Cv2.Rectangle(image, rectangle, color, deviceDetails.PenThickness);
-                        Cv2.Rectangle(image, rectangle, color, -1);
-                        int width = 30;
-                        OpenCvSharp.Point point1 = new OpenCvSharp.Point(10, width);
+                        rectangle=new Rect(10,10,700,35);
+                        color=new Scalar(clBgColor.Val0,clBgColor.Val1,clBgColor.Val2);
+                        Mat overlay=image.Clone();
+                        Cv2.Rectangle(image,rectangle,color,deviceDetails.PenThickness);
+                        Cv2.Rectangle(image,rectangle,color,-1);
+                        rectangle=new Rect(10,50,200,122);
+                        color=new Scalar(clBgColorPredictCartList.Val0,clBgColorPredictCartList.Val1,clBgColorPredictCartList.Val2);
+                        Cv2.Rectangle(image,rectangle,color,deviceDetails.PenThickness);
+                        Cv2.Rectangle(image,rectangle,color,-1);
+                        double alpha=deviceDetails.RendererBackgroundTransparency;
+                        if(alpha!=0) {
+                            Cv2.AddWeighted(image,alpha,overlay,1-alpha,0,image);
+                        }
+                        overlay.Dispose();
+                        int width=35;
+                        Point point1=new Point(15,width);
                         color = new Scalar(255, 255, 255);
 
                         Cv2.PutText(image, outCome, point1, HersheyFonts.HersheySimplex, deviceDetails.RendererFontScale, color, deviceDetails.RendererFontThickness);
@@ -53,11 +56,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
                         
                         JObject jObjects1 = JObject.Parse(Obj);
 
+                        width=width+6;
                         foreach (var jObject in jObjects1)
                         {
                             string message = jObject.Key + "  :  " + jObject.Value;
                             width = width + 30;
-                            OpenCvSharp.Point point2 = new OpenCvSharp.Point(10, width);
+                            Point point2=new Point(15,width);
                             Cv2.PutText(image, message, point2, HersheyFonts.HersheySimplex, deviceDetails.RendererFontScale, color, deviceDetails.RendererFontThickness);
                         }
                     }

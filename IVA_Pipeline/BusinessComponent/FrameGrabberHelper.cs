@@ -11,8 +11,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.IO;
-using System.Drawing;
-using System.Drawing.Imaging;
 using SE = Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts;
 using DA = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.DataAccess;
 using DE = Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity;
@@ -28,6 +26,7 @@ using System.Runtime.InteropServices;
 using System.Net;
 using System.Net.Security;
 using static Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common.ApplicationConstants;
+using OpenCvSharp;
 using System.Net.Http;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.VideoAnalytics;
 using Nest;
@@ -37,7 +36,6 @@ using Infosys.Solutions.Ainauto.VideoAnalytics.Services.MaskDetector.Contracts.D
 using System.Reflection;
 using System.IO.MemoryMappedFiles;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Framedetail;
-using OpenCvSharp;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 {
@@ -126,7 +124,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         public static readonly int maxSequenceNumber;
         public static bool cleanUpStreamingFolder = false;
         private static Dictionary<int, string> framesNotSendForRendering = new Dictionary<int, string>();
-        public static DeviceDetails deviceDetails = ConfigHelper.SetDeviceDetails(tenantId.ToString(), deviceId, CacheConstants.FrameGrabberCode);
+        public static DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(tenantId.ToString(),deviceId,CacheConstants.FrameGrabberCode,FrameGrabber.arguments);
         public static readonly int MaxThreadOnPool = deviceDetails.MaxThreadOnPool;
         #endregion
 
@@ -145,9 +143,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 ServicePointManager.ServerCertificateValidationCallback = new RemoteCertificateValidationCallback(delegate {
                     return true;
                 });
-                
-                DeviceDetails response = ConfigHelper.SetDeviceDetails(tenantId.ToString(), deviceId, CacheConstants.FrameGrabberCode);
-                if (response == null)
+                DeviceDetails response=ConfigHelper.SetDeviceDetails(tenantId.ToString(),deviceId,CacheConstants.FrameGrabberCode,FrameGrabber.arguments);
+                if(FrameGrabber.arguments!=null && FrameGrabber.arguments.Count>0) {
+                    string type=FrameGrabber.arguments[FrameGrabber.arguments.Keys.First()];
+                    if(type.ToLower()=="values") {
+                        deviceDetails=response=Helper.UpdateConfigValues(FrameGrabber.arguments,response);
+                    }
+                }
+                response = UpdateEnvironmentVariables(response);
+                if (response==null)
                     throw new FaceMaskDetectionCriticalException("Failed to get device configuration from services. Response is null.");
 #if DEBUG
                 LogHandler.LogDebug("The GetDeviceAttributes service is executed successfully to get config details for Tenant Id: {0} and Device Id: {1} at {2}.", LogHandler.Layer.FrameGrabber, tenantId, deviceId, DateTime.UtcNow.ToLongTimeString());
@@ -721,7 +725,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 Mat frameObj = lotFramesList[i];
                 if (frameObj != null)
                 {
-                    imageArr.Add(frameObj.ImEncode(".jpg"));
+                    Cv2.ImEncode(".jpg", frameObj, out byte[] buf);
+                    imageArr.Add(buf);
                 }
             }
 #if DEBUG
@@ -756,7 +761,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                                 if (UploadLotToBlob(zipFile, lotName))
                                 {
                                     
-                                    var taskList = taskRouter.GetTaskRouteDetails(tenantId.ToString(), deviceId, TaskRouteConstants.FrameGrabberLotCode)[TaskRouteConstants.FrameGrabberLotCode];
+                                    var taskList=taskRouter.GetTaskRouteDetails(tenantId.ToString(),deviceId,TaskRouteConstants.FrameGrabberLotCode,deviceDetails)[TaskRouteConstants.FrameGrabberLotCode];
                                     foreach (var task in taskList)
                                     {
                                         byte[] pcdBytes = Array.Empty<byte>();
@@ -848,7 +853,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                         {
                             if (frame != null)
                             {
-                                byte[] file = frame.ImEncode(".jpg");
+                                Cv2.ImEncode(".jpg", frame, out byte[] file);
                                 FrameGrabberHelper.UploadImage(file, grabberTimeArr[i]);
                             }
                             frame.Dispose();
@@ -858,7 +863,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
                    
 
-                    var taskList = taskRouter.GetTaskRouteDetails(tenantId.ToString(), deviceId, FrameGrabber._taskCode)[FrameGrabber._taskCode];
+                    var taskList=taskRouter.GetTaskRouteDetails(tenantId.ToString(),deviceId,FrameGrabber._taskCode,deviceDetails)[FrameGrabber._taskCode];
                     foreach (var task in taskList)
                     {
                         byte[] pcdBytes = Array.Empty<byte>();
@@ -1069,7 +1074,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     Sbu = storageBaseUrl,
                     Tid = tenantId.ToString(),
                     Mod = modelName,
-                    TE = taskRouter.GetTaskRouteDetails(tenantId.ToString(), deviceId, moduleCode),
+                    TE=taskRouter.GetTaskRouteDetails(tenantId.ToString(),deviceId,moduleCode,deviceDetails),
                     FeedId = MasterId.ToString(),
                     Fp = FrameCount.ToString(),
                     Fids = grabberTimeList,
@@ -1101,7 +1106,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                     queueEntity.Mod = UPmodelName;
                 }
                 
-                string response = taskRouter.SendMessageToQueue(tenantId.ToString(), deviceId, moduleCode, queueEntity);
+                string response=taskRouter.SendMessageToQueue(tenantId.ToString(),deviceId,moduleCode,queueEntity,deviceDetails);
                 if (string.IsNullOrEmpty(response))
                 {
                     if (PushMessageFailureCount > MaxFailureCount)
@@ -1151,8 +1156,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                 {
                     if (debugImageFilePath != null && Directory.Exists(debugImageFilePath))
                     {
-                        Image image = Image.FromStream(file);
-                        image.Save(debugImageFilePath + fileName);
+                        file.Position = 0;
+                        using (var debugMs = new MemoryStream()) {
+                            file.CopyTo(debugMs);
+                            using (Mat debugMat = Cv2.ImDecode(debugMs.ToArray(), ImreadModes.Color))
+                            {
+                                Cv2.ImWrite(debugImageFilePath + fileName, debugMat);
+                            }
+                        }
+                        file.Position = 0;
                     }
                 }
 
@@ -1256,45 +1268,25 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
         
         public static MemoryStream CompressImage(byte[] frame, MemoryStream imgMS, int quality)
         {
-            using (MemoryStream ms = new MemoryStream(frame))
-            {
 #if DEBUG
-                LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "CompressImage", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
+            LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start, "CompressImage", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
 #endif
-                if (quality < 0 || quality > 100)
-                    throw new ArgumentOutOfRangeException("quality must be between 0 and 100.");
+            if (quality < 0 || quality > 100)
+                throw new ArgumentOutOfRangeException("quality must be between 0 and 100.");
 
-                
-                EncoderParameter qualityParam = new EncoderParameter(System.Drawing.Imaging.Encoder.Quality, quality);
-             
-                ImageCodecInfo jpegCodec = GetEncoderInfo("image/jpeg");
-                EncoderParameters encoderParams = new EncoderParameters(1);
-                encoderParams.Param[0] = qualityParam;
-                using (Bitmap bm = new Bitmap(ms))
-                {
-                    bm.Save(imgMS, jpegCodec, encoderParams);
-                }
+            Mat mat = Cv2.ImDecode(frame, ImreadModes.Color);
+            int[] encoderParams = new int[] { (int)ImwriteFlags.JpegQuality, quality };
+            Cv2.ImEncode(".jpg", mat, out byte[] buf, encoderParams);
+            imgMS.Write(buf, 0, buf.Length);
+            imgMS.Position = 0;
+            mat.Dispose();
 #if DEBUG
-                LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_End, "CompressImage", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
+            LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_End, "CompressImage", "FrameGrabber"), LogHandler.Layer.FrameGrabber, null);
 #endif
-            }
 
             return imgMS;
         }
 
-        
-        private static ImageCodecInfo GetEncoderInfo(string mimeType)
-        {
-            
-            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageEncoders();
-
-            
-            for (int i = 0; i < codecs.Length; i++)
-                if (codecs[i].MimeType == mimeType)
-                    return codecs[i];
-
-            return null;
-        }
 
         public static void ProcessImageAsync(Mat frame, string fileName, int sequenceNumber, int frameNumber, string Stime, string Source, string Ffp, string Ltsize, string Lfp, string videoFileName)//Added Additional properties for new iva request
         {
@@ -1307,10 +1299,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
                 try
                 {
-                    if (frame.Data != null)
+                    if (!frame.Empty())
                     {
 
-                        file = frame.ImEncode(".jpg");
+                        // Use OpenCvSharp ImEncode with quality param — GDI+ (CompressImage/Gdip) 
+                        if (FrameCompressPercent > 0 && FrameCompressPercent < 100)
+                        {
+                            file = frame.ImEncode(".jpg", new OpenCvSharp.ImageEncodingParam(OpenCvSharp.ImwriteFlags.JpegQuality, FrameCompressPercent));
+                        }
+                        else
+                        {
+                            file = frame.ImEncode(".jpg");
+                        }
 
                         DateTime st = DateTime.UtcNow;
                         Stopwatch sw = Stopwatch.StartNew();
@@ -1325,15 +1325,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                         bool status = false;
                         using (MemoryStream img = new MemoryStream())
                         {
-                            
-                            if (FrameCompressPercent == 0 || FrameCompressPercent == 100)
-                            {
-                                img.Write(file, 0, file.Length);
-                            }
-                            else
-                            {
-                                CompressImage(file, img, FrameCompressPercent).CopyTo(img);
-                            }
+                            img.Write(file, 0, file.Length);
 
                             if (UploadToBlob(img, fileName + ApplicationConstants.FileExtensions.jpg))
                             {
@@ -1341,7 +1333,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                                 if (!(FrameGrabberHelper.displayAllFrames && TaskRouteDS.IsMemoryDoc() && FrameGrabberHelper.lotSizeTemp > 1))
                                 {
 
-                                    var taskList = taskRouter.GetTaskRouteDetails(tenantId.ToString(), deviceId, FrameGrabber._taskCode)[FrameGrabber._taskCode];
+                                    var taskList=taskRouter.GetTaskRouteDetails(tenantId.ToString(),deviceId,FrameGrabber._taskCode,deviceDetails)[FrameGrabber._taskCode];
                                     foreach (var task in taskList)
                                     {
                                         byte[] pcdBytes = Array.Empty<byte>();
@@ -1509,12 +1501,12 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             frameInformation.Model = modelName;
             queueEntity.Data = JsonConvert.SerializeObject(frameInformation);
 
-            var taskList = taskRouter.GetTaskRouteDetails(FrameGrabberHelper.tenantId.ToString(),
-                FrameGrabberHelper.deviceId, FrameGrabber._taskCode)[FrameGrabber._taskCode];
+            var taskList=taskRouter.GetTaskRouteDetails(FrameGrabberHelper.tenantId.ToString(),
+            FrameGrabberHelper.deviceId,FrameGrabber._taskCode,deviceDetails)[FrameGrabber._taskCode];
 
             foreach (string moduleCode in taskList)
             {
-                taskRouter.SendMessageToQueue(tenantId.ToString(), deviceId, moduleCode, queueEntity);
+                taskRouter.SendMessageToQueue(tenantId.ToString(),deviceId,moduleCode,queueEntity,deviceDetails);
             }
         }
 
@@ -1546,10 +1538,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
 
                 try
                 {
-                    if (frame.Data != null)
+                    if (!frame.Empty())
                     {
 
-                        file = frame.ImEncode(".jpg");
+                        Cv2.ImEncode(".jpg", frame, out file);
 
                         DateTime st = DateTime.UtcNow;
                         Stopwatch sw = Stopwatch.StartNew();
@@ -1578,7 +1570,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
                                 bool memdoc = TaskRouteDS.IsMemoryDoc();
                                
 
-                                var taskList = taskRouter.GetTaskRouteDetails(tenantId.ToString(), deviceId, FrameGrabber._taskCode)[FrameGrabber._taskCode];
+                                var taskList=taskRouter.GetTaskRouteDetails(tenantId.ToString(),deviceId,FrameGrabber._taskCode,deviceDetails)[FrameGrabber._taskCode];
                                 foreach (var task in taskList)
                                 {
                                     byte[] pcdBytes = Array.Empty<byte>();
@@ -1710,5 +1702,30 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent
             }
         }
 
+        public static DeviceDetails UpdateEnvironmentVariables(DeviceDetails deviceDetails)
+        {
+            LIFAdapter adapter = new LIFAdapter();
+            Dictionary<string, string?> environmentValues = new Dictionary<string, string?>();
+            int retry = deviceDetails.EnvironmentAdapterRetryLimit;
+            while (retry > 0)
+            {
+                try
+                {
+                    adapter.GetEnvironmentVariables(ApplicationConstants.ENVIRONMENT_REGION, out environmentValues);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    retry--;
+                    LogHandler.LogError("Error while assigning environment variables, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.FrameGrabber, ex.Message, ex.InnerException, ex.StackTrace);
+                    if (retry == 0)
+                    {
+                        LogHandler.LogError("Exception in environment adapter, exception: {0}, inner exception: {1}, stack trace: {2}", LogHandler.Layer.FrameGrabber, ex.Message, ex.InnerException, ex.StackTrace);
+                    }
+                }
+            }
+            deviceDetails = BusinessComponent.Helper.UpdateConfigValues(environmentValues, deviceDetails);
+            return deviceDetails;
+        }
     }
 }

@@ -11,6 +11,9 @@ using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using FG = Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent.FrameGrabber;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute;
 using Infosys.Solutions.Ainauto.VideoAnalytics.AIModels;
+using System.Collections.Generic;
+using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
+using System.Linq;
 
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
@@ -20,9 +23,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         private string _taskCode;
         public FrameGrabberProcess() { }
 
-        public FrameGrabberProcess(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
+        public FrameGrabberProcess(string processId,Dictionary<string,string> arguments) {
+            FG.arguments=arguments;
+            _taskCode=TaskRoute.GetTaskCode(processId,arguments);
         }
         public override void Dump(TableDetails message)
         {

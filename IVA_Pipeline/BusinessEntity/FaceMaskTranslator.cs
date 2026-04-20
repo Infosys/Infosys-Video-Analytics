@@ -50,6 +50,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity
                     beMessage.Lfp = message.Lfp;
                     beMessage.videoFileName = message.videoFileName;
                     beMessage.Pcd=message.Pcd;
+                    beMessage.Base64=message.Base64;
+                    beMessage.Mtp=message.Mtp;
                     beMessage.Msk_img = message.Msk_img;
                     beMessage.Rep_img = message.Rep_img;
                     beMessage.Prompt = message.Prompt;
@@ -81,7 +83,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity
                 {
                     dataMessage.Fs = new List<DE.PersonDetails>();
                 }
-                dataMessage.Fs.AddRange(msg.Fs);
+                if(msg.Fs != null)
+                {
+                    dataMessage.Fs.AddRange(msg.Fs);
+                }
                 deMessage.Fs = new DE.Predictions[dataMessage.Fs.Count];
                 for (var i = 0; i < dataMessage.Fs.Count; i++)
                 {
@@ -120,13 +125,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity
                 deMessage.Obase_64 = msg.Obase_64;
                 deMessage.Img_url = msg.Img_url;
                 deMessage.Ad = msg.Ad;
+                deMessage.Mtp=msg.Mtp;
             }
             deMessage.Tid = dataMessage.Tid;
             deMessage.Did = dataMessage.Did;
             deMessage.Fid = dataMessage.Fid;
             deMessage.Fids = dataMessage.Fids;
             deMessage.Fp = dataMessage.Fp;
-            deMessage.Mtp = dataMessage.Mtp;
             
             deMessage.Sbu = dataMessage.Sbu;
             deMessage.SequenceNumber = dataMessage.SequenceNumber;
@@ -174,44 +179,45 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity
             var msg = JsonConvert.DeserializeObject<DE.ObjectDetectorAPIResMessage>(message);
             deMessage.Fs = new List<DE.Predictions>();
 
-            if (message != null)
+            if (message != null && msg != null && msg.Fs != null)
             {
                 
                 for (var i = 0; i < msg.Fs.Count; i++)
                 {
-                    deMessage.Fs[i] = new();
+                    var pred = new DE.Predictions();
 
                     if (msg.Fs[i].Dm.X != null && msg.Fs[i].Dm.Y != null && msg.Fs[i].Dm.W != null && msg.Fs[i].Dm.H != null)
                     {
-                        deMessage.Fs[i].Dm = msg.Fs[i].Dm;
+                        pred.Dm = msg.Fs[i].Dm;
                         
-                        deMessage.Fs[i].Dm.X = msg.Fs[i].Dm.X;
-                        deMessage.Fs[i].Dm.Y = msg.Fs[i].Dm.Y;
-                        deMessage.Fs[i].Dm.W = msg.Fs[i].Dm.W;
-                        deMessage.Fs[i].Dm.H = msg.Fs[i].Dm.H;
+                        pred.Dm.X = msg.Fs[i].Dm.X;
+                        pred.Dm.Y = msg.Fs[i].Dm.Y;
+                        pred.Dm.W = msg.Fs[i].Dm.W;
+                        pred.Dm.H = msg.Fs[i].Dm.H;
                     }
 
                     
                     if (msg.Fs[i].Kp != null)
                     {
-                        deMessage.Fs[i].Kp = msg.Fs[i].Kp;
+                        pred.Kp = msg.Fs[i].Kp;
                     }
 
                     if (msg.Fs[i].Tpc != null)
                     {
-                        deMessage.Fs[i].Tpc = msg.Fs[i].Tpc;
+                        pred.Tpc = msg.Fs[i].Tpc;
                     }
                     if (msg.Fs[i].Bpc != null)
                     {
-                        deMessage.Fs[i].Bpc = msg.Fs[i].Bpc;
+                        pred.Bpc = msg.Fs[i].Bpc;
                     }
 
-                    deMessage.Fs[i].Info = msg.Fs[i].Info;
-                    deMessage.Fs[i].Cs = msg.Fs[i].Cs;
-                    deMessage.Fs[i].NoObj = msg.Fs[i].Nobj;
-                    deMessage.Fs[i].Uid = msg.Fs[i].Uid;
-                    deMessage.Fs[i].Lb = msg.Fs[i].Lb;
+                    pred.Info = msg.Fs[i].Info;
+                    pred.Cs = msg.Fs[i].Cs;
+                    pred.NoObj = msg.Fs[i].Nobj;
+                    pred.Uid = msg.Fs[i].Uid;
+                    pred.Lb = msg.Fs[i].Lb;
 
+                    deMessage.Fs.Add(pred);
                 }
 
                 deMessage.Tid = message1.Tid;

@@ -35,9 +35,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Processes
         {
 
         }
-        public PromptHandlerProcess(string processId)
-        {
-            _taskCode = TaskRoute.GetTaskCode(processId);
+        public PromptHandlerProcess(string processId,Dictionary<string,string> arguments) {
+            _taskCode=TaskRoute.GetTaskCode(processId,arguments);
         }
 
         public override void Dump(TableDetails message)

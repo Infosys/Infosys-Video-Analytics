@@ -65,15 +65,6 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     memoryStream.Dispose();
                 }
                 
-
-
-
-                
-
-
-
-
-                
                 if (modelParameters.FrameNumber > 1)
                 {
                     Queue result = (Queue)cache.Get(cacheKey);
@@ -101,16 +92,21 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     Msg_ver = modelParameters.Msg_ver,
                     Inf_ver = modelParameters.Inf_ver,
                     Model = modelParameters.ModelName,
-                    Per = perValue,
+                    Per = null,
                     Ad = " ",
-                    Base_64 = base64_image, /* For yolov7 */
-                    C_threshold = modelParameters.ConfidenceThreshold, // for yolov7
-
+                    Base_64 = new List<string>() { base64_image },// for yolov7
+                    Roi_c = modelParameters.Roi_c,
+                    C_threshold = modelParameters.ConfidenceThreshold,
                     Ffp = modelParameters.Ffp,
                     Ltsize = modelParameters.Ltsize,
                     Lfp = modelParameters.Lfp,
                     I_fn = modelParameters.videoFileName,
-                    Hp = modelParameters.Hp
+                    Msk_img = modelParameters.Msk_img == null ? new List<string>() : modelParameters.Msk_img,
+                    Rep_img = modelParameters.Rep_img == null ? new List<string>() : modelParameters.Rep_img,
+                    Hp = modelParameters.Hp,
+                    Xai_ver = "",
+                    Xai_explainers = new List<string>(),
+                    Xai_url = ""
                 };
                 if (modelParameters.Fs != null)
                 {
@@ -129,30 +125,9 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     reqMsg.Prompt.Add(list);
                 }
 
-                
-
-                #region  Commenting old response part for testing new response structure
-                /*
-                var apiResponse = ServiceCaller.ApiCaller(reqMsg, baseUrl +"/"+ modelname, "POST");
-
-                var response = JsonConvert.DeserializeObject<List<PersonCountAPIResMsg>>(apiResponse);
-                metadata = JsonConvert.SerializeObject(response);
-                */
-                #endregion
-
                 ObjectDetectorAPIResMsg response = null;
 
                 var apiResponse = ServiceCaller.ApiCaller(reqMsg, modelParameters.BaseUrl + "/" + modelParameters.ModelName, "POST").Result;
-
-                #region Testing for new changes for IVA request/response structure
-                /*
-               var apiResponse = "";
-               using (StreamReader r = new StreamReader(@"D:\\I\\TestProject\\TestControl\\iphone\\ObjectDetectionApi\\api_response.json"))
-               {
-                   apiResponse = r.ReadToEnd();
-               }
-                */
-                #endregion
 
                 if (!string.IsNullOrEmpty(apiResponse))
                 {

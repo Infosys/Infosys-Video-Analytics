@@ -29,17 +29,25 @@ using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.TaskRoute;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessScheduler.Framework;
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
+using System.Collections.Generic;
+using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessScheduler
 {
     public class Tasks
     {
         private static AppSettings appSettings=Config.AppSettings;
-        DeviceDetails deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.FrameRendererCode);
-        public void InitialiseComponent(int robotId, int runInstanceId, int robotTaskMapId)
-        {
+        static DeviceDetails deviceDetails;
+        public void InitialiseComponent(int robotId,int runInstanceId,int robotTaskMapId,Dictionary<string,string> arguments) {
             try
             {
+                deviceDetails=ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.FrameRendererCode,arguments);
+                if(arguments!=null && arguments.Count>0) {
+                    string argsType=arguments[arguments.Keys.First()];
+                    if(argsType.ToLower()=="values") {
+                        deviceDetails=Helper.UpdateConfigValues(arguments,deviceDetails);
+                    }
+                }
                 const string PROCESS_STARTMETHOD = "Start";
 
                 string directory = System.IO.Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
@@ -125,7 +133,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ProcessSchedul
                     Type type = assembly.GetType(process.FullClassName);
                     
                     File.AppendAllText(deviceDetails.ProcessLoaderTraceFile,$"{DateTime.Now} || Information || Trying to create object of class: {process.FullClassName} from assembly: {process.Dll}...\n");
-                    object obj = Activator.CreateInstance(type, process.Id);
+                    object obj=Activator.CreateInstance(type,process.Id,arguments);
 
                     
 

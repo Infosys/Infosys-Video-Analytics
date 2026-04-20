@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Runtime.InteropServices;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
+using OpenCvSharp;
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent;
-using System.Drawing;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Collections;
@@ -24,7 +24,6 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using System.Linq;
 using System.Security.Cryptography;
-using OpenCvSharp;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent {
     public static class PcdHandler {
@@ -47,10 +46,18 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent {
         static string Ffp=null;
         static string Lfp=null;
         static string LtSize=null;
+        public static Dictionary<string,string> arguments;
+        public static DeviceDetails deviceDetails;
 
         public static void ReadFromConfig() {
             AppSettings appSettings=Config.AppSettings;
-            DeviceDetails deviceDetails=TR.ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.PcdHandlerCode);
+            deviceDetails=TR.ConfigHelper.SetDeviceDetails(appSettings.TenantID.ToString(),appSettings.DeviceID,CacheConstants.PcdHandlerCode,arguments);
+            if(arguments!=null && arguments.Count>0) {
+                string type=arguments[arguments.Keys.First()];
+                if(type.ToLower()=="values") {
+                    deviceDetails=Helper.UpdateConfigValues(arguments,deviceDetails);
+                }
+            }
             if(deviceDetails.DBEnabled!=null) {
                 isDBEnabled=deviceDetails.DBEnabled;
             }
@@ -60,7 +67,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.BusinessComponent {
             TR.TaskRoute taskRouter=new TR.TaskRoute();
             isMemoryDoc=TaskRouteDS.IsMemoryDoc();
             List<string> moduleList=new List<string>{TaskRouteConstants.PcdHandlerCode};
-            if(taskRouter.AllowTaskRouting(PcdHandlerHelper.tenantId.ToString(),PcdHandlerHelper.deviceId,moduleList)) {
+            if(taskRouter.AllowTaskRouting(PcdHandlerHelper.tenantId.ToString(),PcdHandlerHelper.deviceId,moduleList,deviceDetails)) {
                 #if DEBUG
                 LogHandler.LogInfo(String.Format(InfoMessages.Method_Execution_Start,"Main","PcdHandler"),
                 LogHandler.Layer.PcdHandler,null);

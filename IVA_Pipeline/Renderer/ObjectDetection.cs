@@ -3,13 +3,12 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-using OpenCvSharp;
+﻿using OpenCvSharp;
 using Infosys.Solutions.Ainauto.VideoAnalytics.BusinessEntity;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Resource.Entity.Queue;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
 using Newtonsoft.Json.Linq;
 using static Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common.ApplicationConstants;
-using System.Drawing;
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
 {
@@ -21,15 +20,15 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
             Rect rectangle = new Rect();
             Scalar color = new Scalar();
             #region Added background color from Device.json
-            Color clBgColor = Color.FromName(deviceDetails.BackgroundColor);
-            Color clBgColorPredictCartList = Color.FromName(deviceDetails.RendererPredictCartListBackgroundColor);
+            Scalar clBgColor = ColorHelper.ColorNameToScalar(deviceDetails.BackgroundColor);
+            Scalar clBgColorPredictCartList = ColorHelper.ColorNameToScalar(deviceDetails.RendererPredictCartListBackgroundColor);
             #endregion
             string label = "";
             if (deviceDetails.ObjectDetectionRendering.Equals("yes", StringComparison.InvariantCultureIgnoreCase))
             {
                 try
                 {
-                    Color color2 = new Color();
+                    Scalar color2 = new Scalar();
                     for (var i = 0; i < objectList.Count; i++)
                     {
                         Predictions face = objectList[i];
@@ -38,7 +37,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
                         {
                             label = face.Lb.ToLower();
                         }
-                        else
+                        else if (face.Pid != null)
                         {
                             label = face.Pid.ToLower();
                         }
@@ -48,7 +47,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
                         if (colorJson[label] != null)
                         {
                             pencolor = colorJson[label].ToString();
-                            color2 = Color.FromName(pencolor);
+                            color2 = ColorHelper.ColorNameToScalar(pencolor);
                         }
                         else
                         {
@@ -58,21 +57,28 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
                                 if (face.Np.ToLower() == "yes")
                                 {
                                     pencolor = colorJson["new_person"].ToString();
-                                    color2 = Color.FromName(pencolor);
+                                    color2 = ColorHelper.ColorNameToScalar(pencolor);
                                 }
                                 else
                                 {
                                     pencolor = colorJson["default"].ToString();
-                                    color2 = Color.FromName(pencolor);
+                                    color2 = ColorHelper.ColorNameToScalar(pencolor);
                                 }
                             }
                             else
                             {
                                 pencolor = colorJson["default"].ToString();
-                                color2 = Color.FromName(pencolor);
+                                color2 = ColorHelper.ColorNameToScalar(pencolor);
                             }
                         }
-                        color = new Scalar(color2.B, color2.G, color2.R);
+                        if (!string.IsNullOrEmpty(objectList[i].Info))
+                        {
+                            if (deviceDetails.DisplayPredictionInfo)
+                            {
+                                label = objectList[i].Info;
+                            }
+                        }
+                        color = color2;
                        
                         if (box != null)
                         {
@@ -87,38 +93,42 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Renderer
                             rectangle = new Rect(x, y, w, h);
                            
                             Scalar background = new Scalar(0, 0, 0);
-                            OpenCvSharp.Size size1 = image.Size();
+                            Size size1 = image.Size();
                             if (modelName.ToLower() == "templatematching")
                             {
                                 double angle = Convert.ToDouble(face.Info);
-                                //image = image.Rotate(angle, background, false);
-                                Point2f center = new Point2f(image.Width / 2.0f, image.Height / 2.0f);
-                                InputArray rotationMatrix = Cv2.GetRotationMatrix2D(center, angle, 1.0);
-                                Mat rotatedImage = new Mat();
-                                Cv2.WarpAffine(image, rotatedImage, rotationMatrix, image.Size());
-                                image = rotatedImage;
+                                var center = new Point2f(image.Width / 2f, image.Height / 2f);
+                                var rotMat = Cv2.GetRotationMatrix2D(center, angle, 1.0);
+                                Cv2.WarpAffine(image, image, rotMat, image.Size());
+                                
                             }
-                            Cv2.Rectangle(image, rectangle, color, deviceDetails.PenThickness);
-                            
-                            rectangle = new Rect(x, y - deviceDetails.LabelHeight, w, deviceDetails.LabelHeight);
-                            Cv2.Rectangle(image, rectangle, color, deviceDetails.PenThickness);
-                            Cv2.Rectangle(image, rectangle, color, -1);
-                            OpenCvSharp.Point point3 = new OpenCvSharp.Point(x, y - deviceDetails.LabelHeight + 12);
-                            Color color3 = Color.FromName(deviceDetails.LabelFontColor);
-                            color = new Scalar(color3.B, color3.G, color3.R);
+                            Mat overlay=image.Clone();
+                            Cv2.Rectangle(image,rectangle,color,deviceDetails.PenThickness);
+                            rectangle=new Rect(x,y-deviceDetails.LabelHeight,w,deviceDetails.LabelHeight);
+                            Cv2.Rectangle(image,rectangle,color,deviceDetails.PenThickness);
+                            Cv2.Rectangle(image,rectangle,color,-1);
+                            double alpha=deviceDetails.RendererBackgroundTransparency;
+                            if(alpha!=0) {
+                                Cv2.AddWeighted(image,alpha,overlay,1-alpha,0,image);
+                            }
+                            overlay.Dispose();
+                            Point point3=new Point(x,y-deviceDetails.LabelHeight+16);
+                            Scalar color3 = ColorHelper.ColorNameToScalar(deviceDetails.LabelFontColor);
+                            color = color3;
                             Cv2.PutText(image, label, point3, HersheyFonts.HersheySimplex, deviceDetails.RendererFontScale, color, deviceDetails.RendererFontThickness);
                             if (modelName.ToLower() == "templatematching")
                             {
                                 double angle = Convert.ToDouble(face.Info);
-                                Point2f center = new Point2f(image.Width / 2.0f, image.Height / 2.0f);
-                                //image = image.Rotate(-angle, background, false);
-
-                                OpenCvSharp.Size size2 = image.Size();
+                                var center = new Point2f(image.Width / 2f, image.Height / 2f);
+                                var rotMat = Cv2.GetRotationMatrix2D(center, -angle, 1.0);
+                                Cv2.WarpAffine(image, image, rotMat, image.Size());
+                                
+                                Size size2 = image.Size();
                                 int x1 = (size2.Width - size1.Width) / 2;
                                 int y1 = (size2.Height - size1.Height) / 2;
                                 Rect roi = new Rect(x1, y1, size1.Width, size1.Height);
                                 image = new Mat(image, roi);
-
+                               
                             }
                             
                         }

@@ -68,7 +68,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     Model = modelParameters.ModelName,
                     Per = null,
                     Ad = " ",
-                    Base_64 = base64_image,// for yolov7
+                    Base_64 = new List<string>() { base64_image },// for yolov7
                     C_threshold = modelParameters.ConfidenceThreshold, // for yolov7
 
                          Ffp = modelParameters.Ffp,

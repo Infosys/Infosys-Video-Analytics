@@ -3,7 +3,7 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -41,7 +41,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             return true;
         }
 
-        
+
 
         public override string MakePrediction(Stream st, ModelParameters modelParameters)
         {
@@ -57,13 +57,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
             {
                 LogHandler.LogUsage(String.Format("AICloudObjectDetectionInferenceAPI MakePrediction is getting executed at : {0}", DateTime.UtcNow.ToLongTimeString()), null);
 #endif
-                string base64_image = ""; 
-                                          
+                string base64_image = "";
+
                 if (st != null)
                 {
                     st.Position = 0;
                     byte[] image_byte_array;
-                    
+
 
 
 
@@ -74,7 +74,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                         memoryStream.Dispose();
                     }
                 }
-                    
+
                 ObjectDetectorAPIReqMsgAICloud reqMsg = new ObjectDetectorAPIReqMsgAICloud();
                 reqMsg.instances = new List<ObjectDetectorImageBytesMsgAICloud>();
                 ObjectDetectorImageBytesMsgAICloud imgBytesMsg = new ObjectDetectorImageBytesMsgAICloud();
@@ -94,7 +94,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     Model = modelParameters.ModelName,
                     Per = null,
                     Ad = " ",
-                    Base_64 = base64_image,// for yolov7
+                    Base_64 = new List<string>() { base64_image },// for yolov7, ROI changes BASE_64 to list of string
                     C_threshold = modelParameters.ConfidenceThreshold, // for yolov7  
                     Ffp = modelParameters.Ffp,
                     Ltsize = modelParameters.Ltsize,
@@ -104,14 +104,14 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     I_fn = modelParameters.videoFileName,
                     Hp = modelParameters.Hp
 
-                    
+
                 };
-                
-                    objectDetectorAPIReqMsg.Prompt = new List<List<string>>();
-                    List<string> list = new List<string>();
-                    list.Add(modelParameters.Prompt);
-                    objectDetectorAPIReqMsg.Prompt.Add(list);
-                
+
+                objectDetectorAPIReqMsg.Prompt = new List<List<string>>();
+                List<string> list = new List<string>();
+                list.Add(modelParameters.Prompt);
+                objectDetectorAPIReqMsg.Prompt.Add(list);
+
                 imgBytesMsg.image_bytes = objectDetectorAPIReqMsg;
                 reqMsg.instances.Add(imgBytesMsg);
                 MakePredictionRequestAsync(reqMsg, Convert.ToDouble(modelParameters.ConfidenceThreshold), modelParameters.BaseUrl, modelParameters.AuthenticationUrl, modelParameters.Host, modelParameters.TokenCacheExpirationTime).GetAwaiter().GetResult();
@@ -152,10 +152,10 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                     client.DefaultRequestHeaders.Add("Cookie", token);
                     client.DefaultRequestHeaders.Add("Accept", "*/*");
                     HttpResponseMessage httpresponse;
-                    
+
                     string jsonprompt = objectDetectorAPIReqMsgAICloud.instances[0].image_bytes.Prompt[0][0];
                     string entireobject = JsonConvert.SerializeObject(objectDetectorAPIReqMsgAICloud);
-                    
+
                     var content = new StringContent(jsonprompt, Encoding.UTF8, "application/json");
                     content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                     httpresponse = await client.PostAsync(baseUrl, content);
@@ -185,8 +185,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
 
         public async Task<string> GetAuthenticationToken(string authenticationUrl)
         {
-            
-            if(!string.IsNullOrEmpty(authenticationUrl))
+
+            if (!string.IsNullOrEmpty(authenticationUrl))
             {
                 try
                 {
@@ -196,13 +196,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.AIModels
                         string response = "";
 
                         HttpResponseMessage httpresponse;
-                       
+
                         client.DefaultRequestHeaders
                   .Accept
                   .Add(new MediaTypeWithQualityHeaderValue("application/json"));
                         httpresponse = await client.PostAsync(authenticationUrl, null);
                         response = await httpresponse.Content.ReadAsStringAsync();
-                        
+
 
                         return response;
                     }

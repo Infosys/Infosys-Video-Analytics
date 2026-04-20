@@ -3,18 +3,15 @@
  * Use of this source code is governed by Apache License Version 2.0 that can be found in the LICENSE file or at  *
  * http://www.apache.org/licenses/                                                                                *
  * ===============================================================================================================*/
+﻿using OpenCvSharp;
 using Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.Common;
-using OpenCvSharp;
-using OpenCvSharp.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Point = OpenCvSharp.Point;
 using static Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVisionLib.Core.Utilities;
-using System.Linq.Expressions;
 
 
 namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVisionLib.Core
@@ -43,7 +40,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
             TemplateMatching[] elementRectTemp;
             DateTime startTime = DateTime.Now;
-            Mat sourceMatches = new Mat();
+            Mat sourceMatches = null;
             try
             {
                 if (timeout == 0)
@@ -52,7 +49,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     forever = true;
                 if (System.IO.File.Exists(filename))
                 {
-                    Mat template = new Mat(filename, ImreadModes.Grayscale);
+                    Mat template = Cv2.ImRead(filename, ImreadModes.Grayscale);                    
                     bool backgroundProcessing = false;
                     
                     while ((forever && currentCount == 0) || (System.DateTime.Now - startTime).TotalMilliseconds <= timeout * 1000 ||
@@ -61,24 +58,23 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         currentCount = rects.Count;
                         if (currentCount > 0)
                             forever = false;
-                        Mat source = new Mat();
+                        Mat source = null;
                         if (sourceImageToMatch != null)
                         {                           
-                            var bmp = new Bitmap(sourceImageToMatch);
-                            source = BitmapConverter.ToMat(bmp);
+                            sourceImageToMatch.Position = 0;
+                            using (var ms = new MemoryStream()) { sourceImageToMatch.CopyTo(ms); source = Cv2.ImDecode(ms.ToArray(), ImreadModes.Grayscale); }
 
                             backgroundProcessing = true;
                             if (enableTemplateMatchMap)
                             {
                                 if (templateMatchMapScreen != null)
                                 {
-                                    var btmp = new Bitmap(new MemoryStream(templateMatchMapScreen));
-                                    sourceMatches = BitmapConverter.ToMat(btmp);
+                                    sourceMatches = Cv2.ImDecode(templateMatchMapScreen, ImreadModes.Color);
                                 }
                                 else
                                 {
-                                    var btmp = new Bitmap(sourceImageToMatch);
-                                    sourceMatches = BitmapConverter.ToMat(btmp);
+                                    sourceImageToMatch.Position = 0;
+                                    using (var ms2 = new MemoryStream()) { sourceImageToMatch.CopyTo(ms2); sourceMatches = Cv2.ImDecode(ms2.ToArray(), ImreadModes.Color); }
 
                                 }
                             }
@@ -88,16 +84,16 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         {
                             boxes.ForEach(b =>
                             {
-                                Cv2.FillConvexPoly(source, b, new Scalar(0, 0, 0));
+                                Cv2.FillConvexPoly(source, b, new Scalar(0));
                             });
-                            Cv2.Polylines(sourceMatches, boxes, true, new Scalar(TemplateMatchMapBorderColor.Blue, TemplateMatchMapBorderColor.Green, TemplateMatchMapBorderColor.Red), TemplateMatchMapBorderThickness);
-                            //boxes.ForEach(b =>
-                            //{
+                            boxes.ForEach(b =>
+                            {
 
-                            //    sourceMatches.DrawPolyline(b, true,
-                            //        new Bgr(TemplateMatchMapBorderColor.Blue, TemplateMatchMapBorderColor.Green, TemplateMatchMapBorderColor.Red),
-                            //        TemplateMatchMapBorderThickness);
-                            //});
+                                Cv2.Polylines(sourceMatches, new[]{b}, true,
+                                    new Scalar(TemplateMatchMapBorderColor.Blue, TemplateMatchMapBorderColor.Green, TemplateMatchMapBorderColor.Red),
+                                    TemplateMatchMapBorderThickness);
+
+                            });
 
                         }
                         if (multipleScaleMatching)
@@ -209,21 +205,26 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             if (enableTemplateMatchMap)
             {
                 if (sourceMatches != null)
-                    templateMatchMapScreen = sourceMatches.ImEncode(".jpg");
+                {
+                    Cv2.ImEncode(".jpg", sourceMatches, out byte[] encoded);
+                    templateMatchMapScreen = encoded;
+                }
             }
             return rects;
         }
 
         private Mat ResizeTemplate(Mat template, double scale)
         {
-            Mat resizedTemplate = new Mat();
+            Mat resizedTemplate = null;
             try
             {
                 if (scale == 0)
+                    
                     return null;
                 else if (scale < 0)
                 {
-                    scale = 1 / (scale);
+                    scale = 1 / (scale);  
+                                         
                 }
                 if (scale < 0.5) 
                     return null;
@@ -231,7 +232,8 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                 if (template.Width * template.Height < 250)
                     return template;
 
-                resizedTemplate = template.Resize(new OpenCvSharp.Size(), scale, scale, InterpolationFlags.Lanczos4);
+                resizedTemplate = new Mat();
+                Cv2.Resize(template, resizedTemplate, new OpenCvSharp.Size(0, 0), scale, scale, InterpolationFlags.Lanczos4);
 
                 if (resizedTemplate.Width * resizedTemplate.Height < 250)
                     return null;
@@ -248,23 +250,30 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             TemplateMatching[] objTemplates = null;
             try
             {
-                confidence = confidence / 100;
-
-                using (Mat result = source.MatchTemplate(template, TemplateMatchModes.CCoeffNormed)) //Functionality of this needs to be checked and validated
+                confidence = confidence / 100; 
+                
+                using (Mat result = new Mat())
                 {
-                    double minValues, maxValues;
-                    Point minLocations, maxLocations;
-                    result.MinMaxLoc(out minValues, out maxValues, out minLocations, out maxLocations);
-                    objTemplates = new TemplateMatching[1];
-
-                    if ((maxValues <= 1.0) && (maxValues >= confidence))
+                    Cv2.MatchTemplate(source, template, result, TemplateMatchModes.CCoeffNormed);
+                    Cv2.MinMaxLoc(result, out double minValue, out double maxValue, out Point minLocation, out Point maxLocation);
+                    double[] minValues = new[] { minValue };
+                    double[] maxValues = new[] { maxValue };
+                    Point[] minLocations = new[] { minLocation };
+                    Point[] maxLocations = new[] { maxLocation };
+                    objTemplates = new TemplateMatching[maxValues.Count()];
+                    for (int iCount = 0; iCount < maxValues.Count(); iCount++)
                     {
-                        Rectangle rect = new Rectangle(maxLocations.X, maxLocations.Y, template.Size().Width, template.Size().Height);
-                        TemplateMatching objTemplate = new TemplateMatching();
-                        objTemplate.BoundingBox = rect;
-                        objTemplate.ConfidenceScore = maxValues;
-                        objTemplates.SetValue(objTemplate, 0);
+
+                        if ((maxValues[iCount] <= 1.0) && (maxValues[iCount] >= confidence))
+                        {                              
+                            Rect rect = new Rect(maxLocations[0].X, maxLocations[0].Y, template.Width, template.Height);
+                            TemplateMatching objTemplate = new TemplateMatching();
+                            objTemplate.BoundingBox = rect;
+                            objTemplate.ConfidenceScore = maxValues[iCount];
+                            objTemplates.SetValue(objTemplate, iCount);
+                        }
                     }
+
                 }
             }
             catch (Exception ex)
@@ -286,7 +295,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             
             TemplateMatching[] elementRectTemp;
 
-            Mat sourceMatches = new Mat();
+            Mat sourceMatches = null;
             DateTime startTime = DateTime.Now;
             try
             {
@@ -297,7 +306,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                     forever = true;
                 if (System.IO.File.Exists(filename))
                 {
-                    Mat template = new Mat(filename);
+                    Mat template = Cv2.ImRead(filename, ImreadModes.Color);
                     bool backgroundProcessing = false;
 
                     
@@ -309,12 +318,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         if (currentCount > 0)
                             forever = false;
 
-                        Mat source = new Mat();
+                        Mat source = null;
                         if (sourceImageToMatch != null)
                         {
-                            
-                            var bmp = new Bitmap(sourceImageToMatch);
-                            source = BitmapConverter.ToMat(bmp);
+                            sourceImageToMatch.Position = 0;
+                            using (var ms = new MemoryStream()) { sourceImageToMatch.CopyTo(ms); source = Cv2.ImDecode(ms.ToArray(), ImreadModes.Color); }
                             backgroundProcessing = true;
                         }
                         
@@ -322,13 +330,11 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                         {
                             if (templateMatchMapScreen != null)
                             {                               
-                                var btmp = new Bitmap(new MemoryStream(templateMatchMapScreen));
-                                sourceMatches = BitmapConverter.ToMat(btmp);
+                                sourceMatches = Cv2.ImDecode(templateMatchMapScreen, ImreadModes.Color);
                             }
                             else
                             {                               
-                                var btmp = source.ToBitmap();
-                                sourceMatches = BitmapConverter.ToMat(btmp);
+                                sourceMatches = source.Clone();
                             }
 
                         }
@@ -339,14 +345,13 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                             {
                                 Cv2.FillConvexPoly(source, b, new Scalar(0, 0, 0));
                             });
-                            Cv2.Polylines(sourceMatches, boxes, true, new Scalar(TemplateMatchMapBorderColor.Blue, TemplateMatchMapBorderColor.Green, TemplateMatchMapBorderColor.Red), TemplateMatchMapBorderThickness);
-                            //boxes.ForEach(b =>
-                            //{
-                            //    sourceMatches.DrawPolyline(b, true,
-                            //        new Bgr(TemplateMatchMapBorderColor.Blue, TemplateMatchMapBorderColor.Green, TemplateMatchMapBorderColor.Red),
-                            //        TemplateMatchMapBorderThickness);
+                            boxes.ForEach(b =>
+                            {
+                                Cv2.Polylines(sourceMatches, new[]{b}, true,
+                                    new Scalar(TemplateMatchMapBorderColor.Blue, TemplateMatchMapBorderColor.Green, TemplateMatchMapBorderColor.Red),
+                                    TemplateMatchMapBorderThickness);
 
-                            //});
+                            });
                         }
                         if (multipleScaleMatching)
                         {
@@ -363,6 +368,7 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
                                 {
                                    
                                     elementRectTemp = FindRectanglesInTrueColor(source, templateTemp, confidence);
+
                                     if (elementRectTemp?.Count() > 0)
                                     {
                                        
@@ -461,18 +467,21 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             if (enableTemplateMatchMap)
             {
                 if (sourceMatches != null)
-                    templateMatchMapScreen = sourceMatches.ImEncode(".jpg");
+                {
+                    Cv2.ImEncode(".jpg", sourceMatches, out byte[] encoded);
+                    templateMatchMapScreen = encoded;
+                }
             }
             return rects;
         }      
 
-        private Point[] RectToBox(Rectangle rectangle)
+        private Point[] RectToBox(Rect rectangle)
         {
             Point[] box = null;
-            if (rectangle != Rectangle.Empty)
+            if (rectangle.Width > 0 || rectangle.Height > 0)
             {
-                Point topLeft = new Point((int)rectangle.X, (int)rectangle.Y);
-                Point bottomRight = new Point(topLeft.X + (int)rectangle.Width, topLeft.Y + (int)rectangle.Height);
+                Point topLeft = new Point(rectangle.X, rectangle.Y);
+                Point bottomRight = new Point(topLeft.X + rectangle.Width, topLeft.Y + rectangle.Height);
                 Point topRight = new Point(bottomRight.X, topLeft.Y);
                 Point bottomLeft = new Point(topLeft.X, bottomRight.Y);
                 box = new Point[] { topRight, topLeft, bottomLeft, bottomRight };
@@ -482,18 +491,20 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
 
         private Mat ResizeTemplateInTrueColor(Mat template, double scale)
         {
-            Mat resizedTemplate = new Mat();
+            Mat resizedTemplate = null;
             try
             {
                 if (scale == 0)
                     return null;
                 else if (scale < 0)
                 {
-                    scale = 1 / (scale);
+                    scale = 1 / (scale); 
+                                         
                 }
                 if (scale < 0.5) 
                     return null;
-                resizedTemplate = template.Resize(new OpenCvSharp.Size(), scale, scale, InterpolationFlags.Lanczos4);
+                resizedTemplate = new Mat();
+                Cv2.Resize(template, resizedTemplate, new OpenCvSharp.Size(0, 0), scale, scale, InterpolationFlags.Lanczos4);
             }
             catch
             {
@@ -512,23 +523,34 @@ namespace Infosys.Solutions.Ainauto.VideoAnalytics.Infrastructure.ComputerVision
             try
             {
                 confidence = confidence / 100;
-                using (Mat result = source.MatchTemplate(template, TemplateMatchModes.CCoeffNormed))
+                using (Mat result = new Mat())
                 {
-                    double minValues, maxValues, imgMatchConfidenceScores;
-                    Point minLocations, maxLocations;
-                    result.MinMaxLoc(out minValues, out maxValues, out minLocations, out maxLocations);
-
-                    objTemplates = new TemplateMatching[1];
-
-                    if ((maxValues <= 1.0) && (maxValues >= confidence))
+                    Cv2.MatchTemplate(source, template, result, TemplateMatchModes.CCoeffNormed);
+                    Cv2.MinMaxLoc(result, out double minValue, out double maxValue, out Point minLocation, out Point maxLocation);
+                    double[] minValues = new[] { minValue };
+                    double[] maxValues = new[] { maxValue };
+                    Point[] minLocations = new[] { minLocation };
+                    Point[] maxLocations = new[] { maxLocation };
+                    
+                    objTemplates = new TemplateMatching[maxValues.Count()];
+                    
+                    for (int iCount = 0; iCount < maxValues.Count(); iCount++)
                     {
-                        Rectangle rect = new Rectangle(maxLocations.X, maxLocations.Y, template.Size().Width, template.Size().Height);
-                        TemplateMatching objTemplate = new TemplateMatching();
-                        objTemplate.BoundingBox = rect;
-                        objTemplate.ConfidenceScore = maxValues;
 
-                        objTemplates.SetValue(objTemplate, 0);
+                        if ((maxValues[iCount] <= 1.0) && (maxValues[iCount] >= confidence))
+                        {   
+                            
+
+                            Rect rect = new Rect(maxLocations[iCount].X, maxLocations[iCount].Y, template.Width, template.Height);
+                            TemplateMatching objTemplate = new TemplateMatching();
+                            objTemplate.BoundingBox = rect;
+                            objTemplate.ConfidenceScore = maxValues[iCount];
+
+                            objTemplates.SetValue(objTemplate, iCount);
+                        }
+
                     }
+
                 }
             }
             catch (Exception ex)
